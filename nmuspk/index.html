@@ -499,6 +499,29 @@
       text-align: center
     }
 
+    .sub-mode-btn {
+      position: fixed;
+      right: 1.5rem;
+      bottom: 1.5rem;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      border: 1px solid #ffffff22;
+      background: #ffffff0d;
+      color: #94a3b8;
+      font-size: 1.4rem;
+      cursor: pointer;
+      transition: all .25s ease;
+      z-index: 5
+    }
+
+    .sub-mode-btn:hover {
+      color: #fff;
+      border-color: #ffffff55;
+      background: #ffffff1a;
+      transform: scale(1.08)
+    }
+
     @media(max-width:700px) {
       body {
         overflow: auto
@@ -591,6 +614,14 @@
       .question-detail .detail-question {
         font-size: 1.35rem
       }
+
+      .sub-mode-btn {
+        right: 1rem;
+        bottom: 1rem;
+        width: 42px;
+        height: 42px;
+        font-size: 1.2rem
+      }
     }
 
     @media(max-width:380px) {
@@ -648,6 +679,18 @@
       <strong>
         选择题库：
       </strong>
+      <label>
+        <input checked="" name="cat" type="radio" value="郑艳军语录"/>
+        郑艳军语录
+      </label>
+      <label>
+        <input name="cat" type="radio" value="郑艳军经历"/>
+        郑艳军经历
+      </label>
+      <label>
+        <input name="cat" type="radio" value="郑艳军管理下的生存方法论"/>
+        郑艳军管理下的生存方法论
+      </label>
       <label>
         <input name="cat" type="radio" value="郑治综合"/>
         郑治综合
@@ -809,6 +852,11 @@
       </div>
     </section>
   </main>
+
+  <button class="sub-mode-btn" onclick="randomMatch(10)" title="随机十题挑战（副模式）">
+    ⚡
+  </button>
+
   <script src="/rosters.js"></script>
   <script src="/questions.js"></script>
   <script>
@@ -822,8 +870,9 @@
     banks["郑治综合"] = comprehensiveBank;
 
     /* ====== 比赛参数 ====== */
-    const matchQuestions = 20,
+    const defaultMatchQuestions = 20,
       seconds = 15;
+    let matchQuestions = defaultMatchQuestions;
 
     let category = "郑艳军语录",
       classType = "行政班",
@@ -863,7 +912,7 @@
     }
 
     function selectedCategory() {
-      return document.querySelector('input[name="cat"]:checked').value;
+      return document.querySelector('input[name="cat"]:checked').value
     }
 
     function refreshClassOptions() {
@@ -875,17 +924,17 @@
         const o = document.createElement('option');
         o.value = k;
         o.textContent = k;
-        select.appendChild(o);
+        select.appendChild(o)
       });
       if (rosters[classType][old]) select.value = old;
-      selectedClassName = select.value || '';
+      selectedClassName = select.value || ''
     }
 
     function currentRoster() {
       classType = "行政班";
       const activeClass = document.getElementById('classSelect')?.value || selectedClassName;
       selectedClassName = activeClass;
-      return rosters[classType]?.[activeClass] || [];
+      return rosters[classType]?.[activeClass] || []
     }
 
     function syncClassSelection() {
@@ -894,19 +943,20 @@
       return {
         classType,
         selectedClassName
-      };
+      }
     }
 
     function updateMatchDialog() {
-      const titlePrefix = mode === 'random' ? '随机匹配' : '自选挑战';
+      const titlePrefix = mode === 'random10' ? '十题挑战' : (mode === 'random' ? '随机匹配' : '自选挑战');
       const classInfo = selectedClassName ? (' · ' + selectedClassName) : ' · 自定义';
-      document.getElementById('matchTitle').textContent = titlePrefix + classInfo + ' · ' + category;
+      document.getElementById('matchTitle').textContent = titlePrefix + classInfo + ' · ' + category + ' · ' + matchQuestions + '题';
       document.getElementById('m1').textContent = players[0] || '—';
-      document.getElementById('m2').textContent = players[1] || '—';
+      document.getElementById('m2').textContent = players[1] || '—'
     }
 
     function openSelfMatch() {
       category = selectedCategory();
+      matchQuestions = defaultMatchQuestions;
       document.getElementById('player1Input').value = '';
       document.getElementById('player2Input').value = '';
       document.getElementById('selfHint').textContent = '请输入两位选手名称';
@@ -915,7 +965,7 @@
     }
 
     function closeSelfMatch() {
-      document.getElementById('selfMatch').style.display = 'none';
+      document.getElementById('selfMatch').style.display = 'none'
     }
 
     function confirmSelfMatch() {
@@ -924,11 +974,11 @@
 
       if (!p1 || !p2) {
         alert('请输入两位选手的姓名');
-        return;
+        return
       }
       if (p1 === p2) {
         alert('两位选手不能同名，请重新输入');
-        return;
+        return
       }
 
       players = [p1, p2];
@@ -942,7 +992,7 @@
       const roster = currentRoster();
       if (roster.length < 2) {
         alert('当前班级至少需要两名学生');
-        return null;
+        return null
       }
       if (randomWindow.type !== classType || randomWindow.selectedClassName !== selectedClassName || randomWindow.rounds >= 5) {
         randomWindow = {
@@ -950,7 +1000,7 @@
           selectedClassName,
           used: new Set(),
           rounds: 0
-        };
+        }
       }
       let available = roster.filter(n => !randomWindow.used.has(n));
       if (available.length < 2) {
@@ -960,7 +1010,7 @@
           used: new Set(),
           rounds: 0
         };
-        available = [...roster];
+        available = [...roster]
       }
       const pair = [...available].sort(() => Math.random() - .5).slice(0, 2);
       pair.forEach(n => randomWindow.used.add(n));
@@ -971,52 +1021,52 @@
           selectedClassName,
           used: new Set(),
           rounds: 0
-        };
+        }
       }
-      return pair;
+      return pair
     }
 
-    function randomMatch() {
+    function randomMatch(questionCount) {
       syncClassSelection();
       if (!selectedClassName) {
         alert('请先选择班级');
-        return;
+        return
       }
       category = selectedCategory();
       const pair = randomPair();
       if (!pair) return;
-      mode = 'random';
+      mode = questionCount === 10 ? 'random10' : 'random';
       players = pair;
+      matchQuestions = questionCount || defaultMatchQuestions;
       updateMatchDialog();
-      document.getElementById('match').style.display = 'flex';
+      document.getElementById('match').style.display = 'flex'
     }
 
     function againMatch() {
       if (mode === 'self') {
-        startGame();
+        startGame()
       } else {
         const pair = randomPair();
         if (pair) {
           players = pair;
           updateMatchDialog();
-          startGame();
+          startGame()
         }
       }
     }
 
     function closeMatch() {
-      document.getElementById('match').style.display = 'none';
+      document.getElementById('match').style.display = 'none'
     }
-
     refreshClassOptions();
 
     function shuffleOptions(options) {
       const a = [...options];
       for (let i = a.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
-        [a[i], a[j]] = [a[j], a[i]];
+        [a[i], a[j]] = [a[j], a[i]]
       }
-      return a;
+      return a
     }
 
     function makeDifferentOrder(options, first) {
@@ -1024,18 +1074,18 @@
         tries = 0;
       while (next.join('\u0001') === first.join('\u0001') && tries < 12) {
         next = shuffleOptions(options);
-        tries++;
+        tries++
       }
       if (next.join('\u0001') === first.join('\u0001') && next.length > 1)[next[0], next[1]] = [next[1], next[0]];
-      return next;
+      return next
     }
 
     function buildOptionOrders() {
       return qset.map(q => {
         const blue = shuffleOptions(q.opts);
         const red = makeDifferentOrder(q.opts, blue);
-        return [blue, red];
-      });
+        return [blue, red]
+      })
     }
 
     function uniqueQuestions(list) {
@@ -1045,36 +1095,61 @@
         const key = String(q.text || '').replace(/\s+/g, '').trim();
         if (!seen.has(key)) {
           seen.add(key);
-          out.push(q);
+          out.push(q)
         }
       }
-      return out;
+      return out
     }
 
-    function drawQuestions() {
-      const pool = uniqueQuestions([...banks[category]].sort(() => Math.random() - .5));
+    function drawQuestions(excludeTexts) {
+      const pool = uniqueQuestions(
+        [...banks[category]]
+          .filter(q => !excludeTexts || !excludeTexts.has(q.text))
+          .sort(() => Math.random() - .5)
+      );
       if (pool.length < matchQuestions) {
-        alert('当前题库去重后不足20道不同题目，请更换题库后再开始比赛。');
-        return null;
+        alert('当前题库去重后不足 ' + matchQuestions + ' 道不同题目，请更换题库后再开始比赛。');
+        return null
       }
-      return pool.slice(0, matchQuestions);
+      return pool.slice(0, matchQuestions)
     }
 
     function startGame() {
-      const drawn = drawQuestions();
-      if (!drawn) return;
+      let drawnP1, drawnP2;
+      if (mode === 'random10') {
+        drawnP1 = drawQuestions();
+        if (!drawnP1) return;
+        const used = new Set(drawnP1.map(q => q.text));
+        drawnP2 = drawQuestions(used);
+        if (!drawnP2) return;
+      } else {
+        drawnP1 = drawQuestions();
+        if (!drawnP1) return;
+        drawnP2 = drawnP1;
+      }
+
       primeAudio();
       closeMatch();
       document.getElementById('setup').style.display = 'none';
       document.getElementById('p1name').textContent = players[0];
       document.getElementById('p2name').textContent = players[1];
-      qset = drawn;
-      optionOrders = buildOptionOrders();
+
+      qset = [drawnP1, drawnP2];
+
+      if (mode === 'random10') {
+        optionOrders = [
+          drawnP1.map(q => shuffleOptions(q.opts)),
+          drawnP2.map(q => shuffleOptions(q.opts))
+        ];
+      } else {
+        optionOrders = buildOptionOrders();
+      }
+
       states = [newState(), newState()];
       document.getElementById('p1win').style.display = 'none';
       document.getElementById('p2win').style.display = 'none';
       render(0);
-      render(1);
+      render(1)
     }
 
     function newState() {
@@ -1084,7 +1159,7 @@
         finished: false,
         answers: [],
         timeUsed: 0
-      };
+      }
     }
 
     function render(i) {
@@ -1096,20 +1171,20 @@
         clearInterval(timers[i]);
         renderResults(i);
         checkOver();
-        return;
+        return
       }
-      let q = qset[s.current];
+      let q = qset[i][s.current];
       qbox.innerHTML = '<small>第 ' + (s.current + 1) + ' / ' + matchQuestions + ' 题 · ' + players[i] + '</small>' + q.text.replace('____', '<span style="border-bottom:3px dashed #fff;display:inline-block;min-width:90px">?</span>');
       obox.className = 'opts ' + (q.opts.some(o => Array.from(o).length > 8) ? 'one-col' : 'two-col');
       obox.innerHTML = '';
-      optionOrders[s.current][i].forEach(o => {
+      optionOrders[i][s.current].forEach(o => {
         let b = document.createElement('button');
         b.className = 'opt';
         b.textContent = o;
         b.onclick = () => answer(i, o, q);
-        obox.appendChild(b);
+        obox.appendChild(b)
       });
-      startTimer(i);
+      startTimer(i)
     }
 
     function startTimer(i) {
@@ -1122,9 +1197,9 @@
         document.getElementById('p' + (i + 1) + 'fill').style.width = Math.max(0, left / seconds * 100) + '%';
         if (left <= 0) {
           clearInterval(timers[i]);
-          answer(i, null, qset[states[i].current]);
+          answer(i, null, qset[i][states[i].current])
         }
-      }, 100);
+      }, 100)
     }
 
     function answer(i, choice, q) {
@@ -1139,10 +1214,10 @@
       });
       if (ok) {
         s.score += 5;
-        document.getElementById('p' + (i + 1) + 'score').textContent = s.score;
+        document.getElementById('p' + (i + 1) + 'score').textContent = s.score
       }
       s.current++;
-      setTimeout(() => render(i), 260);
+      setTimeout(() => render(i), 260)
     }
 
     function renderResults(i) {
@@ -1150,13 +1225,13 @@
         qbox = document.getElementById('p' + (i + 1) + 'q'),
         obox = document.getElementById('p' + (i + 1) + 'opts');
       obox.innerHTML = '';
-      qbox.innerHTML = '<strong>' + players[i] + ' · 作答结果</strong><div class="result-list">' + s.answers.map((a, n) => '<button type="button" class="result-item ' + (a.correct ? '' : 'wrong') + '" onclick="event.stopPropagation();window.showQuestionDetail(' + i + ',' + n + ')">第' + (n + 1) + '题：' + (a.correct ? '回答正确' : '回答错误') + (a.correct ? '' : '<span class="correction">正确答案：' + a.answer + '</span>') + '</button>').join('') + '</div>';
+      qbox.innerHTML = '<strong>' + players[i] + ' · 作答结果</strong><div class="result-list">' + s.answers.map((a, n) => '<button type="button" class="result-item ' + (a.correct ? '' : 'wrong') + '" onclick="event.stopPropagation();window.showQuestionDetail(' + i + ',' + n + ')">第' + (n + 1) + '题：' + (a.correct ? '回答正确' : '回答错误') + (a.correct ? '' : '<span class="correction">正确答案：' + a.answer + '</span>') + '</button>').join('') + '</div>'
     }
 
     function getReasoning(question, answer) {
       const q = String(question || '');
       if (q.includes('郑艳军')) return '郑艳军牛NB666';
-      return '郑艳军牛逼666。';
+      return '郑艳军牛逼666。'
     }
 
     function showQuestionDetail(playerIndex, questionIndex) {
@@ -1169,21 +1244,20 @@
       const reasoning = document.getElementById('detailReasoning');
       if (a.correct) {
         reasoning.innerHTML = '';
-        reasoning.style.display = 'none';
+        reasoning.style.display = 'none'
       } else {
         reasoning.innerHTML = '<strong>判断思路：</strong>' + getReasoning(a.question, a.answer);
-        reasoning.style.display = 'block';
+        reasoning.style.display = 'block'
       }
       modal.style.display = 'flex';
       modal.style.visibility = 'visible';
-      modal.style.opacity = '1';
+      modal.style.opacity = '1'
     }
-    window.showQuestionDetail = showQuestionDetail;
+    window.showQuestionDetail = showQuestionDetail
 
     function closeQuestionDetail() {
-      document.getElementById('questionDetail').style.display = 'none';
+      document.getElementById('questionDetail').style.display = 'none'
     }
-
     async function saveRecord(name, i) {
       try {
         let sdk = await window.MuskCollectLoader.getInstance();
@@ -1197,15 +1271,14 @@
           questionResults: states[i].answers.map(a => ({
             ...a,
             knowledgePoint: a.question
-          })),
+          }), ),
           opponentName: players[1 - i],
           timestamp: new Date().toISOString()
-        });
+        })
       } catch (e) {
         // 保存失败不影响使用，静默忽略
       }
     }
-
     async function checkOver() {
       if (!states[0].finished || !states[1].finished) return;
       let win = states[0].score > states[1].score ? 0 : states[1].score > states[0].score ? 1 : states[0].timeUsed < states[1].timeUsed ? 0 : states[1].timeUsed < states[0].timeUsed ? 1 : -1;
@@ -1213,23 +1286,24 @@
       document.getElementById('p2win').style.display = win === 1 ? 'block' : win === -1 ? 'block' : 'none';
       document.getElementById('resultTitle').textContent = win === -1 ? '本场平局' : '比赛结束';
       document.getElementById('winner').textContent = win === -1 ? '平局' : players[win];
-      document.getElementById('winnerScore').textContent = win === -1 ? '双方均得 ' + states[0].score + ' 分' : states[win].score + ' 分';
+      document.getElementById('winnerScore').textContent = (win === -1 ? '双方均得 ' + states[0].score + ' 分' : states[win].score + ' 分') + '（共 ' + matchQuestions + ' 题）';
       document.getElementById('result').style.display = 'flex';
       document.getElementById('returnHome').style.display = 'none';
       playEliminationSound();
       saveRecord(players[0], 0);
       saveRecord(players[1], 1);
-      fireworks();
+      fireworks()
     }
 
     function showAnswerResults() {
       document.getElementById('result').style.display = 'none';
       document.getElementById('returnHome').style.display = 'none';
       document.getElementById('resultActions').style.display = 'flex';
-      document.getElementById('againButton').textContent = '再来一轮';
+      document.getElementById('againButton').textContent = '再来一轮'
     }
 
     function closeResult() {
+      matchQuestions = defaultMatchQuestions;
       document.getElementById('result').style.display = 'none';
       document.getElementById('returnHome').style.display = 'none';
       document.getElementById('resultActions').style.display = 'none';
@@ -1241,7 +1315,7 @@
       document.getElementById('p1name').textContent = '未匹配';
       document.getElementById('p2name').textContent = '未匹配';
       document.getElementById('p1opts').innerHTML = '';
-      document.getElementById('p2opts').innerHTML = '';
+      document.getElementById('p2opts').innerHTML = ''
     }
 
     function fireworks() {
@@ -1268,11 +1342,11 @@
           p.l--;
           x.globalAlpha = Math.max(0, p.l / 80);
           x.fillStyle = p.col;
-          x.fillRect(p.x, p.y, 4, 4);
+          x.fillRect(p.x, p.y, 4, 4)
         });
-        if (ps.some(p => p.l > 0)) requestAnimationFrame(f);
+        if (ps.some(p => p.l > 0)) requestAnimationFrame(f)
       };
-      f();
+      f()
     }
   </script>
 </body>
