@@ -2,18 +2,17 @@
   /* ================== 工具 ================== */
   let red = Symbol("red");
   let blue = Symbol("blue");
+  let timeoutWin = false;   // 是否是超时获胜
 
   function isRiver(i, j) {
     return i >= 1 && i <= 5 && i !== 3 && j >= 3 && j <= 5;
   }
 
   function crossRiver(x1, y1, x2, y2) {
-    // 横向跳：列 2 ↔ 列 6
     if (x1 === x2 && Math.abs(y1 - y2) === 4) {
       if (y1 === 2 && y2 === 6 && (x1 === 1 || x1 === 2 || x1 === 4 || x1 === 5)) return true;
       if (y2 === 2 && y1 === 6 && (x1 === 1 || x1 === 2 || x1 === 4 || x1 === 5)) return true;
     }
-    // 竖向跳：行 0 ↔ 行 3（上片河），行 3 ↔ 行 6（下片河）
     if (y1 === y2 && Math.abs(x1 - x2) === 3) {
       if (x1 === 0 && x2 === 3 && (y1 === 3 || y1 === 4 || y1 === 5)) return true;
       if (x2 === 0 && x1 === 3 && (y1 === 3 || y1 === 4 || y1 === 5)) return true;
@@ -30,10 +29,11 @@
     this.x = x;
     this.y = y;
   }
+  // 修正：鼠吃象
   Chess.prototype.compareTo = function (chess) {
-    if (chess.type === 8 && this.type === 1) return -1;
-    if (chess.type === 1 && this.type === 8) return 1;
-    return chess.type - this.type;
+    if (chess.type === 1 && this.type === 8) return 1;   // 鼠吃象
+    if (chess.type === 8 && this.type === 1) return -1;  // 象不能吃鼠
+    return chess.type - this.type;                        // 数值小者吃数值大者
   };
   Chess.prototype.toChar = function () {
     return ["人", "象", "狮", "虎", "豹", "狼", "狗", "猫", "鼠"][this.type];
@@ -162,7 +162,6 @@
             const target = idx >= 0 ? ctrl.model.chesses[idx] : null;
 
             if (target && target.color !== piece.color) {
-              // 同级也吃，所以 >= 0
               const canEat = (piece.compareTo(target) >= 0) || ctrl.inTrap(target);
               if (canEat) {
                 this.chessCand[x][y].classList.add("chess-attack-target");
@@ -375,8 +374,25 @@
     }
     overlay.innerHTML = "";
 
-    const ICON = { 1: "🐭", 2: "🐱", 3: "🐶", 4: "🐺", 5: "🐆", 6: "🐯", 7: "🦁", 8: "🐘" };
-    const iconChar = piece ? (ICON[piece.type] || "🏆") : "🏆";
+    // 修正：type 1 是象，type 8 是鼠
+    const ICON = {
+      1: "🐘",
+      2: "🦁",
+      3: "🐯",
+      4: "🐆",
+      5: "🐺",
+      6: "🐶",
+      7: "🐱",
+      8: "🐭"
+    };
+    let iconChar;
+    if (timeoutWin) {
+      iconChar = "⏰";
+    } else if (piece) {
+      iconChar = ICON[piece.type] || "🏆";
+    } else {
+      iconChar = "🏆";
+    }
 
     overlay.style.background =
       winner === "red"
@@ -452,9 +468,6 @@
           // 有敌人
           let nowSelected = model.chesses[selectedChessIndex];
           let result = previousSelected.compareTo(nowSelected);
-          // result > 0：大号吃小号
-          // result == 0：同级互吃（谁动谁活）
-          // inTrap：对方在陷阱，任意吃
           if (result >= 0 || controller.inTrap(nowSelected)) {
             playCaptureAnim(i, j);
             playEatSound();
@@ -470,7 +483,6 @@
               return;
             }
           }
-          // result < 0：不能吃，什么都不做
         }
       }
     }
@@ -507,6 +519,7 @@
         window.stopClock();
         if (window.controller) {
           const winner = window.controller.model.player === red ? "blue" : "red";
+          timeoutWin = true;   // 标记超时
           window.controller.callback(winner, null);
         }
       }
@@ -663,9 +676,11 @@
     window.startFireworks();
     document.getElementById("winnerName").textContent =
       winner === "red" ? "🏆 郑艳军获胜" : "🏆 刘刚获胜";
-    document.getElementById("winnerInfo").textContent = "恭喜！";
+    document.getElementById("winnerInfo").textContent =
+      timeoutWin ? "对方超时判负！" : "恭喜！";
     setTimeout(() => {
       document.getElementById("result").style.display = "flex";
+      timeoutWin = false;
     }, 1200);
   };
 }
