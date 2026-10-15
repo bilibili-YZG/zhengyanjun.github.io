@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>404 · 页面没找到</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --blue: #3b82f6;
+      --red: #ef4444;
+      --yellow: #fde047;
+      --text: #f8fafc;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      height: 100vh;
+      overflow: hidden;
+      background: radial-gradient(circle at 50% 30%, #1e293b, #0f172a 70%);
+      color: var(--text);
+      font-family: "Noto Sans SC", Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 0 1.5rem;
+    }
+    .logo {
+      font-size: 5rem;
+      font-weight: 900;
+      font-style: italic;
+      background: linear-gradient(90deg, var(--blue), var(--red));
+      color: transparent;
+      background-clip: text;
+      -webkit-background-clip: text;
+      letter-spacing: .04em;
+      margin-bottom: .5rem;
+    }
+    .code {
+      font-size: 7rem;
+      font-weight: 900;
+      line-height: 1;
+      background: linear-gradient(90deg, var(--blue), var(--red));
+      color: transparent;
+      background-clip: text;
+      -webkit-background-clip: text;
+      margin: 0;
+    }
+    .title {
+      font-size: 2rem;
+      font-weight: 900;
+      margin: .8rem 0 .6rem;
+      letter-spacing: .04em;
+    }
+    .desc {
+      color: #94a3b8;
+      font-size: 1.1rem;
+      margin-bottom: 2.5rem;
+      line-height: 1.6;
+    }
+    .home-btn {
+      display: inline-block;
+      padding: 1rem 2.8rem;
+      border-radius: 999px;
+      border: none;
+      background: #fff;
+      color: #0f172a;
+      font-size: 1.2rem;
+      font-weight: 900;
+      text-decoration: none;
+      cursor: pointer;
+      transition: transform .2s ease, box-shadow .2s ease;
+      font-family: inherit;
+    }
+    .home-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 0 30px #ffffff55;
+    }
+    .footer {
+      position: fixed;
+      bottom: 1.5rem;
+      color: #475569;
+      font-size: .85rem;
+      letter-spacing: .05em;
+    }
+    @media (max-width: 700px) {
+      .code { font-size: 5rem; }
+      .logo { font-size: 3.5rem; }
+      .title { font-size: 1.5rem; }
+      .desc { font-size: .95rem; }
+      .home-btn { font-size: 1rem; padding: .8rem 2rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="logo">VS</div>
+  <h1 class="code">404</h1>
+  <h2 class="title">页面没找到</h2>
+  <p class="desc">老郑可能迷路了<br>快带他坐15号线回家吧</p>
+  <a class="home-btn" href="/">返回北京15号线地铁站</a>
+  <div class="footer">© 郑艳军理论 · 双人PK赛</div>
+</body>
+</html>
