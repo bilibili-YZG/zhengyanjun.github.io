@@ -1,122 +1,1105 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>郑艳军大战刘刚 · 斗兽棋</title>
   <link rel="icon" href="/icon.png" type="image/png">
-  <title>郑艳军理论 · 双人PK赛</title>
   <style>
     :root {
-      --bg: #0f172a;
+      --bg-1: #0f172a;
+      --bg-2: #1e293b;
       --blue: #3b82f6;
+      --blue-2: #60a5fa;
       --red: #ef4444;
+      --red-2: #f87171;
+      --yellow: #fde047;
       --text: #f8fafc;
+      --river: #1e3a8a;
+      --river-2: #2563eb;
+      --trap: #7c3aed;
+      --den: #fbbf24
     }
-    * { box-sizing: border-box; }
-    body {
+    * { box-sizing: border-box }
+
+    html, body {
       margin: 0;
-      height: 100vh;
-      overflow: hidden;
-      background: radial-gradient(circle at 50% 30%, #1e293b, #0f172a 70%);
+      min-height: 100vh;
+      background: radial-gradient(circle at 50% 20%, var(--bg-2), var(--bg-1) 75%);
       color: var(--text);
       font-family: "Noto Sans SC", Arial, sans-serif;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      overflow-x: hidden
+    }
+
+    body {
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
+      padding: 1rem
     }
-    .logo {
-      font-size: 5rem;
+
+    h1.title {
+      font-size: 1.6rem;
       font-weight: 900;
-      font-style: italic;
-      background: linear-gradient(90deg, var(--blue), var(--red));
-      color: transparent;
-      background-clip: text;
+      margin: 0 0 .6rem;
+      letter-spacing: .08em;
+      background: linear-gradient(90deg, var(--red-2), var(--yellow), var(--blue-2));
+      background-size: 200% 100%;
       -webkit-background-clip: text;
-      margin-bottom: 1rem;
-      letter-spacing: .04em;
+      background-clip: text;
+      color: transparent;
+      animation: shine 6s linear infinite
     }
-    .title {
+    @keyframes shine {
+      0% { background-position: 0% 50% }
+      100% { background-position: 200% 50% }
+    }
+
+    .statusbar {
+      display: flex;
+      align-items: center;
+      gap: .8rem;
+      margin-bottom: .8rem;
+      font-size: .95rem;
+      font-weight: 800;
+      flex-wrap: wrap;
+      justify-content: center
+    }
+
+    .turn-badge {
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+      padding: 6px 16px;
+      border-radius: 999px;
+      font-size: .95rem;
+      background: #ffffff10;
+      border: 1px solid #ffffff22;
+      backdrop-filter: blur(6px);
+      transition: all .35s ease
+    }
+    .turn-badge.red-active {
+      background: linear-gradient(90deg, #ef444433, #ef444422);
+      border-color: #ef4444aa;
+      box-shadow: 0 0 24px #ef444466
+    }
+    .turn-badge.blue-active {
+      background: linear-gradient(90deg, #3b82f633, #3b82f622);
+      border-color: #3b82f6aa;
+      box-shadow: 0 0 24px #3b82f666
+    }
+    .turn-badge .dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: #94a3b8;
+      transition: all .3s
+    }
+    .turn-badge.red-active .dot { background: var(--red); box-shadow: 0 0 12px var(--red) }
+    .turn-badge.blue-active .dot { background: var(--blue); box-shadow: 0 0 12px var(--blue) }
+
+    .clock {
+      display: flex;
+      align-items: center;
+      gap: .4rem;
+      padding: 6px 14px;
+      border-radius: 999px;
+      background: #ffffff10;
+      border: 1px solid #ffffff22;
+      font-variant-numeric: tabular-nums;
+      transition: all .3s
+    }
+    .clock.red-active { border-color: #ef4444aa; box-shadow: 0 0 16px #ef444444 }
+    .clock.blue-active { border-color: #3b82f6aa; box-shadow: 0 0 16px #3b82f644 }
+    .clock.warning {
+      color: #fca5a5;
+      animation: clockBlink .8s ease-in-out infinite
+    }
+    @keyframes clockBlink {
+      0%, 100% { opacity: 1 }
+      50% { opacity: .4 }
+    }
+
+    .board-wrap {
+      position: relative;
+      padding: 6px;
+      border-radius: 18px;
+      background: linear-gradient(145deg, #1e293b, #0f172a);
+      box-shadow:
+        0 0 0 1px #ffffff10,
+        0 20px 60px #000000aa,
+        inset 0 0 40px #00000055;
+      animation: boardAppear .8s cubic-bezier(.2,.9,.3,1.2)
+    }
+    @keyframes boardAppear {
+      0% { opacity: 0; transform: scale(.85) rotateX(15deg) }
+      100% { opacity: 1; transform: scale(1) rotateX(0) }
+    }
+
+    .board {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 3px;
+      background: #334155;
+      padding: 5px;
+      border-radius: 14px
+    }
+
+    .cell {
+      width: 50px;
+      height: 50px;
+      border-radius: 10px;
+      background: #1e293b;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      font-weight: 900;
+      cursor: pointer;
+      color: #fff;
+      transition: transform .12s ease, box-shadow .2s ease, background .25s ease;
+      will-change: transform
+    }
+
+    .cell:hover { transform: scale(1.08); z-index: 2 }
+
+    .cell.river {
+      background: linear-gradient(135deg, var(--river), var(--river-2));
+      background-size: 200% 200%;
+      animation: riverFlow 4s ease-in-out infinite
+    }
+    @keyframes riverFlow {
+      0%, 100% { background-position: 0% 50% }
+      50% { background-position: 100% 50% }
+    }
+    .cell.trap {
+      background: repeating-linear-gradient(
+        45deg,
+        #7c3aed,
+        #7c3aed 6px,
+        #6d28d9 6px,
+        #6d28d9 12px
+      );
+      background-size: 200% 200%;
+      animation: trapSpin 8s linear infinite
+    }
+    @keyframes trapSpin {
+      0% { background-position: 0% 0% }
+      100% { background-position: 100% 100% }
+    }
+    .cell.den {
+      background: radial-gradient(circle, #fde047, #f59e0b 70%);
+      box-shadow: inset 0 0 12px #b45309, 0 0 20px #fde04766;
+      animation: denGlow 2s ease-in-out infinite alternate;
+      font-size: 1.6rem;
+      font-weight: 900
+    }
+    @keyframes denGlow {
+      0% { box-shadow: inset 0 0 12px #b45309, 0 0 12px #fde04744 }
+      100% { box-shadow: inset 0 0 18px #b45309, 0 0 28px #fde04788 }
+    }
+    .cell.den-red  { color: #7f1d1d }
+    .cell.den-blue { color: #1e3a8a }
+
+    .cell.p1 {
+      background: radial-gradient(circle at 30% 30%, #fca5a5, #ef4444 70%);
+      box-shadow: inset 0 2px 4px #ffffff55, inset 0 -2px 4px #7f1d1d, 0 2px 6px #00000055
+    }
+    .cell.p2 {
+      background: radial-gradient(circle at 30% 30%, #93c5fd, #3b82f6 70%);
+      box-shadow: inset 0 2px 4px #ffffff55, inset 0 -2px 4px #1e3a8a, 0 2px 6px #00000055
+    }
+    .cell.p1, .cell.p2 { animation: piecePop .35s ease }
+    @keyframes piecePop {
+      0% { transform: scale(.3); opacity: 0 }
+      60% { transform: scale(1.15) }
+      100% { transform: scale(1); opacity: 1 }
+    }
+
+    .cell.selected {
+      outline: 3px solid var(--yellow);
+      box-shadow: 0 0 24px var(--yellow);
+      animation: selectedPulse 1.2s ease-in-out infinite
+    }
+    @keyframes selectedPulse {
+      0%, 100% { box-shadow: 0 0 12px var(--yellow) }
+      50% { box-shadow: 0 0 28px var(--yellow) }
+    }
+
+    .cell.move-target::after {
+      content: '';
+      position: absolute;
+      inset: 30%;
+      border-radius: 50%;
+      background: #fde047;
+      opacity: .85;
+      animation: targetPulse .9s ease-in-out infinite
+    }
+    @keyframes targetPulse {
+      0%, 100% { transform: scale(.85); opacity: .7 }
+      50% { transform: scale(1.1); opacity: 1 }
+    }
+
+    .cell.attack-target {
+      outline: 3px solid var(--red-2);
+      box-shadow: 0 0 24px var(--red-2)
+    }
+    .cell.attack-target::after {
+      content: '⚔';
+      position: absolute;
+      font-size: 1.2rem;
+      color: #fff;
+      text-shadow: 0 0 6px #000;
+      animation: targetPulse .9s ease-in-out infinite
+    }
+
+    @media(max-width:600px) {
+      .cell { width: 38px; height: 38px; font-size: 1.1rem }
+      h1.title { font-size: 1.2rem }
+    }
+    @media(max-width:420px) {
+      .cell { width: 30px; height: 30px; font-size: .9rem; border-radius: 7px }
+    }
+
+    .msg {
+      margin-top: .8rem;
+      font-size: .95rem;
+      color: #cbd5e1;
+      min-height: 1.4rem;
+      text-align: center;
+      max-width: 95vw;
+      transition: color .25s
+    }
+    .msg.highlight { color: var(--yellow); font-weight: 800 }
+
+    .legend {
+      font-size: .75rem;
+      color: #94a3b8;
+      margin-top: .5rem;
+      text-align: center;
+      line-height: 1.7;
+      max-width: 92vw
+    }
+
+    /* 顶部按钮组 */
+    .top-actions {
+      display: flex;
+      gap: .6rem;
+      margin-bottom: .8rem
+    }
+    .mini-btn {
+      border: 1px solid #ffffff33;
+      background: #ffffff0d;
+      color: #cbd5e1;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-size: .85rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all .2s
+    }
+    .mini-btn:hover {
+      background: #ffffff1a;
+      color: #fff;
+      border-color: #ffffff55
+    }
+
+    /* 遮罩弹窗 */
+    .overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 20;
+      background: #020617cc;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 1.5rem;
+      animation: fadeIn .4s ease
+    }
+    @keyframes fadeIn {
+      from { opacity: 0 }
+      to { opacity: 1 }
+    }
+    .card {
+      position: relative;
+      z-index: 22;
+      background: linear-gradient(145deg, #172554, #3f1d3d);
+      border: 4px solid var(--yellow);
+      border-radius: 28px;
+      padding: 2rem 2.5rem;
+      box-shadow: 0 0 80px #3b82f655, 0 0 120px #fde04733;
+      max-width: min(540px, 92vw);
+      animation: cardAppear .5s cubic-bezier(.2,.9,.3,1.3);
+      max-height: 85vh;
+      overflow-y: auto
+    }
+    @keyframes cardAppear {
+      0% { opacity: 0; transform: scale(.7) translateY(30px) }
+      100% { opacity: 1; transform: scale(1) translateY(0) }
+    }
+    .card h2 { color: var(--yellow); font-size: 1.7rem; margin: 0 0 1rem }
+    .card .winner {
+      font-size: 2.4rem;
+      font-weight: 900;
+      color: var(--yellow);
+      margin: 1rem 0;
+      text-shadow: 0 0 24px #fde04788;
+      animation: winnerGlow 1.6s ease-in-out infinite alternate
+    }
+    @keyframes winnerGlow {
+      0% { text-shadow: 0 0 12px #fde04766 }
+      100% { text-shadow: 0 0 32px #fde047cc }
+    }
+    .card .info { color: #cbd5e1; font-size: 1rem; margin-bottom: 1.5rem; line-height: 1.7 }
+
+    .btn {
+      border: 0;
+      border-radius: 999px;
+      padding: .9rem 2.2rem;
+      font-size: 1.05rem;
+      font-weight: 900;
+      cursor: pointer;
+      background: #fff;
+      color: #0f172a;
+      transition: transform .15s, box-shadow .2s
+    }
+    .btn:hover {
+      transform: scale(1.06);
+      box-shadow: 0 0 24px #ffffff88
+    }
+    .btn + .btn { margin-left: .8rem }
+    .btn.ghost {
+      background: transparent;
+      border: 2px solid #ffffff44;
+      color: #fff
+    }
+    .btn.ghost:hover { border-color: #fff; box-shadow: 0 0 18px #ffffff55 }
+
+    /* 开始页 */
+    .start-page {
+      text-align: center
+    }
+    .start-page h1 {
+      font-size: 2.4rem;
+      font-weight: 900;
+      margin: 0 0 .8rem;
+      background: linear-gradient(90deg, var(--red-2), var(--yellow), var(--blue-2));
+      background-size: 200% 100%;
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      animation: shine 4s linear infinite
+    }
+    .start-page .vs {
       font-size: 3rem;
       font-weight: 900;
-      letter-spacing: .04em;
-      margin: 0 0 1rem;
-      text-align: center;
+      font-style: italic;
+      background: linear-gradient(90deg, var(--red-2), var(--blue-2));
+      background-clip: text;
+      color: transparent;
+      margin-bottom: 1rem
     }
-    .subtitle {
-      color: #94a3b8;
-      font-size: 1.2rem;
-      margin-bottom: 3rem;
-      letter-spacing: .1em;
+    .start-page .desc {
+      color: #cbd5e1;
+      font-size: 1rem;
+      line-height: 1.9;
+      margin-bottom: 1.6rem
     }
-    .options {
-      display: flex;
-      gap: 2rem;
-      flex-wrap: wrap;
-      justify-content: center;
+
+    /* 规则 */
+    .rules-box {
+      text-align: left;
+      color: #cbd5e1;
+      font-size: .9rem;
+      line-height: 1.9;
+      max-width: 100%
     }
-    .option {
-      width: min(300px, 80vw);
-      padding: 2.5rem 2rem;
-      border-radius: 24px;
-      border: 3px solid #ffffff22;
-      background: #ffffff0d;
-      cursor: pointer;
-      transition: all .25s ease;
-      text-align: center;
-      color: var(--text);
-      font-family: inherit;
+    .rules-box h3 {
+      color: var(--yellow);
+      margin: 1rem 0 .4rem;
+      font-size: 1.05rem
     }
-    .option:hover { transform: translateY(-6px); }
-    .option.blue:hover {
-      border-color: #60a5fa;
-      box-shadow: 0 0 40px #3b82f655;
-      background: #3b82f620;
-    }
-    .option.red:hover {
-      border-color: #f87171;
-      box-shadow: 0 0 40px #ef444455;
-      background: #ef444420;
-    }
-    .option .icon { font-size: 3.5rem; margin-bottom: 1rem; display: block; }
-    .option .name { font-size: 1.8rem; font-weight: 900; margin-bottom: .5rem; }
-    .option .desc { font-size: .95rem; color: #94a3b8; line-height: 1.5; }
-    .footer {
+    .rules-box p { margin: .2rem 0 }
+    .rules-box ul { margin: .3rem 0 .6rem 1.2rem; padding: 0 }
+    .rules-box li { margin: .15rem 0 }
+
+    /* 烟花 */
+    #fireworks {
       position: fixed;
-      bottom: 1.5rem;
-      color: #475569;
-      font-size: .85rem;
-      letter-spacing: .05em;
-    }
-    @media (max-width: 700px) {
-      .title { font-size: 2rem; }
-      .logo { font-size: 3.5rem; }
-      .subtitle { font-size: 1rem; margin-bottom: 2rem; }
-      .option { padding: 1.8rem 1.2rem; }
-      .option .name { font-size: 1.4rem; }
-      .option .icon { font-size: 2.5rem; }
+      inset: 0;
+      z-index: 21;
+      pointer-events: none;
+      display: none
     }
   </style>
 </head>
 <body>
-  <div class="logo">VS</div>
-  <h1 class="title">郑艳军理论 · 双人PK赛</h1>
-  <p class="subtitle">请选择你的比赛版本</p>
 
-  <div class="options">
-    <button class="option blue" onclick="location.href='muspk/'">
-      <span class="icon">🎵</span>
-      <div class="name">有音乐版</div>
-      <div class="desc">超然尾杀</div>
-    </button>
+  <h1 class="title">郑艳军 大战 刘刚</h1>
 
-    <button class="option red" onclick="location.href='nmuspk/'">
-      <span class="icon">🔇</span>
-      <div class="name">无音乐版</div>
-      <div class="desc">雪豹闭嘴</div>
-    </button>
+  <div class="top-actions">
+    <button class="mini-btn" onclick="showRules()">📜 规则说明</button>
+    <button class="mini-btn" onclick="restart()">🔄 重新开始</button>
   </div>
 
-  <div class="footer">© 郑艳军理论 · 双人PK赛</div>
+  <div class="statusbar">
+    <div class="turn-badge red-active" id="turnBadge">
+      <span class="dot"></span>
+      <span id="cur">郑艳军回合</span>
+    </div>
+    <div class="clock red-active" id="clock">
+      ⏱ <span id="clockText">30</span>s
+    </div>
+  </div>
+
+  <div class="board-wrap">
+    <div class="board" id="board"></div>
+  </div>
+
+  <div class="msg" id="msg">点击「开始游戏」开始</div>
+
+  <div class="legend">
+    每步 30 秒 · 超时判负 · 先冲进对方巢穴或吃光对方棋子者获胜
+  </div>
+
+  <!-- 开始页 -->
+  <div class="overlay" id="startPage">
+    <div class="card start-page">
+      <h1>郑艳军 大战 刘刚</h1>
+      <div class="vs">VS</div>
+      <p class="desc">
+        标准斗兽棋 · 横向布局<br>
+        郑艳军在左，刘刚在右，中间是河<br>
+        每步限时 30 秒，超时判负
+      </p>
+      <button class="btn" onclick="startGame()">开始游戏</button>
+      <button class="btn ghost" onclick="showRules()" style="margin-left:.6rem">查看规则</button>
+    </div>
+  </div>
+
+  <!-- 规则页 -->
+  <div class="overlay" id="rulesPage" style="display:none">
+    <div class="card">
+      <h2>斗兽棋规则</h2>
+      <div class="rules-box">
+        <h3>🐘 棋子等级（大克小）</h3>
+        <p>象 ＞ 狮 ＞ 虎 ＞ 豹 ＞ 狼 ＞ 狗 ＞ 猫 ＞ 鼠</p>
+        <p><b>鼠可吃象</b>，象不能吃鼠。同级可以互吃。</p>
+
+        <h3>🚶 走法</h3>
+        <ul>
+          <li>每次走一格，上下左右均可</li>
+          <li>不能走进自己的巢穴</li>
+        </ul>
+
+        <h3>🌊 特殊走法</h3>
+        <ul>
+          <li><b>狮、虎跳河</b>：狮虎在河边时，可以纵横跳河，并吃掉对岸较弱棋子。若河中有对方老鼠挡路，则不能跳。</li>
+          <li><b>鼠游河</b>：只有鼠可以下水。陆地上的兽不能吃河中的鼠，河中的鼠也不能吃陆地上的象。</li>
+        </ul>
+
+        <h3>🪤 陷阱</h3>
+        <p>对方棋子走进你的陷阱后，失去战斗力，你的任意棋子都可以吃掉它。</p>
+
+        <h3>🏆 胜负判定</h3>
+        <ul>
+          <li>走进对方巢穴 → 获胜</li>
+          <li>吃光对方所有棋子 → 获胜</li>
+          <li>对方超时 → 获胜</li>
+        </ul>
+
+        <h3>⏱ 计时规则</h3>
+        <p>每步限 30 秒，超时立即判负。</p>
+      </div>
+      <button class="btn" onclick="closeRules()" style="margin-top:1rem">知道了</button>
+    </div>
+  </div>
+
+  <!-- 结果页 -->
+  <div class="overlay" id="result" style="display:none">
+    <canvas id="fireworks"></canvas>
+    <div class="card">
+      <h2>比赛结束</h2>
+      <div class="winner" id="winnerName">&mdash;</div>
+      <div class="info" id="winnerInfo">&mdash;</div>
+      <button class="btn" onclick="restart()">再来一局</button>
+      <button class="btn ghost" onclick="showRules()" style="margin-left:.6rem">查看规则</button>
+    </div>
+  </div>
+
+  <script>
+    /* ================= 基础参数 ================= */
+    const COLS = 7, ROWS = 9;
+
+    // 巢穴：红方(左) (3,0)，蓝方(右) (3,6)
+    const DEN_RED  = { r: 3, c: 0 };
+    const DEN_BLUE = { r: 3, c: 6 };
+
+    // 陷阱
+    const TRAPS_RED  = [{r:2,c:0}, {r:3,c:1}, {r:4,c:0}];
+    const TRAPS_BLUE = [{r:2,c:6}, {r:3,c:5}, {r:4,c:6}];
+
+    // 河：行 2~4，列 2~4
+    function isRiver(r, c) {
+      return r >= 2 && r <= 4 && c >= 2 && c <= 4;
+    }
+
+    // 每步限时（秒）
+    const STEP_LIMIT = 30;
+    let stepLeft = STEP_LIMIT;
+    let clockTimer = null;
+
+    const RANK = { '象':8, '狮':7, '虎':6, '豹':5, '狼':4, '狗':3, '猫':2, '鼠':1 };
+    const ICON = { '象':'🐘', '狮':'🦁', '虎':'🐯', '豹':'🐆', '狼':'🐺', '狗':'🐶', '猫':'🐱', '鼠':'🐭' };
+
+    // 初始布局：红方在左（列 0~2），蓝方在右（列 4~6）
+    // 每方 8 子
+    const RED_SETUP = [
+      [0, 0, '狮'], [0, 1, '虎'], [0, 2, '豹'],
+      [1, 0, '猫'], [1, 2, '狼'],
+      [2, 0, '鼠'], [2, 2, '狗'],
+      [8, 0, '象']
+    ];
+    const BLUE_SETUP = [
+      [0, 6, '狮'], [0, 5, '虎'], [0, 4, '豹'],
+      [1, 6, '猫'], [1, 4, '狼'],
+      [2, 6, '鼠'], [2, 4, '狗'],
+      [8, 6, '象']
+    ];
+
+    /* ================= 状态 ================= */
+    let board = [];
+    let current = 1;        // 1=郑艳军(红) 2=刘刚(蓝)
+    let selected = null;
+    let gameOver = false;
+    let started = false;
+
+    const boardEl = document.getElementById('board');
+    const msgEl   = document.getElementById('msg');
+    const curEl   = document.getElementById('cur');
+    const turnBadge = document.getElementById('turnBadge');
+    const clockEl = document.getElementById('clock');
+    const clockText = document.getElementById('clockText');
+
+    /* ================= 音效 ================= */
+    let audioCtx = null;
+    function ensureAudio() {
+      if (!audioCtx) {
+        try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {}
+      }
+      if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+    }
+
+    // 移动音效：轻轻一声「嗒」
+    function playMoveSound() {
+      ensureAudio();
+      if (!audioCtx) return;
+      const t0 = audioCtx.currentTime;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(600, t0);
+      osc.frequency.exponentialRampToValueAtTime(300, t0 + 0.08);
+      gain.gain.setValueAtTime(0.0001, t0);
+      gain.gain.exponentialRampToValueAtTime(0.15, t0 + 0.005);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.12);
+      osc.connect(gain); gain.connect(audioCtx.destination);
+      osc.start(t0); osc.stop(t0 + 0.15);
+    }
+
+    // 吃子音效：重击
+    function playEatSound() {
+      ensureAudio();
+      if (!audioCtx) return;
+      const t0 = audioCtx.currentTime;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(220, t0);
+      osc.frequency.exponentialRampToValueAtTime(60, t0 + 0.18);
+      gain.gain.setValueAtTime(0.0001, t0);
+      gain.gain.exponentialRampToValueAtTime(0.35, t0 + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.22);
+      osc.connect(gain); gain.connect(audioCtx.destination);
+      osc.start(t0); osc.stop(t0 + 0.25);
+
+      const osc2 = audioCtx.createOscillator();
+      const gain2 = audioCtx.createGain();
+      osc2.type = 'triangle';
+      osc2.frequency.setValueAtTime(880, t0);
+      osc2.frequency.exponentialRampToValueAtTime(220, t0 + 0.12);
+      gain2.gain.setValueAtTime(0.0001, t0);
+      gain2.gain.exponentialRampToValueAtTime(0.2, t0 + 0.005);
+      gain2.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.15);
+      osc2.connect(gain2); gain2.connect(audioCtx.destination);
+      osc2.start(t0); osc2.stop(t0 + 0.18);
+    }
+
+    // 获胜音效
+    function playVictorySound() {
+      ensureAudio();
+      if (!audioCtx) return;
+      const t0 = audioCtx.currentTime;
+      const notes = [
+        { f: 523.25, t: 0.00, d: 0.18 },
+        { f: 659.25, t: 0.18, d: 0.18 },
+        { f: 783.99, t: 0.36, d: 0.18 },
+        { f: 1046.50, t: 0.54, d: 0.55 }
+      ];
+      notes.forEach(n => {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(n.f, t0 + n.t);
+        gain.gain.setValueAtTime(0.0001, t0 + n.t);
+        gain.gain.exponentialRampToValueAtTime(0.28, t0 + n.t + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, t0 + n.t + n.d);
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        osc.start(t0 + n.t); osc.stop(t0 + n.t + n.d + 0.05);
+      });
+    }
+
+    /* ================= 初始化 ================= */
+    function initBoard() {
+      board = [];
+      for (let r = 0; r < ROWS; r++) {
+        board.push([]);
+        for (let c = 0; c < COLS; c++) board[r].push(null);
+      }
+      RED_SETUP.forEach(([r, c, k]) => board[r][c] = { owner: 1, kind: k });
+      BLUE_SETUP.forEach(([r, c, k]) => board[r][c] = { owner: 2, kind: k });
+    }
+
+    function buildBoardEl() {
+      boardEl.innerHTML = '';
+      for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS; c++) {
+          const cell = document.createElement('div');
+          cell.className = 'cell';
+          cell.dataset.r = r;
+          cell.dataset.c = c;
+          cell.onclick = () => onClick(r, c);
+          boardEl.appendChild(cell);
+        }
+      }
+    }
+
+    initBoard();
+    buildBoardEl();
+    render();
+
+    /* ================= 开始/重开 ================= */
+    function startGame() {
+      ensureAudio();
+      document.getElementById('startPage').style.display = 'none';
+      started = true;
+      stepLeft = STEP_LIMIT;
+      current = 1;
+      selected = null;
+      gameOver = false;
+      updateTurnUI();
+      msg('郑艳军先手，点击己方棋子选中');
+      startClock();
+    }
+
+    function restart() {
+      document.getElementById('result').style.display = 'none';
+      document.getElementById('startPage').style.display = 'flex';
+      document.getElementById('fireworks').style.display = 'none';
+      if (fwRAF) cancelAnimationFrame(fwRAF);
+      stopClock();
+      initBoard();
+      render();
+      started = false;
+      gameOver = false;
+      msg('点击「开始游戏」开始');
+      updateTurnUI();
+    }
+
+    /* ================= 规则 ================= */
+    function showRules() {
+      document.getElementById('rulesPage').style.display = 'flex';
+    }
+    function closeRules() {
+      document.getElementById('rulesPage').style.display = 'none';
+    }
+
+    /* ================= 点击 ================= */
+    function onClick(r, c) {
+      if (!started || gameOver) return;
+      const piece = board[r][c];
+
+      if (!selected) {
+        if (piece && piece.owner === current) {
+          selected = { r, c };
+          render();
+          msg('已选中 ' + piece.kind + '，点击目标格移动', true);
+        } else {
+          msg('只能选自己的棋子');
+        }
+        return;
+      }
+
+      if (selected.r === r && selected.c === c) {
+        selected = null;
+        render();
+        msg('取消选中');
+        return;
+      }
+      if (piece && piece.owner === current) {
+        selected = { r, c };
+        render();
+        msg('切换选中：' + piece.kind);
+        return;
+      }
+
+      if (canMove(selected.r, selected.c, r, c)) {
+        doMove(selected.r, selected.c, r, c);
+      } else {
+        msg('不能这样走');
+      }
+    }
+
+    function msg(t, highlight) {
+      msgEl.textContent = t;
+      msgEl.classList.toggle('highlight', !!highlight);
+    }
+
+    /* ================= 走法 ================= */
+    function inBoard(r, c) { return r >= 0 && r < ROWS && c >= 0 && c < COLS; }
+
+    function isEnemyDen(r, c, owner) {
+      if (owner === 1) return r === DEN_BLUE.r && c === DEN_BLUE.c;
+      return r === DEN_RED.r && c === DEN_RED.c;
+    }
+    function isOwnDen(r, c, owner) {
+      if (owner === 1) return r === DEN_RED.r && c === DEN_RED.c;
+      return r === DEN_BLUE.r && c === DEN_BLUE.c;
+    }
+    function isTrap(r, c) {
+      return TRAPS_RED.some(t => t.r === r && t.c === c) ||
+             TRAPS_BLUE.some(t => t.r === r && t.c === c);
+    }
+    function isEnemyTrap(r, c, owner) {
+      if (owner === 1) return TRAPS_BLUE.some(t => t.r === r && t.c === c);
+      return TRAPS_RED.some(t => t.r === r && t.c === c);
+    }
+
+    function canMove(fr, fc, tr, tc) {
+      if (!inBoard(tr, tc)) return false;
+      const piece = board[fr][fc];
+      if (!piece || piece.owner !== current) return false;
+      const target = board[tr][tc];
+      if (target && target.owner === piece.owner) return false;
+      if (isOwnDen(tr, tc, piece.owner)) return false;
+
+      const dr = tr - fr, dc = tc - fc;
+
+      // 普通走一格
+      if (Math.abs(dr) + Math.abs(dc) === 1) {
+        if (isRiver(tr, tc) && piece.kind !== '鼠') return false;
+        return canEnter(piece, tr, tc);
+      }
+
+      // 狮虎跳河（左右横跳）
+      if ((piece.kind === '狮' || piece.kind === '虎') && Math.abs(dc) === 3 && dr === 0) {
+        const dir = dc > 0 ? 1 : -1;
+        const path = [fc + dir, fc + dir * 2];
+        for (const pc of path) {
+          if (!isRiver(fr, pc)) return false;
+          if (board[fr][pc] && board[fr][pc].kind === '鼠') return false;
+        }
+        return canEnter(piece, tr, tc);
+      }
+      // 狮虎跳河（上下跳）
+      if ((piece.kind === '狮' || piece.kind === '虎') && Math.abs(dr) === 3 && dc === 0) {
+        const dir = dr > 0 ? 1 : -1;
+        const path = [fr + dir, fr + dir * 2];
+        for (const pr of path) {
+          if (!isRiver(pr, fc)) return false;
+          if (board[pr][fc] && board[pr][fc].kind === '鼠') return false;
+        }
+        return canEnter(piece, tr, tc);
+      }
+
+      // 鼠游河
+      if (piece.kind === '鼠' && isRiver(tr, tc)) {
+        if (Math.abs(dr) + Math.abs(dc) === 1) return canEnter(piece, tr, tc);
+      }
+
+      return false;
+    }
+
+    function canEnter(piece, tr, tc) {
+      const target = board[tr][tc];
+      if (isEnemyDen(tr, tc, piece.owner)) return true;
+      if (!target) return true;
+      if (isEnemyTrap(tr, tc, target.owner)) return true;
+      return canCapture(piece, target);
+    }
+
+    function canCapture(attacker, defender) {
+      const a = RANK[attacker.kind];
+      const d = RANK[defender.kind];
+      if (attacker.kind === '鼠' && defender.kind === '象') return true;
+      if (attacker.kind === '象' && defender.kind === '鼠') return false;
+      return a >= d;
+    }
+
+    /* ================= 执行 ================= */
+    function doMove(fr, fc, tr, tc) {
+      const piece = board[fr][fc];
+      const target = board[tr][tc];
+
+      board[tr][tc] = piece;
+      board[fr][fc] = null;
+
+      // 冲进对方巢穴 → 胜
+      if (isEnemyDen(tr, tc, piece.owner)) {
+        render();
+        if (piece.owner === 1) endGame(1, '郑艳军冲进了刘刚的巢穴！');
+        else endGame(2, '刘刚冲进了郑艳军的巢穴！');
+        return;
+      }
+
+      let ate = false;
+
+      if (isEnemyTrap(tr, tc, piece.owner)) {
+        board[tr][tc] = null;
+        msg((piece.owner === 1 ? '郑艳军' : '刘刚') + ' 的 ' + piece.kind + ' 踩中陷阱，阵亡！', true);
+        playEatSound();
+      } else if (target) {
+        ate = true;
+        msg((piece.owner === 1 ? '郑艳军' : '刘刚') + ' 的 ' + piece.kind + ' 吃掉了 ' + target.kind + '！', true);
+        playEatSound();
+      } else {
+        msg((piece.owner === 1 ? '郑艳军' : '刘刚') + ' 走了一步');
+        playMoveSound();
+      }
+
+      selected = null;
+      render();
+
+      if (!hasAnyPiece(1) || !hasAnyPiece(2)) {
+        endGame(hasAnyPiece(1) ? 1 : 2, '对方棋子被吃光！');
+        return;
+      }
+
+      // 切换回合 + 重置计时
+      current = current === 1 ? 2 : 1;
+      stepLeft = STEP_LIMIT;
+      updateTurnUI();
+      restartClock();
+    }
+
+    function hasAnyPiece(owner) {
+      for (let r = 0; r < ROWS; r++)
+        for (let c = 0; c < COLS; c++)
+          if (board[r][c] && board[r][c].owner === owner) return true;
+      return false;
+    }
+
+    /* ================= 渲染 ================= */
+    function render() {
+      for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS; c++) {
+          const cell = boardEl.children[r * COLS + c];
+          cell.className = 'cell';
+
+          if (isRiver(r, c)) cell.classList.add('river');
+          if (isTrap(r, c)) cell.classList.add('trap');
+
+          if (r === DEN_RED.r && c === DEN_RED.c) {
+            cell.classList.add('den', 'den-red');
+            cell.textContent = '郑';
+          } else if (r === DEN_BLUE.r && c === DEN_BLUE.c) {
+            cell.classList.add('den', 'den-blue');
+            cell.textContent = '刘';
+          }
+
+          const p = board[r][c];
+          if (p) {
+            cell.textContent = ICON[p.kind];
+            cell.classList.add(p.owner === 1 ? 'p1' : 'p2');
+          } else if (!cell.classList.contains('den')) {
+            cell.textContent = '';
+          }
+
+          if (selected && selected.r === r && selected.c === c) {
+            cell.classList.add('selected');
+          }
+
+          if (started && selected && canMove(selected.r, selected.c, r, c)) {
+            const target = board[r][c];
+            if (target && target.owner !== board[selected.r][selected.c].owner) {
+              cell.classList.add('attack-target');
+            } else {
+              cell.classList.add('move-target');
+            }
+          }
+        }
+      }
+    }
+
+    /* ================= 回合 & 计时 ================= */
+    function updateTurnUI() {
+      if (current === 1) {
+        curEl.textContent = '郑艳军回合';
+        turnBadge.classList.add('red-active');
+        turnBadge.classList.remove('blue-active');
+        clockEl.classList.add('red-active');
+        clockEl.classList.remove('blue-active');
+      } else {
+        curEl.textContent = '刘刚回合';
+        turnBadge.classList.add('blue-active');
+        turnBadge.classList.remove('red-active');
+        clockEl.classList.add('blue-active');
+        clockEl.classList.remove('red-active');
+      }
+      clockText.textContent = stepLeft;
+    }
+
+    function startClock() {
+      stopClock();
+      clockTimer = setInterval(() => {
+        if (gameOver || !started) return;
+        stepLeft--;
+        if (stepLeft <= 0) {
+          stepLeft = 0;
+          clockText.textContent = 0;
+          clockEl.classList.add('warning');
+          stopClock();
+          const winner = current === 1 ? 2 : 1;
+          endGame(winner, (current === 1 ? '郑艳军' : '刘刚') + ' 超时判负！');
+          return;
+        }
+        clockText.textContent = stepLeft;
+        clockEl.classList.toggle('warning', stepLeft <= 5);
+      }, 1000);
+    }
+
+    function restartClock() {
+      stopClock();
+      clockEl.classList.remove('warning');
+      clockText.textContent = stepLeft;
+      startClock();
+    }
+
+    function stopClock() {
+      if (clockTimer) clearInterval(clockTimer);
+      clockTimer = null;
+    }
+
+    /* ================= 结束 & 烟花 ================= */
+    function endGame(winner, info) {
+      gameOver = true;
+      started = false;
+      stopClock();
+      document.getElementById('winnerName').textContent =
+        winner === 1 ? '🏆 郑艳军获胜' : '🏆 刘刚获胜';
+      document.getElementById('winnerInfo').textContent = info || '';
+      document.getElementById('result').style.display = 'flex';
+
+      playVictorySound();
+      startFireworks();
+    }
+
+    /* ================= 烟花 ================= */
+    let fwRAF = null;
+    function startFireworks() {
+      const canvas = document.getElementById('fireworks');
+      canvas.style.display = 'block';
+      const ctx = canvas.getContext('2d');
+      let W = canvas.width = window.innerWidth;
+      let H = canvas.height = window.innerHeight;
+
+      window.addEventListener('resize', () => {
+        W = canvas.width = window.innerWidth;
+        H = canvas.height = window.innerHeight;
+      });
+
+      const particles = [];
+      const rockets = [];
+
+      function spawnRocket() {
+        rockets.push({
+          x: Math.random() * W,
+          y: H,
+          vy: -(8 + Math.random() * 4),
+          targetY: H * (0.15 + Math.random() * 0.35),
+          hue: Math.floor(Math.random() * 360)
+        });
+      }
+
+      function explode(x, y, hue) {
+        const count = 60 + Math.floor(Math.random() * 40);
+        for (let i = 0; i < count; i++) {
+          const angle = Math.random() * Math.PI * 2;
+          const speed = 1 + Math.random() * 5;
+          particles.push({
+            x, y,
+            vx: Math.cos(angle) * speed,
+            vy: Math.sin(angle) * speed,
+            life: 60 + Math.random() * 40,
+            maxLife: 100,
+            hue: hue + (Math.random() * 40 - 20),
+            size: 2 + Math.random() * 2
+          });
+        }
+      }
+
+      function loop() {
+        ctx.fillStyle = 'rgba(2,6,23,0.18)';
+        ctx.fillRect(0, 0, W, H);
+
+        for (let i = rockets.length - 1; i >= 0; i--) {
+          const r = rockets[i];
+          r.y += r.vy;
+          ctx.beginPath();
+          ctx.fillStyle = `hsl(${r.hue}, 100%, 70%)`;
+          ctx.arc(r.x, r.y, 2.5, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = `hsla(${r.hue}, 100%, 70%, 0.4)`;
+          ctx.beginPath();
+          ctx.arc(r.x, r.y + 6, 1.5, 0, Math.PI * 2);
+          ctx.fill();
+
+          if (r.y <= r.targetY) {
+            explode(r.x, r.y, r.hue);
+            rockets.splice(i, 1);
+          }
+        }
+
+        for (let i = particles.length - 1; i >= 0; i--) {
+          const p = particles[i];
+          p.x += p.vx;
+          p.y += p.vy;
+          p.vy += 0.06;
+          p.vx *= 0.985;
+          p.vy *= 0.985;
+          p.life--;
+
+          const alpha = Math.max(0, p.life / p.maxLife);
+          ctx.beginPath();
+          ctx.fillStyle = `hsla(${p.hue}, 100%, 60%, ${alpha})`;
+          ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+          ctx.fill();
+
+          if (p.life <= 0) particles.splice(i, 1);
+        }
+
+        if (Math.random() < 0.04) spawnRocket();
+        if (gameOver) fwRAF = requestAnimationFrame(loop);
+      }
+
+      for (let i = 0; i < 3; i++) setTimeout(spawnRocket, i * 200);
+      loop();
+    }
+  </script>
 </body>
 </html>
