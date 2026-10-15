@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>郑艳军大战刘刚 · 斗兽棋</title>
+  <link rel="icon" href="/icon.png" type="image/png">
+  <style>
+    :root {
+      --bg-1: #0f172a;
+      --bg-2: #1e293b;
+      --blue: #3b82f6;
+      --blue-2: #60a5fa;
+      --red: #ef4444;
+      --red-2: #f87171;
+      --yellow: #fde047;
+      --text: #f8fafc;
+      --river: #1e3a8a;
+      --river-2: #2563eb;
+      --trap: #7c3aed;
+      --den: #fbbf24
+    }
+    * { box-sizing: border-box }
+
+    html, body {
+      margin: 0;
+      min-height: 100vh;
+      background: radial-gradient(circle at 50% 20%, var(--bg-2), var(--bg-1) 75%);
+      color: var(--text);
+      font-family: "Noto Sans SC", Arial, sans-serif;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      overflow-x: hidden
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      animation: bgPulse 12s ease-in-out infinite alternate
+    }
+
+    @keyframes bgPulse {
+      0%   { background-position: 0 0 }
+      100% { background-position: 100px 100px }
+    }
+
+    h1.title {
+      font-size: 1.6rem;
+      font-weight: 900;
+      margin: 0 0 .6rem;
+      letter-spacing: .08em;
+      background: linear-gradient(90deg, var(--red-2), var(--yellow), var(--blue-2));
+      background-size: 200% 100%;
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      animation: shine 6s linear infinite
+    }
+    @keyframes shine {
+      0% { background-position: 0% 50% }
+      100% { background-position: 200% 50% }
+    }
+
+    .statusbar {
+      display: flex;
+      align-items: center;
+      gap: .8rem;
+      margin-bottom: .8rem;
+      font-size: .95rem;
+      font-weight: 800;
+      flex-wrap: wrap;
+      justify-content: center
+    }
+
+    .turn-badge {
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+      padding: 6px 16px;
+      border-radius: 999px;
+      font-size: .95rem;
+      background: #ffffff10;
+      border: 1px solid #ffffff22;
+      backdrop-filter: blur(6px);
+      transition: all .35s ease
+    }
+    .turn-badge.red-active {
+      background: linear-gradient(90deg, #ef444433, #ef444422);
+      border-color: #ef4444aa;
+      box-shadow: 0 0 24px #ef444466
+    }
+    .turn-badge.blue-active {
+      background: linear-gradient(90deg, #3b82f633, #3b82f622);
+      border-color: #3b82f6aa;
+      box-shadow: 0 0 24px #3b82f666
+    }
+    .turn-badge .dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: #94a3b8;
+      transition: all .3s
+    }
+    .turn-badge.red-active .dot { background: var(--red); box-shadow: 0 0 12px var(--red) }
+    .turn-badge.blue-active .dot { background: var(--blue); box-shadow: 0 0 12px var(--blue) }
+
+    .clock {
+      display: flex;
+      align-items: center;
+      gap: .4rem;
+      padding: 6px 14px;
+      border-radius: 999px;
+      background: #ffffff10;
+      border: 1px solid #ffffff22;
+      font-variant-numeric: tabular-nums;
+      transition: all .3s
+    }
+    .clock.red-active { border-color: #ef4444aa; box-shadow: 0 0 16px #ef444444 }
+    .clock.blue-active { border-color: #3b82f6aa; box-shadow: 0 0 16px #3b82f644 }
+    .clock.warning {
+      color: #fca5a5;
+      animation: clockBlink .8s ease-in-out infinite
+    }
+    @keyframes clockBlink {
+      0%, 100% { opacity: 1 }
+      50% { opacity: .4 }
+    }
+
+    .board-wrap {
+      position: relative;
+      padding: 6px;
+      border-radius: 18px;
+      background: linear-gradient(145deg, #1e293b, #0f172a);
+      box-shadow:
+        0 0 0 1px #ffffff10,
+        0 20px 60px #000000aa,
+        inset 0 0 40px #00000055;
+      animation: boardAppear .8s cubic-bezier(.2,.9,.3,1.2)
+    }
+    @keyframes boardAppear {
+      0% { opacity: 0; transform: scale(.85) rotateX(15deg) }
+      100% { opacity: 1; transform: scale(1) rotateX(0) }
+    }
+
+    .board {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 3px;
+      background: #334155;
+      padding: 5px;
+      border-radius: 14px
+    }
+
+    .cell {
+      width: 50px;
+      height: 50px;
+      border-radius: 10px;
+      background: #1e293b;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      font-weight: 900;
+      cursor: pointer;
+      color: #fff;
+      transition: transform .12s ease, box-shadow .2s ease, background .25s ease;
+      will-change: transform
+    }
+
+    .cell:hover { transform: scale(1.08); z-index: 2 }
+
+    .cell.river {
+      background: linear-gradient(135deg, var(--river), var(--river-2));
+      background-size: 200% 200%;
+      animation: riverFlow 4s ease-in-out infinite
+    }
+    @keyframes riverFlow {
+      0%, 100% { background-position: 0% 50% }
+      50% { background-position: 100% 50% }
+    }
+    .cell.trap {
+      background: repeating-linear-gradient(
+        45deg,
+        #7c3aed,
+        #7c3aed 6px,
+        #6d28d9 6px,
+        #6d28d9 12px
+      );
+      animation: trapSpin 8s linear infinite;
+      background-size: 200% 200%
+    }
+    @keyframes trapSpin {
+      0% { background-position: 0% 0% }
+      100% { background-position: 100% 100% }
+    }
+    .cell.den {
+      background: radial-gradient(circle, #fde047, #f59e0b 70%);
+      box-shadow: inset 0 0 12px #b45309, 0 0 20px #fde04766;
+      animation: denGlow 2s ease-in-out infinite alternate;
+      font-size: 1.6rem;
+      font-weight: 900
+    }
+    @keyframes denGlow {
+      0% { box-shadow: inset 0 0 12px #b45309, 0 0 12px #fde04744 }
+      100% { box-shadow: inset 0 0 18px #b45309, 0 0 28px #fde04788 }
+    }
+    .cell.den-red  { color: #7f1d1d }
+    .cell.den-blue { color: #1e3a8a }
+
+    .cell.p1 {
+      background: radial-gradient(circle at 30% 30%, #fca5a5, #ef4444 70%);
+      box-shadow: inset 0 2px 4px #ffffff55, inset 0 -2px 4px #7f1d1d, 0 2px 6px #00000055
+    }
+    .cell.p2 {
+      background: radial-gradient(circle at 30% 30%, #93c5fd, #3b82f6 70%);
+      box-shadow: inset 0 2px 4px #ffffff55, inset 0 -2px 4px #1e3a8a, 0 2px 6px #00000055
+    }
+    .cell.p1, .cell.p2 { animation: piecePop .35s ease }
+    @keyframes piecePop {
+      0% { transform: scale(.3); opacity: 0 }
+      60% { transform: scale(1.15) }
+      100% { transform: scale(1); opacity: 1 }
+    }
+
+    .cell.selected {
+      outline: 3px solid var(--yellow);
+      box-shadow: 0 0 24px var(--yellow);
+      animation: selectedPulse 1.2s ease-in-out infinite
+    }
+    @keyframes selectedPulse {
+      0%, 100% { box-shadow: 0 0 12px var(--yellow) }
+      50% { box-shadow: 0 0 28px var(--yellow) }
+    }
+
+    .cell.move-target::after {
+      content: '';
+      position: absolute;
+      inset: 30%;
+      border-radius: 50%;
+      background: #fde047;
+      opacity: .85;
+      animation: targetPulse .9s ease-in-out infinite
+    }
+    @keyframes targetPulse {
+      0%, 100% { transform: scale(.85); opacity: .7 }
+      50% { transform: scale(1.1); opacity: 1 }
+    }
+
+    .cell.attack-target {
+      outline: 3px solid var(--red-2);
+      box-shadow: 0 0 24px var(--red-2)
+    }
+    .cell.attack-target::after {
+      content: '⚔';
+      position: absolute;
+      font-size: 1.2rem;
+      color: #fff;
+      text-shadow: 0 0 6px #000;
+      animation: targetPulse .9s ease-in-out infinite
+    }
+
+    @media(max-width:600px) {
+      .cell { width: 38px; height: 38px; font-size: 1.1rem }
+      h1.title { font-size: 1.2rem }
+    }
+    @media(max-width:420px) {
+      .cell { width: 30px; height: 30px; font-size: .9rem; border-radius: 7px }
+    }
+
+    .msg {
+      margin-top: .8rem;
+      font-size: .95rem;
+      color: #cbd5e1;
+      min-height: 1.4rem;
+      text-align: center;
+      max-width: 95vw;
+      transition: color .25s
+    }
+    .msg.highlight { color: var(--yellow); font-weight: 800 }
+
+    .legend {
+      font-size: .75rem;
+      color: #94a3b8;
+      margin-top: .5rem;
+      text-align: center;
+      line-height: 1.7;
+      max-width: 92vw
+    }
+
+    .overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 20;
+      background: #020617cc;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 1.5rem;
+      animation: fadeIn .4s ease
+    }
+    @keyframes fadeIn {
+      from { opacity: 0 }
+      to { opacity: 1 }
+    }
+    .card {
+      position: relative;
+      z-index: 22;
+      background: linear-gradient(145deg, #172554, #3f1d3d);
+      border: 4px solid var(--yellow);
+      border-radius: 28px;
+      padding: 2rem 2.5rem;
+      box-shadow: 0 0 80px #3b82f655, 0 0 120px #fde04733;
+      max-width: min(500px, 92vw);
+      animation: cardAppear .5s cubic-bezier(.2,.9,.3,1.3)
+    }
+    @keyframes cardAppear {
+      0% { opacity: 0; transform: scale(.7) translateY(30px) }
+      100% { opacity: 1; transform: scale(1) translateY(0) }
+    }
+    .card h2 { color: var(--yellow); font-size: 1.7rem; margin: 0 0 1rem }
+    .card .winner {
+      font-size: 2.4rem;
+      font-weight: 900;
+      color: var(--yellow);
+      margin: 1rem 0;
+      text-shadow: 0 0 24px #fde04788;
+      animation: winnerGlow 1.6s ease-in-out infinite alternate
+    }
+    @keyframes winnerGlow {
+      0% { text-shadow: 0 0 12px #fde04766 }
+      100% { text-shadow: 0 0 32px #fde047cc }
+    }
+    .card .info { color: #cbd5e1; font-size: 1rem; margin-bottom: 1.5rem; line-height: 1.7 }
+    .btn {
+      border: 0;
+      border-radius: 999px;
+      padding: .9rem 2.2rem;
+      font-size: 1.05rem;
+      font-weight: 900;
+      cursor: pointer;
+      background: #fff;
+      color: #0f172a;
+      transition: transform .15s, box-shadow .2s
+    }
+    .btn:hover {
+      transform: scale(1.06);
+      box-shadow: 0 0 24px #ffffff88
+    }
+
+    /* 烟花画布（最底层，盖在 overlay 上，卡片之上） */
+    #fireworks {
+      position: fixed;
+      inset: 0;
+      z-index: 21;
+      pointer-events: none;
+      display: none
+    }
+  </style>
+</head>
+<body>
+
+  <h1 class="title">郑艳军 大战 刘刚</h1>
+
+  <div class="statusbar">
+    <div class="turn-badge red-active" id="turnBadge">
+      <span class="dot"></span>
+      <span id="cur">郑艳军回合</span>
+    </div>
+    <div class="clock red-active" id="clock">
+      ⏱ <span id="clockText">10:00</span>
+    </div>
+  </div>
+
+  <div class="board-wrap">
+    <div class="board" id="board"></div>
+  </div>
+
+  <div class="msg" id="msg">郑艳军先手，点击己方棋子选中</div>
+
+  <div class="legend">
+    郑艳军在左，刘刚在右，中间是河 · 狮虎可跳河 · 鼠可游河 · 陷阱吃子 · 先冲进对方巢穴者获胜 · 每方 10 分钟
+  </div>
+
+  <div class="overlay" id="result" style="display:none">
+    <canvas id="fireworks"></canvas>
+    <div class="card">
+      <h2>比赛结束</h2>
+      <div class="winner" id="winnerName">&mdash;</div>
+      <div class="info" id="winnerInfo">&mdash;</div>
+      <button class="btn" onclick="location.reload()">再来一局</button>
+    </div>
+  </div>
+
+  <script>
+    /* ================= 基础参数 ================= */
+    const COLS = 7, ROWS = 9;
+    const DEN_RED  = { r: 3, c: 0 };
+    const DEN_BLUE = { r: 3, c: 6 };
+    const TRAPS_RED  = [{r:2,c:0}, {r:3,c:1}, {r:4,c:0}];
+    const TRAPS_BLUE = [{r:2,c:6}, {r:3,c:5}, {r:4,c:6}];
+
+    // 每方限时（秒）
+    const TIME_LIMIT = 10 * 60;
+    let timeLeft = [TIME_LIMIT, TIME_LIMIT];
+    let clockTimer = null;
+
+    function isRiver(r, c) { return c === 3 && r >= 2 && r <= 6; }
+
+    const RANK = { '象':8, '狮':7, '虎':6, '豹':5, '狼':4, '狗':3, '猫':2, '鼠':1 };
+    const ICON = { '象':'🐘', '狮':'🦁', '虎':'🐯', '豹':'🐆', '狼':'🐺', '狗':'🐶', '猫':'🐱', '鼠':'🐭' };
+
+    /* ================= 状态 ================= */
+    const board = [];
+    let current = 1;
+    let selected = null;
+    let gameOver = false;
+
+    const boardEl = document.getElementById('board');
+    const msgEl   = document.getElementById('msg');
+    const curEl   = document.getElementById('cur');
+    const turnBadge = document.getElementById('turnBadge');
+    const clockEl = document.getElementById('clock');
+    const clockText = document.getElementById('clockText');
+
+    for (let r = 0; r < ROWS; r++) {
+      board.push([]);
+      for (let c = 0; c < COLS; c++) {
+        board[r].push(null);
+        const cell = document.createElement('div');
+        cell.className = 'cell';
+        cell.onclick = () => onClick(r, c);
+        boardEl.appendChild(cell);
+      }
+    }
+
+    const redSetup = [
+      [1, 0, '狮'], [1, 1, '虎'], [1, 2, '豹'],
+      [2, 1, '狼'], [2, 2, '狗'],
+      [4, 1, '猫'], [4, 2, '鼠'],
+      [5, 2, '象']
+    ];
+    const blueSetup = [
+      [1, 6, '狮'], [1, 5, '虎'], [1, 4, '豹'],
+      [2, 5, '狼'], [2, 4, '狗'],
+      [4, 5, '猫'], [4, 4, '鼠'],
+      [5, 4, '象']
+    ];
+    redSetup.forEach(([r, c, k]) => board[r][c] = { owner: 1, kind: k });
+    blueSetup.forEach(([r, c, k]) => board[r][c] = { owner: 2, kind: k });
+
+    render();
+    startClock();
+
+    /* ================= 音效（Web Audio 合成） ================= */
+    let audioCtx = null;
+    function ensureAudio() {
+      if (!audioCtx) {
+        try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {}
+      }
+      if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+    }
+
+    // 吃子音效：短促有力的重击
+    function playEatSound() {
+      ensureAudio();
+      if (!audioCtx) return;
+      const t0 = audioCtx.currentTime;
+
+      // 低音鼓
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(220, t0);
+      osc.frequency.exponentialRampToValueAtTime(60, t0 + 0.18);
+      gain.gain.setValueAtTime(0.0001, t0);
+      gain.gain.exponentialRampToValueAtTime(0.35, t0 + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.22);
+      osc.connect(gain); gain.connect(audioCtx.destination);
+      osc.start(t0); osc.stop(t0 + 0.25);
+
+      // 高音撞击
+      const osc2 = audioCtx.createOscillator();
+      const gain2 = audioCtx.createGain();
+      osc2.type = 'triangle';
+      osc2.frequency.setValueAtTime(880, t0);
+      osc2.frequency.exponentialRampToValueAtTime(220, t0 + 0.12);
+      gain2.gain.setValueAtTime(0.0001, t0);
+      gain2.gain.exponentialRampToValueAtTime(0.2, t0 + 0.005);
+      gain2.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.15);
+      osc2.connect(gain2); gain2.connect(audioCtx.destination);
+      osc2.start(t0); osc2.stop(t0 + 0.18);
+    }
+
+    // 获胜音效：上行胜利号
+    function playVictorySound() {
+      ensureAudio();
+      if (!audioCtx) return;
+      const t0 = audioCtx.currentTime;
+      const notes = [
+        { f: 523.25, t: 0.00, d: 0.18 },
+        { f: 659.25, t: 0.18, d: 0.18 },
+        { f: 783.99, t: 0.36, d: 0.18 },
+        { f: 1046.50, t: 0.54, d: 0.55 }
+      ];
+      notes.forEach(n => {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(n.f, t0 + n.t);
+        gain.gain.setValueAtTime(0.0001, t0 + n.t);
+        gain.gain.exponentialRampToValueAtTime(0.28, t0 + n.t + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, t0 + n.t + n.d);
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        osc.start(t0 + n.t); osc.stop(t0 + n.t + n.d + 0.05);
+      });
+    }
+
+    /* ================= 点击处理 ================= */
+    function onClick(r, c) {
+      if (gameOver) return;
+      const piece = board[r][c];
+
+      if (!selected) {
+        if (piece && piece.owner === current) {
+          selected = { r, c };
+          render();
+          msg('已选中 ' + piece.kind + '，点击目标格移动', true);
+        } else {
+          msg('只能选自己的棋子');
+        }
+        return;
+      }
+
+      if (selected.r === r && selected.c === c) {
+        selected = null;
+        render();
+        msg('取消选中');
+        return;
+      }
+      if (piece && piece.owner === current) {
+        selected = { r, c };
+        render();
+        msg('切换选中：' + piece.kind);
+        return;
+      }
+
+      if (canMove(selected.r, selected.c, r, c)) {
+        doMove(selected.r, selected.c, r, c);
+      } else {
+        msg('不能这样走');
+      }
+    }
+
+    function msg(t, highlight) {
+      msgEl.textContent = t;
+      msgEl.classList.toggle('highlight', !!highlight);
+    }
+
+    /* ================= 走法判断 ================= */
+    function inBoard(r, c) { return r >= 0 && r < ROWS && c >= 0 && c < COLS; }
+
+    function isEnemyDen(r, c, owner) {
+      if (owner === 1) return r === DEN_BLUE.r && c === DEN_BLUE.c;
+      return r === DEN_RED.r && c === DEN_RED.c;
+    }
+    function isOwnDen(r, c, owner) {
+      if (owner === 1) return r === DEN_RED.r && c === DEN_RED.c;
+      return r === DEN_BLUE.r && c === DEN_BLUE.c;
+    }
+    function isTrap(r, c) {
+      return TRAPS_RED.some(t => t.r === r && t.c === c) ||
+             TRAPS_BLUE.some(t => t.r === r && t.c === c);
+    }
+    function isEnemyTrap(r, c, owner) {
+      if (owner === 1) return TRAPS_BLUE.some(t => t.r === r && t.c === c);
+      return TRAPS_RED.some(t => t.r === r && t.c === c);
+    }
+
+    function canMove(fr, fc, tr, tc) {
+      if (!inBoard(tr, tc)) return false;
+      const piece = board[fr][fc];
+      if (!piece || piece.owner !== current) return false;
+      const target = board[tr][tc];
+      if (target && target.owner === piece.owner) return false;
+      if (isOwnDen(tr, tc, piece.owner)) return false;
+
+      const dr = tr - fr, dc = tc - fc;
+
+      if (Math.abs(dr) + Math.abs(dc) === 1) {
+        if (isRiver(tr, tc) && piece.kind !== '鼠') return false;
+        return canEnter(piece, tr, tc);
+      }
+
+      if ((piece.kind === '狮' || piece.kind === '虎') &&
+          Math.abs(dc) === 3 && dr === 0) {
+        const dir = dc > 0 ? 1 : -1;
+        const path = [fc + dir, fc + dir * 2];
+        for (const pc of path) {
+          if (!isRiver(fr, pc)) return false;
+          if (board[fr][pc] && board[fr][pc].kind === '鼠') return false;
+        }
+        return canEnter(piece, tr, tc);
+      }
+      if ((piece.kind === '狮' || piece.kind === '虎') &&
+          Math.abs(dr) === 3 && dc === 0) {
+        const dir = dr > 0 ? 1 : -1;
+        const path = [fr + dir, fr + dir * 2];
+        for (const pr of path) {
+          if (!isRiver(pr, fc)) return false;
+          if (board[pr][fc] && board[pr][fc].kind === '鼠') return false;
+        }
+        return canEnter(piece, tr, tc);
+      }
+
+      if (piece.kind === '鼠' && isRiver(tr, tc)) {
+        if (Math.abs(dr) + Math.abs(dc) === 1) return canEnter(piece, tr, tc);
+      }
+
+      return false;
+    }
+
+    function canEnter(piece, tr, tc) {
+      const target = board[tr][tc];
+      if (isEnemyDen(tr, tc, piece.owner)) return true;
+      if (!target) return true;
+      if (isEnemyTrap(tr, tc, target.owner)) return true;
+      return canCapture(piece, target);
+    }
+
+    function canCapture(attacker, defender) {
+      const a = RANK[attacker.kind];
+      const d = RANK[defender.kind];
+      if (attacker.kind === '鼠' && defender.kind === '象') return true;
+      if (attacker.kind === '象' && defender.kind === '鼠') return false;
+      return a >= d;
+    }
+
+    /* ================= 执行移动 ================= */
+    function doMove(fr, fc, tr, tc) {
+      const piece = board[fr][fc];
+      const target = board[tr][tc];
+
+      board[tr][tc] = piece;
+      board[fr][fc] = null;
+
+      if (isEnemyDen(tr, tc, piece.owner)) {
+        render();
+        if (piece.owner === 1) endGame(1, '郑艳军冲进了刘刚的巢穴！');
+        else endGame(2, '刘刚冲进了郑艳军的巢穴！');
+        return;
+      }
+
+      let ate = false;
+
+      if (isEnemyTrap(tr, tc, piece.owner)) {
+        board[tr][tc] = null;
+        msg((piece.owner === 1 ? '郑艳军' : '刘刚') + ' 的 ' + piece.kind + ' 踩中陷阱，阵亡！', true);
+      } else if (target) {
+        ate = true;
+        msg((piece.owner === 1 ? '郑艳军' : '刘刚') + ' 的 ' + piece.kind + ' 吃掉了 ' + target.kind + '！', true);
+      } else {
+        msg((piece.owner === 1 ? '郑艳军' : '刘刚') + ' 走了一步');
+      }
+
+      if (ate) playEatSound();
+
+      selected = null;
+      render();
+
+      if (!hasAnyPiece(1) || !hasAnyPiece(2)) {
+        endGame(hasAnyPiece(1) ? 1 : 2, '对方棋子被吃光！');
+        return;
+      }
+
+      current = current === 1 ? 2 : 1;
+      updateTurnUI();
+    }
+
+    function hasAnyPiece(owner) {
+      for (let r = 0; r < ROWS; r++)
+        for (let c = 0; c < COLS; c++)
+          if (board[r][c] && board[r][c].owner === owner) return true;
+      return false;
+    }
+
+    /* ================= 渲染 ================= */
+    function render() {
+      for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS; c++) {
+          const cell = boardEl.children[r * COLS + c];
+          cell.className = 'cell';
+
+          if (isRiver(r, c)) cell.classList.add('river');
+          if (isTrap(r, c)) cell.classList.add('trap');
+
+          if (r === DEN_RED.r && c === DEN_RED.c) {
+            cell.classList.add('den', 'den-red');
+            cell.textContent = '郑';
+          } else if (r === DEN_BLUE.r && c === DEN_BLUE.c) {
+            cell.classList.add('den', 'den-blue');
+            cell.textContent = '刘';
+          }
+
+          const p = board[r][c];
+          if (p) {
+            cell.textContent = ICON[p.kind];
+            cell.classList.add(p.owner === 1 ? 'p1' : 'p2');
+          } else if (!cell.classList.contains('den')) {
+            cell.textContent = '';
+          }
+
+          if (selected && selected.r === r && selected.c === c) {
+            cell.classList.add('selected');
+          }
+
+          if (selected && canMove(selected.r, selected.c, r, c)) {
+            const target = board[r][c];
+            if (target && target.owner !== board[selected.r][selected.c].owner) {
+              cell.classList.add('attack-target');
+            } else {
+              cell.classList.add('move-target');
+            }
+          }
+        }
+      }
+    }
+
+    /* ================= 回合 UI & 计时 ================= */
+    function updateTurnUI() {
+      if (current === 1) {
+        curEl.textContent = '郑艳军回合';
+        turnBadge.classList.add('red-active');
+        turnBadge.classList.remove('blue-active');
+        clockEl.classList.add('red-active');
+        clockEl.classList.remove('blue-active');
+      } else {
+        curEl.textContent = '刘刚回合';
+        turnBadge.classList.add('blue-active');
+        turnBadge.classList.remove('red-active');
+        clockEl.classList.add('blue-active');
+        clockEl.classList.remove('red-active');
+      }
+    }
+
+    function startClock() {
+      clockTimer = setInterval(() => {
+        if (gameOver) return;
+        const idx = current - 1;
+        timeLeft[idx]--;
+        if (timeLeft[idx] <= 0) {
+          timeLeft[idx] = 0;
+          updateClockText();
+          clearInterval(clockTimer);
+          const winner = current === 1 ? 2 : 1;
+          endGame(winner, (current === 1 ? '郑艳军' : '刘刚') + ' 超时判负！');
+          return;
+        }
+        updateClockText();
+      }, 1000);
+    }
+
+    function updateClockText() {
+      const idx = current - 1;
+      const t = timeLeft[idx];
+      const m = Math.floor(t / 60);
+      const s = t % 60;
+      clockText.textContent = String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+      clockEl.classList.toggle('warning', t <= 30);
+    }
+
+    /* ================= 结束 & 烟花 ================= */
+    function endGame(winner, info) {
+      gameOver = true;
+      clearInterval(clockTimer);
+      document.getElementById('winnerName').textContent =
+        winner === 1 ? '🏆 郑艳军获胜' : '🏆 刘刚获胜';
+      document.getElementById('winnerInfo').textContent = info || '';
+      document.getElementById('result').style.display = 'flex';
+
+      playVictorySound();
+      startFireworks();
+    }
+
+    // ============ 烟花 ============
+    let fwRAF = null;
+    function startFireworks() {
+      const canvas = document.getElementById('fireworks');
+      canvas.style.display = 'block';
+      const ctx = canvas.getContext('2d');
+      let W = canvas.width = window.innerWidth;
+      let H = canvas.height = window.innerHeight;
+
+      window.addEventListener('resize', () => {
+        W = canvas.width = window.innerWidth;
+        H = canvas.height = window.innerHeight;
+      });
+
+      const particles = [];
+      const rockets = [];
+
+      function spawnRocket() {
+        rockets.push({
+          x: Math.random() * W,
+          y: H,
+          vy: -(8 + Math.random() * 4),
+          targetY: H * (0.15 + Math.random() * 0.35),
+          hue: Math.floor(Math.random() * 360)
+        });
+      }
+
+      function explode(x, y, hue) {
+        const count = 60 + Math.floor(Math.random() * 40);
+        for (let i = 0; i < count; i++) {
+          const angle = Math.random() * Math.PI * 2;
+          const speed = 1 + Math.random() * 5;
+          particles.push({
+            x, y,
+            vx: Math.cos(angle) * speed,
+            vy: Math.sin(angle) * speed,
+            life: 60 + Math.random() * 40,
+            maxLife: 100,
+            hue: hue + (Math.random() * 40 - 20),
+            size: 2 + Math.random() * 2
+          });
+        }
+      }
+
+      function loop() {
+        ctx.fillStyle = 'rgba(2,6,23,0.18)';
+        ctx.fillRect(0, 0, W, H);
+
+        // 火箭
+        for (let i = rockets.length - 1; i >= 0; i--) {
+          const r = rockets[i];
+          r.y += r.vy;
+          ctx.beginPath();
+          ctx.fillStyle = `hsl(${r.hue}, 100%, 70%)`;
+          ctx.arc(r.x, r.y, 2.5, 0, Math.PI * 2);
+          ctx.fill();
+          // 拖尾
+          ctx.fillStyle = `hsla(${r.hue}, 100%, 70%, 0.4)`;
+          ctx.beginPath();
+          ctx.arc(r.x, r.y + 6, 1.5, 0, Math.PI * 2);
+          ctx.fill();
+
+          if (r.y <= r.targetY) {
+            explode(r.x, r.y, r.hue);
+            rockets.splice(i, 1);
+          }
+        }
+
+        // 粒子
+        for (let i = particles.length - 1; i >= 0; i--) {
+          const p = particles[i];
+          p.x += p.vx;
+          p.y += p.vy;
+          p.vy += 0.06;         // 重力
+          p.vx *= 0.985;
+          p.vy *= 0.985;
+          p.life--;
+
+          const alpha = Math.max(0, p.life / p.maxLife);
+          ctx.beginPath();
+          ctx.fillStyle = `hsla(${p.hue}, 100%, 60%, ${alpha})`;
+          ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+          ctx.fill();
+
+          if (p.life <= 0) particles.splice(i, 1);
+        }
+
+        // 持续发射
+        if (Math.random() < 0.04) spawnRocket();
+        if (gameOver) fwRAF = requestAnimationFrame(loop);
+      }
+
+      // 初始一波
+      for (let i = 0; i < 3; i++) setTimeout(spawnRocket, i * 200);
+      loop();
+    }
+  </script>
+</body>
+</html>
