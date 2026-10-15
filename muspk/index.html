@@ -1192,4 +1192,161 @@
       document.getElementById('p' + (i + 1) + 'fill').style.width = '100%';
       timers[i] = setInterval(() => {
         left -= .1;
-        states[i].
+        states[i].timeUsed += .1;
+        document.getElementById('p' + (i + 1) + 'fill').style.width = Math.max(0, left / seconds * 100) + '%';
+        if (left <= 0) {
+          clearInterval(timers[i]);
+          answer(i, null, qset[i][states[i].current])
+        }
+      }, 100)
+    }
+
+    function answer(i, choice, q) {
+      let s = states[i];
+      clearInterval(timers[i]);
+      let ok = choice === q.ans;
+      s.answers.push({
+        question: q.text,
+        choice: choice === null ? '超时' : choice,
+        correct: ok,
+        answer: q.ans
+      });
+      if (ok) {
+        s.score += 5;
+        document.getElementById('p' + (i + 1) + 'score').textContent = s.score
+      }
+      s.current++;
+      setTimeout(() => render(i), 260)
+    }
+
+    function renderResults(i) {
+      let s = states[i],
+        qbox = document.getElementById('p' + (i + 1) + 'q'),
+        obox = document.getElementById('p' + (i + 1) + 'opts');
+      obox.innerHTML = '';
+      qbox.innerHTML = '<strong>' + players[i] + ' · 作答结果</strong><div class="result-list">' + s.answers.map((a, n) => '<button type="button" class="result-item ' + (a.correct ? '' : 'wrong') + '" onclick="event.stopPropagation();window.showQuestionDetail(' + i + ',' + n + ')">第' + (n + 1) + '题：' + (a.correct ? '回答正确' : '回答错误') + (a.correct ? '' : '<span class="correction">正确答案：' + a.answer + '</span>') + '</button>').join('') + '</div>'
+    }
+
+    function getReasoning(question, answer) {
+      const q = String(question || '');
+      if (q.includes('郑艳军')) return '郑艳军牛NB666';
+      return '郑艳军牛逼666。'
+    }
+
+    function showQuestionDetail(playerIndex, questionIndex) {
+      const a = states[playerIndex]?.answers?.[questionIndex];
+      if (!a) return;
+      const modal = document.getElementById('questionDetail');
+      document.getElementById('detailTitle').textContent = players[playerIndex] + ' · 第' + (questionIndex + 1) + '题';
+      document.getElementById('detailQuestion').textContent = a.question;
+      document.getElementById('detailAnswer').textContent = a.correct ? '作答结果：回答正确' : '作答结果：回答错误；你的答案：' + (a.choice || '未作答') + '；正确答案：' + a.answer;
+      const reasoning = document.getElementById('detailReasoning');
+      if (a.correct) {
+        reasoning.innerHTML = '';
+        reasoning.style.display = 'none'
+      } else {
+        reasoning.innerHTML = '<strong>判断思路：</strong>' + getReasoning(a.question, a.answer);
+        reasoning.style.display = 'block'
+      }
+      modal.style.display = 'flex';
+      modal.style.visibility = 'visible';
+      modal.style.opacity = '1'
+    }
+    window.showQuestionDetail = showQuestionDetail
+
+    function closeQuestionDetail() {
+      document.getElementById('questionDetail').style.display = 'none'
+    }
+    async function saveRecord(name, i) {
+      try {
+        let sdk = await window.MuskCollectLoader.getInstance();
+        await sdk.save('electro_pk_results', {
+          studentName: name,
+          className: selectedClassName || (mode === 'self' ? '自定义' : ''),
+          category,
+          score: states[i].score,
+          correctCount: states[i].answers.filter(a => a.correct).length,
+          wrongCount: states[i].answers.filter(a => !a.correct).length,
+          questionResults: states[i].answers.map(a => ({
+            ...a,
+            knowledgePoint: a.question
+          }), ),
+          opponentName: players[1 - i],
+          timestamp: new Date().toISOString()
+        })
+      } catch (e) {
+        // 保存失败不影响使用，静默忽略
+      }
+    }
+    async function checkOver() {
+      if (!states[0].finished || !states[1].finished) return;
+      let win = states[0].score > states[1].score ? 0 : states[1].score > states[0].score ? 1 : states[0].timeUsed < states[1].timeUsed ? 0 : states[1].timeUsed < states[0].timeUsed ? 1 : -1;
+      document.getElementById('p1win').style.display = win === 0 ? 'block' : win === -1 ? 'block' : 'none';
+      document.getElementById('p2win').style.display = win === 1 ? 'block' : win === -1 ? 'block' : 'none';
+      document.getElementById('resultTitle').textContent = win === -1 ? '本场平局' : '比赛结束';
+      document.getElementById('winner').textContent = win === -1 ? '平局' : players[win];
+      document.getElementById('winnerScore').textContent = (win === -1 ? '双方均得 ' + states[0].score + ' 分' : states[win].score + ' 分') + '（共 ' + matchQuestions + ' 题）';
+      document.getElementById('result').style.display = 'flex';
+      document.getElementById('returnHome').style.display = 'none';
+      playEliminationSound();
+      saveRecord(players[0], 0);
+      saveRecord(players[1], 1);
+      fireworks()
+    }
+
+    function showAnswerResults() {
+      document.getElementById('result').style.display = 'none';
+      document.getElementById('returnHome').style.display = 'none';
+      document.getElementById('resultActions').style.display = 'flex';
+      document.getElementById('againButton').textContent = '再来一轮'
+    }
+
+    function closeResult() {
+      matchQuestions = defaultMatchQuestions;
+      document.getElementById('result').style.display = 'none';
+      document.getElementById('returnHome').style.display = 'none';
+      document.getElementById('resultActions').style.display = 'none';
+      document.getElementById('setup').style.display = 'flex';
+      document.getElementById('p1q').textContent = '准备就绪...';
+      document.getElementById('p2q').textContent = '准备就绪...';
+      document.getElementById('p1score').textContent = '0';
+      document.getElementById('p2score').textContent = '0';
+      document.getElementById('p1name').textContent = '未匹配';
+      document.getElementById('p2name').textContent = '未匹配';
+      document.getElementById('p1opts').innerHTML = '';
+      document.getElementById('p2opts').innerHTML = ''
+    }
+
+    function fireworks() {
+      let c = document.getElementById('fireworks'),
+        x = c.getContext('2d');
+      c.width = innerWidth;
+      c.height = innerHeight;
+      let ps = Array.from({
+        length: 100
+      }, () => ({
+        x: innerWidth * (.2 + Math.random() * .6),
+        y: innerHeight * .3,
+        vx: (Math.random() - .5) * 7,
+        vy: (Math.random() - .5) * 7,
+        l: 80,
+        col: ['#fde047', '#60a5fa', '#f472b6', '#34d399'][Math.floor(Math.random() * 4)]
+      }));
+      let f = () => {
+        x.clearRect(0, 0, c.width, c.height);
+        ps.forEach(p => {
+          p.x += p.vx;
+          p.y += p.vy;
+          p.vy += .05;
+          p.l--;
+          x.globalAlpha = Math.max(0, p.l / 80);
+          x.fillStyle = p.col;
+          x.fillRect(p.x, p.y, 4, 4)
+        });
+        if (ps.some(p => p.l > 0)) requestAnimationFrame(f)
+      };
+      f()
+    }
+  </script>
+</body>
+</html>
