@@ -29,7 +29,6 @@
 
   <div class="msg" id="msg">点击「开始游戏」开始</div>
 
-  <!-- 开始页 -->
   <div class="overlay" id="startPage">
     <div class="card start-page">
       <h1>郑艳军 大战 刘刚</h1>
@@ -43,7 +42,6 @@
     </div>
   </div>
 
-  <!-- 规则页 -->
   <div class="overlay" id="rulesPage" style="display:none">
     <div class="card">
       <h2>斗兽棋规则</h2>
@@ -81,7 +79,6 @@
     </div>
   </div>
 
-  <!-- 结果页 -->
   <div class="overlay" id="result" style="display:none">
     <canvas id="fireworks"></canvas>
     <div class="card">
@@ -107,7 +104,7 @@
           updateTurnUI(color);
         }
       );
-      startClock();
+      window.startClock();
       msg('郑艳军先手，点击己方棋子选中', true);
     }
 
@@ -116,10 +113,10 @@
       document.getElementById('startPage').style.display = 'flex';
       document.getElementById('fireworks').style.display = 'none';
       if (window.fwStop) window.fwStop();
-      stopClock();
+      window.stopClock();
       document.getElementById('animal-chess').innerHTML = '';
       controller = null;
-      resetTurnUI();
+      window.resetTurnUI();
       msg('点击「开始游戏」开始');
     }
 
