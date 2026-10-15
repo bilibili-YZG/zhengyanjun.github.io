@@ -28,14 +28,17 @@
 ---
 
 ## 📂 文件结构
-├── index.html # 启动页：选择有音乐 / 无音乐版本
-├── ZYJPK.html # 有音乐版主程序
-├── ZYJPK-NOMUS.html # 无音乐版主程序
-├── questions.js # 题库数据（班级名单 + 题目）
-├── elimination.mp3 # 背景音乐文件
-├── 404.html # 404 错误页面，自动跳回首页
-├── CNAME # 自定义域名配置（GitHub Pages 自动生成）
-└── README.md # 项目说明文档（本文件）
+├── muspk/
+│   └── index.html          # 有音乐版主程序（通过 /muspk 访问）
+├── nmuspk/
+│   └── index.html          # 无音乐版主程序（通过 /nmuspk 访问）
+├── 404.html                # 404 错误页面，自动跳回首页
+├── CNAME                   # 自定义域名配置（zyj.slpd.club）
+├── README.md               # 项目说明文档
+├── ZYJPK-NOMUS.html        # 无音乐版原始文件（备份）
+├── ZYJPK.html              # 有音乐版原始文件（备份）
+├── elimination.mp3         # 背景音乐文件
+└── index.html              # 启动页：选择有音乐 / 无音乐版本
 
 > 💡 如需新增或修改题目，只需编辑 `questions.js`，无需改动 HTML 主程序。
 
