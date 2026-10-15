@@ -1180,8 +1180,8 @@
         answer: q.ans
       });
       if (ok) {
-        s.score += 5;
-        document.getElementById('p' + (i + 1) + 'score').textContent = s.score
+        s.score += 100 / matchQuestions;
+        document.getElementById('p' + (i + 1) + 'score').textContent = Math.round(s.score * 100) / 100
       }
       s.current++;
       setTimeout(() => render(i), 260)
@@ -1253,7 +1253,7 @@
       document.getElementById('p2win').style.display = win === 1 ? 'block' : win === -1 ? 'block' : 'none';
       document.getElementById('resultTitle').textContent = win === -1 ? '本场平局' : '比赛结束';
       document.getElementById('winner').textContent = win === -1 ? '平局' : players[win];
-      document.getElementById('winnerScore').textContent = (win === -1 ? '双方均得 ' + states[0].score + ' 分' : states[win].score + ' 分') + '（共 ' + matchQuestions + ' 题）';
+      document.getElementById('winnerScore').textContent = (win === -1 ? '双方均得 ' + Math.round(states[0].score * 100) / 100 + ' 分' : Math.round(states[win].score * 100) / 100 + ' 分') + '（共 ' + matchQuestions + ' 题）';
       document.getElementById('result').style.display = 'flex';
       document.getElementById('returnHome').style.display = 'none';
       playEliminationSound();
