@@ -1,595 +1,1311 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1" name="viewport"/>
-<title>郑艳军理论双人PK赛</title>
-<link rel="icon" href="/icon.png" type="image/png">
-<script src="https://metis-online.fbcontent.cn/metis-misc/zgLDUdmazTYc0B4K6Cor.js"></script>
-<script src="https://metis-online.fbcontent.cn/metis-misc/zZZY40t7WJC7UdQCPACm.js"></script>
-<script data-sdk="musk-collect" src="https://musk-online.fbcontent.cn/pub-musk-ai-studio/directories/musk-collect/musk-collect-loader.js"></script>
-<style>
-:root{--bg:#0f172a;--card:#1e293b;--blue:#3b82f6;--red:#ef4444;--yellow:#fde047;--text:#f8fafc}
-*{box-sizing:border-box}
-body{margin:0;height:100vh;overflow:hidden;background:var(--bg);color:var(--text);font-family:"Noto Sans SC",Arial,sans-serif}
-.pk{display:flex;height:100vh;gap:2px;background:#334155}
-.side{flex:1;min-width:0;padding:1.2rem;position:relative;display:flex;flex-direction:column}
-.p1{background:linear-gradient(135deg,#1e293b,#1e3a8a)}
-.p2{background:linear-gradient(135deg,#1e293b,#7f1d1d)}
-.head{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #ffffff22;padding-bottom:.6rem;margin-bottom:.8rem}
-.badge{font-weight:800;font-size:1.2rem}
-.score{font-size:2rem;font-weight:900}
-.q{background:#0003;border-radius:1rem;padding:1.1rem;min-height:140px;font-size:2.4rem;line-height:1.45;margin-bottom:1rem}
-.q small{font-size:.8rem;opacity:.6;display:block;margin-bottom:.4rem}
-.opts{display:flex;flex-direction:column;align-items:stretch;gap:10px;margin-top:auto}
-.opts.two-col{display:grid;grid-template-columns:1fr 1fr;align-items:stretch}
-.opts.one-col{display:flex;flex-direction:column}
-.opt{padding:14px;border:1px solid #ffffff33;background:#ffffff14;border-radius:10px;text-align:left;font-weight:700;font-size:2rem;cursor:pointer;min-height:48px;width:100%}
-.opt:hover{background:#ffffff2b}
-.track{position:absolute;bottom:0;left:0;width:100%;height:6px;background:#ffffff22}
-.fill{height:100%;transition:width .15s}
-.bluefill{background:var(--blue)}
-.redfill{background:var(--red)}
-.overlay,.modal{position:fixed;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;background:#020617dd}
-.overlay{flex-direction:column;text-align:center}
-.title{font-size:6rem;line-height:1.05;margin:0 0 1.4rem;font-weight:900;letter-spacing:.04em}
-.logo{font-size:5rem;font-weight:900;font-style:italic;background:linear-gradient(90deg,var(--blue),var(--red));color:transparent;background-clip:text;margin-bottom:1rem}
-.setup{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center;margin:1rem}
-.setup select,.setup button,.setup input{font-size:1rem;padding:10px 14px;border-radius:10px;color:#fff;border:1px solid #ffffff44;background:#1e293b}
-.setup input::placeholder{color:#94a3b8}
-.setup button{background:#2563eb;cursor:pointer;font-weight:800}
-.category{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:center;margin:1rem 0}
-.category label{padding:9px 13px;border:1px solid #ffffff33;border-radius:10px;background:#ffffff0d;cursor:pointer}
-.category input{accent-color:#60a5fa}
-.match-card,.result-card{position:relative;text-align:center;background:linear-gradient(145deg,#172554,#3f1d3d);border:4px solid #60a5fa;border-radius:40px;box-shadow:0 0 80px #3b82f655;cursor:default}
-.match-card{width:min(920px,82vw);padding:60px 52px;transform:scale(.6667)}
-.match-card h2{font-size:3.6rem;color:#93c5fd;margin:0 0 34px}
-.names{display:flex;gap:28px;justify-content:center;margin:30px 0}
-.name{min-width:240px;padding:28px 32px;border-radius:24px;font-size:4.6rem;font-weight:900}
-.name.blue{background:#3b82f655;border:2px solid #60a5fa}
-.name.red{background:#ef444455;border:2px solid #f87171}
-.hint{font-size:1.9rem;color:#cbd5e1}
-.start{border:0;border-radius:999px;padding:1.8rem 5.5rem;font-size:2.8rem;font-weight:900;cursor:pointer;background:#fff;color:#0f172a}
-.result-card{width:min(560px,85vw);padding:32px;border-color:var(--yellow)}
-.result-card h2{color:var(--yellow);font-size:2.2rem}
-.winner{color:var(--yellow);font-weight:900;font-size:3.7rem;margin:12px}
-.result-list{font-size:.9rem;display:grid;gap:5px;text-align:left}
-.result-item{padding:6px 8px;background:#ffffff12;border-radius:6px}
-.wrong{border-left:4px solid var(--yellow)}
-.correction{color:var(--yellow);font-weight:800;margin-left:8px}
-.win-tag{display:none;position:absolute;top:1rem;left:180px;color:var(--yellow);border:3px solid var(--yellow);border-radius:8px;padding:4px 8px;font-weight:900;z-index:3}
-.match-actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
-.match-actions button{min-width:150px}
-.name-inputs{display:flex;flex-direction:column;gap:18px;padding:12px 8px}
-.name-input-row{display:flex;align-items:center;gap:14px}
-.name-input-row label{min-width:90px;text-align:right;font-size:1.8rem;font-weight:700}
-.name-input-row label.blue-label{color:#60a5fa}
-.name-input-row label.red-label{color:#f87171}
-.name-input-row input{flex:1;font-size:2rem;padding:14px 18px;border-radius:12px;border:2px solid #ffffff44;background:#ffffff14;color:#fff;outline:none}
-.name-input-row input:focus{border-color:#60a5fa;background:#ffffff22}
-.self-footer{display:flex;justify-content:space-between;align-items:center;margin-top:24px}
-.result-actions{position:fixed;right:28px;bottom:24px;z-index:31;display:flex;gap:10px}
-.result-actions button{border:0;border-radius:12px;padding:14px 24px;background:var(--yellow);color:#172554;font-size:1.1rem;font-weight:900;cursor:pointer}
-.result-item{appearance:none;width:100%;border:1px solid #ffffff22;text-align:left;color:inherit;font:inherit;cursor:pointer}
-.result-item:hover{background:#ffffff26;transform:translateY(-1px)}
-.question-detail{max-width:min(760px,88vw);padding:34px 40px;text-align:left;background:linear-gradient(145deg,#172554,#3f1d3d);border:3px solid #60a5fa;border-radius:24px;box-shadow:0 0 60px #3b82f655}
-.question-detail h2{margin:0 0 18px;color:#93c5fd;font-size:1.8rem}
-.question-detail .detail-question{font-size:2rem;line-height:1.55;color:#fff}
-.question-detail .detail-answer{margin-top:18px;padding:12px 16px;border-left:4px solid var(--yellow);background:#ffffff12;color:var(--yellow);font-weight:800}
-.question-detail .detail-reasoning{margin-top:14px;padding:14px 16px;border-left:4px solid #60a5fa;background:#60a5fa14;color:#dbeafe;line-height:1.65}
-.question-detail .detail-reasoning strong{color:#93c5fd}
-.question-detail .detail-hint{margin:22px 0 0;color:#cbd5e1;text-align:center}
-@media(max-width:700px){
-body{overflow:auto}
-.pk{min-height:100vh;height:auto;flex-direction:column}
-.side{min-height:50vh;padding:0.8rem}
-.q{font-size:2rem}
-.title{font-size:3rem;max-width:92vw}
-.logo{font-size:4rem}
-.names{gap:8px}
-.name{min-width:0;flex:1;font-size:2.7rem;padding:18px 8px}
-.hint{font-size:1.1rem}
-.start{font-size:1.6rem;padding:1rem 2.5rem}
-.win-tag{left:140px;font-size:.8rem}
-.name-input-row label{min-width:70px;font-size:1.3rem}
-.name-input-row input{font-size:1.4rem;padding:10px 14px}
-.result-actions{right:14px;bottom:14px}
-.result-actions button{padding:12px 18px;font-size:1rem}
-.return-home{right:14px;bottom:14px;padding:12px 18px;font-size:1rem}
-.question-detail{padding:24px 20px}
-.question-detail h2{font-size:1.35rem}
-.question-detail .detail-question{font-size:1.35rem}
-}
-@media(max-width:380px){
-.q{font-size:1.4rem;min-height:90px}
-.opt{font-size:1.3rem;padding:10px;min-height:40px}
-.start{font-size:1.3rem;padding:0.8rem 1.8rem}
-.name{font-size:2rem}
-.badge{font-size:1rem}
-.score{font-size:1.5rem}
-.title{font-size:2rem}
-.logo{font-size:2.5rem}
-.hint{font-size:1rem}
-}
-</style>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1" name="viewport"/>
+  <title>郑艳军理论双人PK赛</title>
+  <link rel="icon" href="/icon.png" type="image/png">
+  <script src="https://metis-online.fbcontent.cn/metis-misc/zgLDUdmazTYc0B4K6Cor.js"></script>
+  <script src="https://metis-online.fbcontent.cn/metis-misc/zZZY40t7WJC7UdQCPACm.js"></script>
+  <script data-sdk="musk-collect" src="https://musk-online.fbcontent.cn/pub-musk-ai-studio/directories/musk-collect/musk-collect-loader.js"></script>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #1e293b;
+      --blue: #3b82f6;
+      --red: #ef4444;
+      --yellow: #fde047;
+      --text: #f8fafc
+    }
+
+    * {
+      box-sizing: border-box
+    }
+
+    body {
+      margin: 0;
+      height: 100vh;
+      overflow: hidden;
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Noto Sans SC", Arial, sans-serif
+    }
+
+    .pk {
+      display: flex;
+      height: 100vh;
+      gap: 2px;
+      background: #334155
+    }
+
+    .side {
+      flex: 1;
+      min-width: 0;
+      padding: 1.2rem;
+      position: relative;
+      display: flex;
+      flex-direction: column
+    }
+
+    .p1 {
+      background: linear-gradient(135deg, #1e293b, #1e3a8a)
+    }
+
+    .p2 {
+      background: linear-gradient(135deg, #1e293b, #7f1d1d)
+    }
+
+    .head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #ffffff22;
+      padding-bottom: .6rem;
+      margin-bottom: .8rem
+    }
+
+    .badge {
+      font-weight: 800;
+      font-size: 1.2rem
+    }
+
+    .score {
+      font-size: 2rem;
+      font-weight: 900
+    }
+
+    .q {
+      background: #0003;
+      border-radius: 1rem;
+      padding: 1.1rem;
+      min-height: 140px;
+      font-size: 2.4rem;
+      line-height: 1.45;
+      margin-bottom: 1rem
+    }
+
+    .q small {
+      font-size: .8rem;
+      opacity: .6;
+      display: block;
+      margin-bottom: .4rem
+    }
+
+    .opts {
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 10px;
+      margin-top: auto
+    }
+
+    .opts.two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      align-items: stretch
+    }
+
+    .opts.one-col {
+      display: flex;
+      flex-direction: column
+    }
+
+    .opt {
+      padding: 14px;
+      border: 1px solid #ffffff33;
+      background: #ffffff14;
+      border-radius: 10px;
+      text-align: left;
+      font-weight: 700;
+      font-size: 2rem;
+      cursor: pointer;
+      min-height: 48px;
+      width: 100%
+    }
+
+    .opt:hover {
+      background: #ffffff2b
+    }
+
+    .track {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 6px;
+      background: #ffffff22
+    }
+
+    .fill {
+      height: 100%;
+      transition: width .15s
+    }
+
+    .bluefill {
+      background: var(--blue)
+    }
+
+    .redfill {
+      background: var(--red)
+    }
+
+    .overlay,
+    .modal {
+      position: fixed;
+      inset: 0;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #020617dd
+    }
+
+    .overlay {
+      flex-direction: column;
+      text-align: center
+    }
+
+    .title {
+      font-size: 6rem;
+      line-height: 1.05;
+      margin: 0 0 1.4rem;
+      font-weight: 900;
+      letter-spacing: .04em
+    }
+
+    .logo {
+      font-size: 5rem;
+      font-weight: 900;
+      font-style: italic;
+      background: linear-gradient(90deg, var(--blue), var(--red));
+      color: transparent;
+      background-clip: text;
+      margin-bottom: 1rem
+    }
+
+    .setup {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin: 1rem
+    }
+
+    .setup select,
+    .setup button,
+    .setup input {
+      font-size: 1rem;
+      padding: 10px 14px;
+      border-radius: 10px;
+      color: #fff;
+      border: 1px solid #ffffff44;
+      background: #1e293b
+    }
+
+    .setup input::placeholder {
+      color: #94a3b8
+    }
+
+    .setup button {
+      background: #2563eb;
+      cursor: pointer;
+      font-weight: 800
+    }
+
+    .category {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin: 1rem 0
+    }
+
+    .category label {
+      padding: 9px 13px;
+      border: 1px solid #ffffff33;
+      border-radius: 10px;
+      background: #ffffff0d;
+      cursor: pointer
+    }
+
+    .category input {
+      accent-color: #60a5fa
+    }
+
+    .match-card,
+    .result-card {
+      position: relative;
+      text-align: center;
+      background: linear-gradient(145deg, #172554, #3f1d3d);
+      border: 4px solid #60a5fa;
+      border-radius: 40px;
+      box-shadow: 0 0 80px #3b82f655;
+      cursor: default
+    }
+
+    .match-card {
+      width: min(920px, 82vw);
+      padding: 60px 52px;
+      transform: scale(.6667)
+    }
+
+    .match-card h2 {
+      font-size: 3.6rem;
+      color: #93c5fd;
+      margin: 0 0 34px
+    }
+
+    .names {
+      display: flex;
+      gap: 28px;
+      justify-content: center;
+      margin: 30px 0
+    }
+
+    .name {
+      min-width: 240px;
+      padding: 28px 32px;
+      border-radius: 24px;
+      font-size: 4.6rem;
+      font-weight: 900
+    }
+
+    .name.blue {
+      background: #3b82f655;
+      border: 2px solid #60a5fa
+    }
+
+    .name.red {
+      background: #ef444455;
+      border: 2px solid #f87171
+    }
+
+    .hint {
+      font-size: 1.9rem;
+      color: #cbd5e1
+    }
+
+    .start {
+      border: 0;
+      border-radius: 999px;
+      padding: 1.8rem 5.5rem;
+      font-size: 2.8rem;
+      font-weight: 900;
+      cursor: pointer;
+      background: #fff;
+      color: #0f172a
+    }
+
+    .result-card {
+      width: min(560px, 85vw);
+      padding: 32px;
+      border-color: var(--yellow)
+    }
+
+    .result-card h2 {
+      color: var(--yellow);
+      font-size: 2.2rem
+    }
+
+    .winner {
+      color: var(--yellow);
+      font-weight: 900;
+      font-size: 3.7rem;
+      margin: 12px
+    }
+
+    .result-list {
+      font-size: .9rem;
+      display: grid;
+      gap: 5px;
+      text-align: left
+    }
+
+    .result-item {
+      padding: 6px 8px;
+      background: #ffffff12;
+      border-radius: 6px
+    }
+
+    .wrong {
+      border-left: 4px solid var(--yellow)
+    }
+
+    .correction {
+      color: var(--yellow);
+      font-weight: 800;
+      margin-left: 8px
+    }
+
+    .win-tag {
+      display: none;
+      position: absolute;
+      top: 1rem;
+      left: 180px;
+      color: var(--yellow);
+      border: 3px solid var(--yellow);
+      border-radius: 8px;
+      padding: 4px 8px;
+      font-weight: 900;
+      z-index: 3
+    }
+
+    .match-actions {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap
+    }
+
+    .match-actions button {
+      min-width: 150px
+    }
+
+    .name-inputs {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      padding: 12px 8px;
+    }
+
+    .name-input-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .name-input-row label {
+      min-width: 90px;
+      text-align: right;
+      font-size: 1.8rem;
+      font-weight: 700;
+    }
+
+    .name-input-row label.blue-label {
+      color: #60a5fa;
+    }
+
+    .name-input-row label.red-label {
+      color: #f87171;
+    }
+
+    .name-input-row input {
+      flex: 1;
+      font-size: 2rem;
+      padding: 14px 18px;
+      border-radius: 12px;
+      border: 2px solid #ffffff44;
+      background: #ffffff14;
+      color: #fff;
+      outline: none;
+    }
+
+    .name-input-row input:focus {
+      border-color: #60a5fa;
+      background: #ffffff22;
+    }
+
+    .self-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 24px
+    }
+
+    .result-actions {
+      position: fixed;
+      right: 28px;
+      bottom: 24px;
+      z-index: 31;
+      display: flex;
+      gap: 10px
+    }
+
+    .result-actions button {
+      border: 0;
+      border-radius: 12px;
+      padding: 14px 24px;
+      background: var(--yellow);
+      color: #172554;
+      font-size: 1.1rem;
+      font-weight: 900;
+      cursor: pointer
+    }
+
+    .result-item {
+      appearance: none;
+      width: 100%;
+      border: 1px solid #ffffff22;
+      text-align: left;
+      color: inherit;
+      font: inherit;
+      cursor: pointer
+    }
+
+    .result-item:hover {
+      background: #ffffff26;
+      transform: translateY(-1px)
+    }
+
+    .question-detail {
+      max-width: min(760px, 88vw);
+      padding: 34px 40px;
+      text-align: left;
+      background: linear-gradient(145deg, #172554, #3f1d3d);
+      border: 3px solid #60a5fa;
+      border-radius: 24px;
+      box-shadow: 0 0 60px #3b82f655
+    }
+
+    .question-detail h2 {
+      margin: 0 0 18px;
+      color: #93c5fd;
+      font-size: 1.8rem
+    }
+
+    .question-detail .detail-question {
+      font-size: 2rem;
+      line-height: 1.55;
+      color: #fff
+    }
+
+    .question-detail .detail-answer {
+      margin-top: 18px;
+      padding: 12px 16px;
+      border-left: 4px solid var(--yellow);
+      background: #ffffff12;
+      color: var(--yellow);
+      font-weight: 800
+    }
+
+    .question-detail .detail-reasoning {
+      margin-top: 14px;
+      padding: 14px 16px;
+      border-left: 4px solid #60a5fa;
+      background: #60a5fa14;
+      color: #dbeafe;
+      line-height: 1.65
+    }
+
+    .question-detail .detail-reasoning strong {
+      color: #93c5fd
+    }
+
+    .question-detail .detail-hint {
+      margin: 22px 0 0;
+      color: #cbd5e1;
+      text-align: center
+    }
+
+    @media(max-width:700px) {
+      body {
+        overflow: auto
+      }
+
+      .pk {
+        min-height: 100vh;
+        height: auto;
+        flex-direction: column
+      }
+
+      .side {
+        min-height: 50vh;
+        padding: 0.8rem
+      }
+
+      .q {
+        font-size: 2rem
+      }
+
+      .title {
+        font-size: 3rem;
+        max-width: 92vw
+      }
+
+      .logo {
+        font-size: 4rem
+      }
+
+      .names {
+        gap: 8px
+      }
+
+      .name {
+        min-width: 0;
+        flex: 1;
+        font-size: 2.7rem;
+        padding: 18px 8px
+      }
+
+      .hint {
+        font-size: 1.1rem
+      }
+
+      .start {
+        font-size: 1.6rem;
+        padding: 1rem 2.5rem
+      }
+
+      .win-tag {
+        left: 140px;
+        font-size: .8rem
+      }
+
+      .name-input-row label {
+        min-width: 70px;
+        font-size: 1.3rem;
+      }
+
+      .name-input-row input {
+        font-size: 1.4rem;
+        padding: 10px 14px;
+      }
+
+      .result-actions {
+        right: 14px;
+        bottom: 14px
+      }
+
+      .result-actions button {
+        padding: 12px 18px;
+        font-size: 1rem
+      }
+
+      .return-home {
+        right: 14px;
+        bottom: 14px;
+        padding: 12px 18px;
+        font-size: 1rem
+      }
+
+      .question-detail {
+        padding: 24px 20px
+      }
+
+      .question-detail h2 {
+        font-size: 1.35rem
+      }
+
+      .question-detail .detail-question {
+        font-size: 1.35rem
+      }
+    }
+
+    @media(max-width:380px) {
+      .q {
+        font-size: 1.4rem;
+        min-height: 90px
+      }
+
+      .opt {
+        font-size: 1.3rem;
+        padding: 10px;
+        min-height: 40px
+      }
+
+      .start {
+        font-size: 1.3rem;
+        padding: 0.8rem 1.8rem
+      }
+
+      .name {
+        font-size: 2rem
+      }
+
+      .badge {
+        font-size: 1rem
+      }
+
+      .score {
+        font-size: 1.5rem
+      }
+
+      .title {
+        font-size: 2rem
+      }
+
+      .logo {
+        font-size: 2.5rem
+      }
+
+      .hint {
+        font-size: 1rem
+      }
+    }
+  </style>
 </head>
 <body>
-<div class="overlay" id="setup">
-<h1 class="title">郑艳军理论 &middot; 双人PK赛</h1>
-<div class="logo">VS</div>
-<div class="category">
-<strong>选择题库：</strong>
-<label><input name="cat" type="radio" value="郑治综合"/>郑治综合</label>
-</div>
-<div class="setup">
-<label for="classSelect">选择班级</label>
-<select id="classSelect" onchange="selectedClassName=this.value">
-<option value="">请选择班级</option>
-</select>
-<div class="match-actions">
-<button onclick="randomMatch()">随机匹配</button>
-<button onclick="openSelfMatch()">自行输入选手</button>
-</div>
-</div>
-</div>
-<div class="modal" id="match" onclick="if(event.target.id==='match')closeMatch()" style="display:none">
-<div class="match-card">
-<h2 id="matchTitle">匹配结果</h2>
-<div class="names">
-<div class="name blue" id="m1">&mdash;</div>
-<div class="name red" id="m2">&mdash;</div>
-</div>
-<p class="hint">确认选手后点击下方按钮开始比赛</p>
-<button class="start" onclick="event.stopPropagation();startGame()">开始对决</button>
-</div>
-</div>
-<div class="modal" id="selfMatch" onclick="if(event.target.id==='selfMatch')closeSelfMatch()" style="display:none">
-<div class="match-card self-card" onclick="event.stopPropagation()">
-<h2 id="selfTitle">输入选手名称</h2>
-<div class="name-inputs">
-<div class="name-input-row">
-<label class="blue-label">蓝方选手：</label>
-<input type="text" id="player1Input" placeholder="请输入蓝方选手姓名" maxlength="20"/>
-</div>
-<div class="name-input-row">
-<label class="red-label">红方选手：</label>
-<input type="text" id="player2Input" placeholder="请输入红方选手姓名" maxlength="20"/>
-</div>
-</div>
-<div class="self-footer">
-<span id="selfHint">请输入两位选手名称</span>
-<button class="start" onclick="confirmSelfMatch()">确定</button>
-</div>
-</div>
-</div>
-<div class="modal" id="result" onclick="showAnswerResults()" style="display:none">
-<canvas id="fireworks" style="position:absolute;inset:0;pointer-events:none"></canvas>
-<div class="result-card">
-<h2 id="resultTitle">比赛结束</h2>
-<div class="winner" id="winner">&mdash;</div>
-<p id="winnerScore">&mdash;</p>
-<p>点击任意位置查看学生答题结果</p>
-</div>
-</div>
-<button class="return-home" id="returnHome" onclick="closeResult()">返回首页</button>
-<div class="result-actions" id="resultActions" style="display:none">
-<button id="againButton" onclick="event.stopPropagation();againMatch()">再来一轮</button>
-<button id="homeButton" onclick="event.stopPropagation();closeResult()">返回首页</button>
-</div>
-<div class="modal" id="questionDetail" onclick="closeQuestionDetail()" style="display:none">
-<div class="question-detail" onclick="event.stopPropagation()">
-<h2 id="detailTitle">题目详情</h2>
-<div class="detail-question" id="detailQuestion"></div>
-<div class="detail-answer" id="detailAnswer"></div>
-<div class="detail-reasoning" id="detailReasoning"></div>
-<p class="detail-hint">点击任意位置返回比赛结果显示页面</p>
-</div>
-</div>
-<main class="pk">
-<section class="side p1">
-<div class="head">
-<span class="badge" id="p1name">未匹配</span>
-<span class="score" id="p1score">0</span>
-</div>
-<div class="q" id="p1q">准备就绪...</div>
-<div class="opts" id="p1opts"></div>
-<div class="track"><div class="fill bluefill" id="p1fill" style="width:100%"></div></div>
-<div class="win-tag" id="p1win">WINNER</div>
-</section>
-<section class="side p2">
-<div class="head">
-<span class="badge" id="p2name">未匹配</span>
-<span class="score" id="p2score">0</span>
-</div>
-<div class="q" id="p2q">准备就绪...</div>
-<div class="opts" id="p2opts"></div>
-<div class="track"><div class="fill redfill" id="p2fill" style="width:100%"></div></div>
-<div class="win-tag" id="p2win">WINNER</div>
-</section>
-</main>
-<script src="/rosters.js"></script>
-<script src="/questions.js"></script>
-<script>
-// ====== 合并逻辑 ======
-const addOriginal = supplementaryOriginal.filter(q => q.source === "练习册：郑艳军.pdf"),
-  addSupplement = supplementaryOriginal.filter(q => q.source === "补充题库.pdf");
-banks["郑艳军语录"].push(...supplementaryOriginal.filter(q => q.source === "练习册：郑艳军.pdf").slice(0, 8));
-banks["郑艳军经历"].push(...supplementaryOriginal.filter(q => q.source === "练习册：郑艳军.pdf").slice(8, 15));
-banks["郑艳军管理下的生存方法论"].push(...supplementaryOriginal.filter(q => q.source === "练习册：郑艳军.pdf").slice(15));
-const comprehensiveBank = [...banks["郑艳军语录"], ...banks["郑艳军经历"], ...banks["郑艳军管理下的生存方法论"], ...addOriginal];
-banks["郑治综合"] = comprehensiveBank;
-// =====================
+  <div class="overlay" id="setup">
+    <h1 class="title">
+      郑艳军理论 &middot; 双人PK赛
+    </h1>
+    <div class="logo">
+      VS
+    </div>
+    <div class="category">
+      <strong>
+        选择题库：
+      </strong>
+      <label>
+        <input name="cat" type="radio" value="郑治综合"/>
+        郑治综合
+      </label>
+    </div>
+    <div class="setup">
+      <label for="classSelect">
+        选择班级
+      </label>
+      <select id="classSelect" onchange="selectedClassName=this.value">
+        <option value="">
+          请选择班级
+        </option>
+      </select>
+      <div class="match-actions">
+        <button onclick="randomMatch()">
+          随机匹配
+        </button>
+        <button onclick="openSelfMatch()">
+          自行输入选手
+        </button>
+      </div>
+    </div>
+  </div>
+  <div class="modal" id="match" onclick="if(event.target.id==='match')closeMatch()" style="display:none">
+    <div class="match-card">
+      <h2 id="matchTitle">
+        匹配结果
+      </h2>
+      <div class="names">
+        <div class="name blue" id="m1">
+          &mdash;
+        </div>
+        <div class="name red" id="m2">
+          &mdash;
+        </div>
+      </div>
+      <p class="hint">
+        确认选手后点击下方按钮开始比赛
+      </p>
+      <button class="start" onclick="event.stopPropagation();startGame()">
+        开始对决
+      </button>
+    </div>
+  </div>
+  <div class="modal" id="selfMatch" onclick="if(event.target.id==='selfMatch')closeSelfMatch()" style="display:none">
+    <div class="match-card self-card" onclick="event.stopPropagation()">
+      <h2 id="selfTitle">
+        输入选手名称
+      </h2>
+      <div class="name-inputs">
+        <div class="name-input-row">
+          <label class="blue-label">蓝方选手：</label>
+          <input type="text" id="player1Input" placeholder="请输入蓝方选手姓名" maxlength="20"/>
+        </div>
+        <div class="name-input-row">
+          <label class="red-label">红方选手：</label>
+          <input type="text" id="player2Input" placeholder="请输入红方选手姓名" maxlength="20"/>
+        </div>
+      </div>
+      <div class="self-footer">
+        <span id="selfHint">
+          请输入两位选手名称
+        </span>
+        <button class="start" onclick="confirmSelfMatch()">
+          确定
+        </button>
+      </div>
+    </div>
+  </div>
+  <div class="modal" id="result" onclick="showAnswerResults()" style="display:none">
+    <canvas id="fireworks" style="position:absolute;inset:0;pointer-events:none">
+    </canvas>
+    <div class="result-card">
+      <h2 id="resultTitle">
+        比赛结束
+      </h2>
+      <div class="winner" id="winner">
+        &mdash;
+      </div>
+      <p id="winnerScore">
+        &mdash;
+      </p>
+      <p>
+        点击任意位置查看学生答题结果
+      </p>
+    </div>
+  </div>
+  <button class="return-home" id="returnHome" onclick="closeResult()">
+    返回首页
+  </button>
+  <div class="result-actions" id="resultActions" style="display:none">
+    <button id="againButton" onclick="event.stopPropagation();againMatch()">
+      再来一轮
+    </button>
+    <button id="homeButton" onclick="event.stopPropagation();closeResult()">
+      返回首页
+    </button>
+  </div>
+  <div class="modal" id="questionDetail" onclick="closeQuestionDetail()" style="display:none">
+    <div class="question-detail" onclick="event.stopPropagation()">
+      <h2 id="detailTitle">
+        题目详情
+      </h2>
+      <div class="detail-question" id="detailQuestion">
+      </div>
+      <div class="detail-answer" id="detailAnswer">
+      </div>
+      <div class="detail-reasoning" id="detailReasoning">
+      </div>
+      <p class="detail-hint">
+        点击任意位置返回比赛结果显示页面
+      </p>
+    </div>
+  </div>
+  <main class="pk">
+    <section class="side p1">
+      <div class="head">
+        <span class="badge" id="p1name">
+          未匹配
+        </span>
+        <span class="score" id="p1score">
+          0
+        </span>
+      </div>
+      <div class="q" id="p1q">
+        准备就绪...
+      </div>
+      <div class="opts" id="p1opts">
+      </div>
+      <div class="track">
+        <div class="fill bluefill" id="p1fill" style="width:100%">
+        </div>
+      </div>
+      <div class="win-tag" id="p1win">
+        WINNER
+      </div>
+    </section>
+    <section class="side p2">
+      <div class="head">
+        <span class="badge" id="p2name">
+          未匹配
+        </span>
+        <span class="score" id="p2score">
+          0
+        </span>
+      </div>
+      <div class="q" id="p2q">
+        准备就绪...
+      </div>
+      <div class="opts" id="p2opts">
+      </div>
+      <div class="track">
+        <div class="fill redfill" id="p2fill" style="width:100%">
+        </div>
+      </div>
+      <div class="win-tag" id="p2win">
+        WINNER
+      </div>
+    </section>
+  </main>
+  <script src="/rosters.js"></script>
+  <script src="/questions.js"></script>
+  <script>
+    /* ====== 题库合并逻辑 ====== */
+    const addOriginal = supplementaryOriginal.filter(q => q.source === "练习册：郑艳军.pdf"),
+      addSupplement = supplementaryOriginal.filter(q => q.source === "补充题库.pdf");
+    banks["郑艳军语录"].push(...supplementaryOriginal.filter(q => q.source === "练习册：郑艳军.pdf").slice(0, 8));
+    banks["郑艳军经历"].push(...supplementaryOriginal.filter(q => q.source === "练习册：郑艳军.pdf").slice(8, 15));
+    banks["郑艳军管理下的生存方法论"].push(...supplementaryOriginal.filter(q => q.source === "练习册：郑艳军.pdf").slice(15));
+    const comprehensiveBank = [...banks["郑艳军语录"], ...banks["郑艳军经历"], ...banks["郑艳军管理下的生存方法论"], ...addOriginal];
+    banks["郑治综合"] = comprehensiveBank;
 
-const matchQuestions = 20, seconds = 15;
-let category = "郑艳军语录",
-  classType = "行政班",
-  selectedClassName = "",
-  players = ["未匹配", "未匹配"],
-  mode = "",
-  qset = [],
-  states = [],
-  optionOrders = [],
-  selfSelected = [];
-let randomWindow = { type: "", selectedClassName: "", used: new Set(), rounds: 0 };
-let timers = [null, null];
+    /* ====== 比赛参数 ====== */
+    const matchQuestions = 20,
+      seconds = 15;
 
-const ELIMINATION_AUDIO_URL = 'elimination.mp3';
-let audioCtx = null;
+    let category = "郑艳军语录",
+      classType = "行政班",
+      selectedClassName = "",
+      players = ["未匹配", "未匹配"],
+      mode = "",
+      qset = [],
+      states = [],
+      optionOrders = [],
+      selfSelected = [];
 
-function primeAudio() {
-  try {
-    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    if (audioCtx.state === 'suspended') audioCtx.resume();
-  } catch (e) { audioCtx = null; }
-}
+    let randomWindow = {
+      type: "",
+      selectedClassName: "",
+      used: new Set(),
+      rounds: 0
+    };
 
-function playEliminationSound() {
-  if (ELIMINATION_AUDIO_URL) {
-    const a = new Audio(ELIMINATION_AUDIO_URL);
-    a.volume = 0.9;
-    const p = a.play();
-    if (p && p.catch) p.catch(() => synthEliminationSound());
-    return;
-  }
-  synthEliminationSound();
-}
+    let timers = [null, null];
 
-function synthEliminationSound() {
-  primeAudio();
-  if (!audioCtx) return;
-  const t0 = audioCtx.currentTime + 0.02;
-  const notes = [
-    { f: 392.00, t: 0.00, d: 0.34 },
-    { f: 349.23, t: 0.36, d: 0.34 },
-    { f: 293.66, t: 0.72, d: 0.78 }
-  ];
-  notes.forEach(n => {
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.type = 'triangle';
-    osc.frequency.setValueAtTime(n.f, t0 + n.t);
-    osc.frequency.exponentialRampToValueAtTime(n.f * 0.94, t0 + n.t + n.d);
-    gain.gain.setValueAtTime(0.0001, t0 + n.t);
-    gain.gain.exponentialRampToValueAtTime(0.32, t0 + n.t + 0.04);
-    gain.gain.exponentialRampToValueAtTime(0.0001, t0 + n.t + n.d);
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-    osc.start(t0 + n.t);
-    osc.stop(t0 + n.t + n.d + 0.05);
-  });
-}
+    /* ====== 音乐配置 ====== */
+    const ELIMINATION_AUDIO_URL = 'elimination.mp3';
 
-function selectedCategory() {
-  return document.querySelector('input[name="cat"]:checked').value;
-}
+    let audioCtx = null;
 
-function refreshClassOptions() {
-  classType = "行政班";
-  const select = document.getElementById('classSelect');
-  const old = select.value;
-  select.innerHTML = '<option value="">请选择班级</option>';
-  Object.keys(rosters[classType]).forEach(k => {
-    const o = document.createElement('option');
-    o.value = k;
-    o.textContent = k;
-    select.appendChild(o);
-  });
-  if (rosters[classType][old]) select.value = old;
-  selectedClassName = select.value || '';
-}
-
-function currentRoster() {
-  classType = "行政班";
-  const activeClass = document.getElementById('classSelect')?.value || selectedClassName;
-  selectedClassName = activeClass;
-  return rosters[classType]?.[activeClass] || [];
-}
-
-function syncClassSelection() {
-  classType = "行政班";
-  selectedClassName = document.getElementById('classSelect')?.value || '';
-  return { classType, selectedClassName };
-}
-
-function updateMatchDialog() {
-  const titlePrefix = mode === 'random' ? '随机匹配' : '自选挑战';
-  const classInfo = selectedClassName ? (' · ' + selectedClassName) : ' · 自定义';
-  document.getElementById('matchTitle').textContent = titlePrefix + classInfo + ' · ' + category;
-  document.getElementById('m1').textContent = players[0] || '—';
-  document.getElementById('m2').textContent = players[1] || '—';
-}
-
-function openSelfMatch() {
-  category = selectedCategory();
-  document.getElementById('player1Input').value = '';
-  document.getElementById('player2Input').value = '';
-  document.getElementById('selfHint').textContent = '请输入两位选手名称';
-  document.getElementById('selfMatch').style.display = 'flex';
-  setTimeout(() => document.getElementById('player1Input').focus(), 100);
-}
-
-function closeSelfMatch() {
-  document.getElementById('selfMatch').style.display = 'none';
-}
-
-function confirmSelfMatch() {
-  const p1 = document.getElementById('player1Input').value.trim();
-  const p2 = document.getElementById('player2Input').value.trim();
-  if (!p1 || !p2) { alert('请输入两位选手的姓名'); return; }
-  if (p1 === p2) { alert('两位选手不能同名，请重新输入'); return; }
-  players = [p1, p2];
-  mode = 'self';
-  updateMatchDialog();
-  closeSelfMatch();
-  document.getElementById('match').style.display = 'flex';
-}
-
-function randomPair() {
-  const roster = currentRoster();
-  if (roster.length < 2) { alert('当前班级至少需要两名学生'); return null; }
-  if (randomWindow.type !== classType || randomWindow.selectedClassName !== selectedClassName || randomWindow.rounds >= 5) {
-    randomWindow = { type: classType, selectedClassName, used: new Set(), rounds: 0 };
-  }
-  let available = roster.filter(n => !randomWindow.used.has(n));
-  if (available.length < 2) {
-    randomWindow = { type: classType, selectedClassName, used: new Set(), rounds: 0 };
-    available = [...roster];
-  }
-  const pair = [...available].sort(() => Math.random() - .5).slice(0, 2);
-  pair.forEach(n => randomWindow.used.add(n));
-  randomWindow.rounds++;
-  if (randomWindow.rounds >= 5) {
-    randomWindow = { type: classType, selectedClassName, used: new Set(), rounds: 0 };
-  }
-  return pair;
-}
-
-function randomMatch() {
-  syncClassSelection();
-  if (!selectedClassName) { alert('请先选择班级'); return; }
-  category = selectedCategory();
-  const pair = randomPair();
-  if (!pair) return;
-  mode = 'random';
-  players = pair;
-  updateMatchDialog();
-  document.getElementById('match').style.display = 'flex';
-}
-
-function againMatch() {
-  if (mode === 'self') { startGame(); }
-  else {
-    const pair = randomPair();
-    if (pair) { players = pair; updateMatchDialog(); startGame(); }
-  }
-}
-
-function closeMatch() {
-  document.getElementById('match').style.display = 'none';
-}
-refreshClassOptions();
-
-function shuffleOptions(options) {
-  const a = [...options];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
-}
-
-function makeDifferentOrder(options, first) {
-  let next = shuffleOptions(options), tries = 0;
-  while (next.join('\u0001') === first.join('\u0001') && tries < 12) {
-    next = shuffleOptions(options); tries++;
-  }
-  if (next.join('\u0001') === first.join('\u0001') && next.length > 1)[next[0], next[1]] = [next[1], next[0]];
-  return next;
-}
-
-function buildOptionOrders() {
-  return qset.map(q => {
-    const blue = shuffleOptions(q.opts);
-    const red = makeDifferentOrder(q.opts, blue);
-    return [blue, red];
-  });
-}
-
-function uniqueQuestions(list) {
-  const seen = new Set(), out = [];
-  for (const q of list) {
-    const key = String(q.text || '').replace(/\s+/g, '').trim();
-    if (!seen.has(key)) { seen.add(key); out.push(q); }
-  }
-  return out;
-}
-
-function drawQuestions() {
-  const pool = uniqueQuestions([...banks[category]].sort(() => Math.random() - .5));
-  if (pool.length < matchQuestions) {
-    alert('当前题库去重后不足20道不同题目，请更换题库后再开始比赛。');
-    return null;
-  }
-  return pool.slice(0, matchQuestions);
-}
-
-function startGame() {
-  const drawn = drawQuestions();
-  if (!drawn) return;
-  primeAudio();
-  closeMatch();
-  document.getElementById('setup').style.display = 'none';
-  document.getElementById('p1name').textContent = players[0];
-  document.getElementById('p2name').textContent = players[1];
-  qset = drawn;
-  optionOrders = buildOptionOrders();
-  states = [newState(), newState()];
-  document.getElementById('p1win').style.display = 'none';
-  document.getElementById('p2win').style.display = 'none';
-  render(0);
-  render(1);
-}
-
-function newState() {
-  return { current: 0, score: 0, finished: false, answers: [], timeUsed: 0 };
-}
-
-function render(i) {
-  let s = states[i],
-    qbox = document.getElementById('p' + (i + 1) + 'q'),
-    obox = document.getElementById('p' + (i + 1) + 'opts');
-  if (s.current >= matchQuestions) {
-    s.finished = true;
-    clearInterval(timers[i]);
-    renderResults(i);
-    checkOver();
-    return;
-  }
-  let q = qset[s.current];
-  qbox.innerHTML = '<small>第 ' + (s.current + 1) + ' / ' + matchQuestions + ' 题 · ' + players[i] + '</small>' + q.text.replace('____', '<span style="border-bottom:3px dashed #fff;display:inline-block;min-width:90px">?</span>');
-  obox.className = 'opts ' + (q.opts.some(o => Array.from(o).length > 8) ? 'one-col' : 'two-col');
-  obox.innerHTML = '';
-  optionOrders[s.current][i].forEach(o => {
-    let b = document.createElement('button');
-    b.className = 'opt';
-    b.textContent = o;
-    b.onclick = () => answer(i, o, q);
-    obox.appendChild(b);
-  });
-  startTimer(i);
-}
-
-function startTimer(i) {
-  clearInterval(timers[i]);
-  let left = seconds;
-  document.getElementById('p' + (i + 1) + 'fill').style.width = '100%';
-  timers[i] = setInterval(() => {
-    left -= .1;
-    states[i].timeUsed += .1;
-    document.getElementById('p' + (i + 1) + 'fill').style.width = Math.max(0, left / seconds * 100) + '%';
-    if (left <= 0) {
-      clearInterval(timers[i]);
-      answer(i, null, qset[states[i].current]);
+    function primeAudio() {
+      try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+      } catch (e) {
+        audioCtx = null;
+      }
     }
-  }, 100);
-}
 
-function answer(i, choice, q) {
-  let s = states[i];
-  clearInterval(timers[i]);
-  let ok = choice === q.ans;
-  s.answers.push({
-    question: q.text,
-    choice: choice === null ? '超时' : choice,
-    correct: ok,
-    answer: q.ans
-  });
-  if (ok) {
-    s.score += 5;
-    document.getElementById('p' + (i + 1) + 'score').textContent = s.score;
-  }
-  s.current++;
-  setTimeout(() => render(i), 260);
-}
+    function playEliminationSound() {
+      if (ELIMINATION_AUDIO_URL) {
+        const a = new Audio(ELIMINATION_AUDIO_URL);
+        a.volume = 0.9;
+        const p = a.play();
+        if (p && p.catch) p.catch(() => synthEliminationSound());
+        return;
+      }
+      synthEliminationSound();
+    }
 
-function renderResults(i) {
-  let s = states[i],
-    qbox = document.getElementById('p' + (i + 1) + 'q'),
-    obox = document.getElementById('p' + (i + 1) + 'opts');
-  obox.innerHTML = '';
-  qbox.innerHTML = '<strong>' + players[i] + ' · 作答结果</strong><div class="result-list">' + s.answers.map((a, n) => '<button type="button" class="result-item ' + (a.correct ? '' : 'wrong') + '" onclick="event.stopPropagation();window.showQuestionDetail(' + i + ',' + n + ')">第' + (n + 1) + '题：' + (a.correct ? '回答正确' : '回答错误') + (a.correct ? '' : '<span class="correction">正确答案：' + a.answer + '</span>') + '</button>').join('') + '</div>';
-}
+    function synthEliminationSound() {
+      primeAudio();
+      if (!audioCtx) return;
+      const t0 = audioCtx.currentTime + 0.02;
+      const notes = [
+        { f: 392.00, t: 0.00, d: 0.34 },
+        { f: 349.23, t: 0.36, d: 0.34 },
+        { f: 293.66, t: 0.72, d: 0.78 }
+      ];
+      notes.forEach(n => {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(n.f, t0 + n.t);
+        osc.frequency.exponentialRampToValueAtTime(n.f * 0.94, t0 + n.t + n.d);
+        gain.gain.setValueAtTime(0.0001, t0 + n.t);
+        gain.gain.exponentialRampToValueAtTime(0.32, t0 + n.t + 0.04);
+        gain.gain.exponentialRampToValueAtTime(0.0001, t0 + n.t + n.d);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(t0 + n.t);
+        osc.stop(t0 + n.t + n.d + 0.05);
+      });
+    }
 
-function getReasoning(question, answer) {
-  const q = String(question || '');
-  if (q.includes('电子由')) return '原电池中，负极发生氧化反应并释放电子，电子沿外电路流向发生还原反应的正极，因此电子由负极流向正极。';
-  if (q.includes('能量转化')) return '原电池利用自发的氧化还原反应产生电流，反应物的化学能通过电子定向移动转化为电能。';
-  if (q.includes('负极通常发生')) return '负极是电子产生的一端，电极上发生失电子的氧化反应。';
-  if (q.includes('锌铜原电池')) return '锌比铜更容易失电子，锌片作为氧化反应发生处和电子输出端，属于负极。';
-  if (q.includes('盐桥')) return '盐桥中的离子定向迁移，补偿两侧溶液中的电荷变化，使两溶液保持电中性并维持电流。';
-  if (q.includes('自发进行的')) return '原电池工作的前提是氧化还原反应能够自发进行，电子才会产生定向移动。';
-  if (q.includes('电解是')) return '电解需要外加电源强制推动非自发氧化还原反应，因此是把电能转化为化学能。';
-  if (q.includes('连接电源正极')) return '电解池中与电源正极相连的电极是阳极，发生氧化反应。';
-  if (q.includes('阴极发生')) return '电解池的阴极与电源负极相连，得到电子，电极上发生还原反应。';
-  if (q.includes('熔融氯化钠')) return '熔融氯化钠中只有 Na⁺ 和 Cl⁻ 移动，阴极 Na⁺ 得电子生成 Na。';
-  if (q.includes('CuCl₂')) return 'Cl⁻ 在阳极失电子，生成氯气 Cl₂，因此阳极产物是 Cl₂。';
-  if (q.includes('电解精炼铜')) return '电解精炼时，纯铜接在阴极，溶液中的 Cu²⁺ 在阴极得到电子并析出纯铜。';
-  if (q.includes('潮湿空气中的腐蚀')) return '潮湿空气中水膜提供电解质环境，钢铁内部形成微小原电池，所以属于电化学腐蚀。';
-  if (q.includes('吸氧腐蚀') && q.includes('负极')) return '吸氧腐蚀时铁失去电子形成 Fe²⁺，负极发生铁的氧化反应。';
-  if (q.includes('吸氧腐蚀') && q.includes('正极')) return '吸氧腐蚀时氧气在正极得到电子并与水反应，正极发生还原反应。';
-  if (q.includes('牺牲阳极')) return '被保护金属需要作为正极接受电子，较活泼金属作为阳极优先失电子被牺牲。';
-  if (q.includes('表面镀')) return '在金属表面覆盖保护层，可以隔绝金属与水、氧气或腐蚀介质接触，属于防护措施。';
-  if (q.includes('本质是金属原子失去电子')) return '金属原子失去电子形成金属离子，这一过程在电化学中定义为氧化。';
-  return '结合题干中的电极、电子转移方向和氧化还原规律，判断与正确答案对应的电化学过程。';
-}
+    function selectedCategory() {
+      return document.querySelector('input[name="cat"]:checked').value;
+    }
 
-function showQuestionDetail(playerIndex, questionIndex) {
-  const a = states[playerIndex]?.answers?.[questionIndex];
-  if (!a) return;
-  const modal = document.getElementById('questionDetail');
-  document.getElementById('detailTitle').textContent = players[playerIndex] + ' · 第' + (questionIndex + 1) + '题';
-  document.getElementById('detailQuestion').textContent = a.question;
-  document.getElementById('detailAnswer').textContent = a.correct ? '作答结果：回答正确' : '作答结果：回答错误；你的答案：' + (a.choice || '未作答') + '；正确答案：' + a.answer;
-  const reasoning = document.getElementById('detailReasoning');
-  if (a.correct) {
-    reasoning.innerHTML = '';
-    reasoning.style.display = 'none';
-  } else {
-    reasoning.innerHTML = '<strong>判断思路：</strong>' + getReasoning(a.question, a.answer);
-    reasoning.style.display = 'block';
-  }
-  modal.style.display = 'flex';
-  modal.style.visibility = 'visible';
-  modal.style.opacity = '1';
-}
-window.showQuestionDetail = showQuestionDetail;
+    function refreshClassOptions() {
+      classType = "行政班";
+      const select = document.getElementById('classSelect');
+      const old = select.value;
+      select.innerHTML = '<option value="">请选择班级</option>';
+      Object.keys(rosters[classType]).forEach(k => {
+        const o = document.createElement('option');
+        o.value = k;
+        o.textContent = k;
+        select.appendChild(o);
+      });
+      if (rosters[classType][old]) select.value = old;
+      selectedClassName = select.value || '';
+    }
 
-function closeQuestionDetail() {
-  document.getElementById('questionDetail').style.display = 'none';
-}
+    function currentRoster() {
+      classType = "行政班";
+      const activeClass = document.getElementById('classSelect')?.value || selectedClassName;
+      selectedClassName = activeClass;
+      return rosters[classType]?.[activeClass] || [];
+    }
 
-async function saveRecord(name, i) {
-  try {
-    let sdk = await window.MuskCollectLoader.getInstance();
-    await sdk.save('electro_pk_results', {
-      studentName: name,
-      className: selectedClassName || (mode === 'self' ? '自定义' : ''),
-      category,
-      score: states[i].score,
-      correctCount: states[i].answers.filter(a => a.correct).length,
-      wrongCount: states[i].answers.filter(a => !a.correct).length,
-      questionResults: states[i].answers.map(a => ({ ...a, knowledgePoint: a.question })),
-      opponentName: players[1 - i],
-      timestamp: new Date().toISOString()
-    });
-  } catch (e) {}
-}
+    function syncClassSelection() {
+      classType = "行政班";
+      selectedClassName = document.getElementById('classSelect')?.value || '';
+      return {
+        classType,
+        selectedClassName
+      };
+    }
 
-async function checkOver() {
-  if (!states[0].finished || !states[1].finished) return;
-  let win = states[0].score > states[1].score ? 0 : states[1].score > states[0].score ? 1 : states[0].timeUsed < states[1].timeUsed ? 0 : states[1].timeUsed < states[0].timeUsed ? 1 : -1;
-  document.getElementById('p1win').style.display = win === 0 ? 'block' : win === -1 ? 'block' : 'none';
-  document.getElementById('p2win').style.display = win === 1 ? 'block' : win === -1 ? 'block' : 'none';
-  document.getElementById('resultTitle').textContent = win === -1 ? '本场平局' : '比赛结束';
-  document.getElementById('winner').textContent = win === -1 ? '平局' : players[win];
-  document.getElementById('winnerScore').textContent = win === -1 ?
+    function updateMatchDialog() {
+      const titlePrefix = mode === 'random' ? '随机匹配' : '自选挑战';
+      const classInfo = selectedClassName ? (' · ' + selectedClassName) : ' · 自定义';
+      document.getElementById('matchTitle').textContent = titlePrefix + classInfo + ' · ' + category;
+      document.getElementById('m1').textContent = players[0] || '—';
+      document.getElementById('m2').textContent = players[1] || '—';
+    }
+
+    function openSelfMatch() {
+      category = selectedCategory();
+      document.getElementById('player1Input').value = '';
+      document.getElementById('player2Input').value = '';
+      document.getElementById('selfHint').textContent = '请输入两位选手名称';
+      document.getElementById('selfMatch').style.display = 'flex';
+      setTimeout(() => document.getElementById('player1Input').focus(), 100);
+    }
+
+    function closeSelfMatch() {
+      document.getElementById('selfMatch').style.display = 'none';
+    }
+
+    function confirmSelfMatch() {
+      const p1 = document.getElementById('player1Input').value.trim();
+      const p2 = document.getElementById('player2Input').value.trim();
+
+      if (!p1 || !p2) {
+        alert('请输入两位选手的姓名');
+        return;
+      }
+      if (p1 === p2) {
+        alert('两位选手不能同名，请重新输入');
+        return;
+      }
+
+      players = [p1, p2];
+      mode = 'self';
+      updateMatchDialog();
+      closeSelfMatch();
+      document.getElementById('match').style.display = 'flex';
+    }
+
+    function randomPair() {
+      const roster = currentRoster();
+      if (roster.length < 2) {
+        alert('当前班级至少需要两名学生');
+        return null;
+      }
+      if (randomWindow.type !== classType || randomWindow.selectedClassName !== selectedClassName || randomWindow.rounds >= 5) {
+        randomWindow = {
+          type: classType,
+          selectedClassName,
+          used: new Set(),
+          rounds: 0
+        };
+      }
+      let available = roster.filter(n => !randomWindow.used.has(n));
+      if (available.length < 2) {
+        randomWindow = {
+          type: classType,
+          selectedClassName,
+          used: new Set(),
+          rounds: 0
+        };
+        available = [...roster];
+      }
+      const pair = [...available].sort(() => Math.random() - .5).slice(0, 2);
+      pair.forEach(n => randomWindow.used.add(n));
+      randomWindow.rounds++;
+      if (randomWindow.rounds >= 5) {
+        randomWindow = {
+          type: classType,
+          selectedClassName,
+          used: new Set(),
+          rounds: 0
+        };
+      }
+      return pair;
+    }
+
+    function randomMatch() {
+      syncClassSelection();
+      if (!selectedClassName) {
+        alert('请先选择班级');
+        return;
+      }
+      category = selectedCategory();
+      const pair = randomPair();
+      if (!pair) return;
+      mode = 'random';
+      players = pair;
+      updateMatchDialog();
+      document.getElementById('match').style.display = 'flex';
+    }
+
+    function againMatch() {
+      if (mode === 'self') {
+        startGame();
+      } else {
+        const pair = randomPair();
+        if (pair) {
+          players = pair;
+          updateMatchDialog();
+          startGame();
+        }
+      }
+    }
+
+    function closeMatch() {
+      document.getElementById('match').style.display = 'none';
+    }
+
+    refreshClassOptions();
+
+    function shuffleOptions(options) {
+      const a = [...options];
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+
+    function makeDifferentOrder(options, first) {
+      let next = shuffleOptions(options),
+        tries = 0;
+      while (next.join('\u0001') === first.join('\u0001') && tries < 12) {
+        next = shuffleOptions(options);
+        tries++;
+      }
+      if (next.join('\u0001') === first.join('\u0001') && next.length > 1)[next[0], next[1]] = [next[1], next[0]];
+      return next;
+    }
+
+    function buildOptionOrders() {
+      return qset.map(q => {
+        const blue = shuffleOptions(q.opts);
+        const red = makeDifferentOrder(q.opts, blue);
+        return [blue, red];
+      });
+    }
+
+    function uniqueQuestions(list) {
+      const seen = new Set(),
+        out = [];
+      for (const q of list) {
+        const key = String(q.text || '').replace(/\s+/g, '').trim();
+        if (!seen.has(key)) {
+          seen.add(key);
+          out.push(q);
+        }
+      }
+      return out;
+    }
+
+    function drawQuestions() {
+      const pool = uniqueQuestions([...banks[category]].sort(() => Math.random() - .5));
+      if (pool.length < matchQuestions) {
+        alert('当前题库去重后不足20道不同题目，请更换题库后再开始比赛。');
+        return null;
+      }
+      return pool.slice(0, matchQuestions);
+    }
+
+    function startGame() {
+      const drawn = drawQuestions();
+      if (!drawn) return;
+      primeAudio();
+      closeMatch();
+      document.getElementById('setup').style.display = 'none';
+      document.getElementById('p1name').textContent = players[0];
+      document.getElementById('p2name').textContent = players[1];
+      qset = drawn;
+      optionOrders = buildOptionOrders();
+      states = [newState(), newState()];
+      document.getElementById('p1win').style.display = 'none';
+      document.getElementById('p2win').style.display = 'none';
+      render(0);
+      render(1);
+    }
+
+    function newState() {
+      return {
+        current: 0,
+        score: 0,
+        finished: false,
+        answers: [],
+        timeUsed: 0
+      };
+    }
+
+    function render(i) {
+      let s = states[i],
+        qbox = document.getElementById('p' + (i + 1) + 'q'),
+        obox = document.getElementById('p' + (i + 1) + 'opts');
+      if (s.current >= matchQuestions) {
+        s.finished = true;
+        clearInterval(timers[i]);
+        renderResults(i);
+        checkOver();
+        return;
+      }
+      let q = qset[s.current];
+      qbox.innerHTML = '<small>第 ' + (s.current + 1) + ' / ' + matchQuestions + ' 题 · ' + players[i] + '</small>' + q.text.replace('____', '<span style="border-bottom:3px dashed #fff;display:inline-block;min-width:90px">?</span>');
+      obox.className = 'opts ' + (q.opts.some(o => Array.from(o).length > 8) ? 'one-col' : 'two-col');
+      obox.innerHTML = '';
+      optionOrders[s.current][i].forEach(o => {
+        let b = document.createElement('button');
+        b.className = 'opt';
+        b.textContent = o;
+        b.onclick = () => answer(i, o, q);
+        obox.appendChild(b);
+      });
+      startTimer(i);
+    }
+
+    function startTimer(i) {
+      clearInterval(timers[i]);
+      let left = seconds;
+      document.getElementById('p' + (i + 1) + 'fill').style.width = '100%';
+      timers[i] = setInterval(() => {
+        left -= .1;
+        states[i].timeUsed += .1;
+        document.getElementById('p' + (i + 1) + 'fill').style.width = Math.max(0, left / seconds * 100) + '%';
+        if (left <= 0) {
+          clearInterval(timers[i]);
+          answer(i, null, qset[states[i].current]);
+        }
+      }, 100);
+    }
+
+    function answer(i, choice, q) {
+      let s = states[i];
+      clearInterval(timers[i]);
+      let ok = choice === q.ans;
+      s.answers.push({
+        question: q.text,
+        choice: choice === null ? '超时' : choice,
+        correct: ok,
+        answer: q.ans
+      });
+      if (ok) {
+        s.score += 5;
+        document.getElementById('p' + (i + 1) + 'score').textContent = s.score;
+      }
+      s.current++;
+      setTimeout(() => render(i), 260);
+    }
+
+    function renderResults(i) {
+      let s = states[i],
+        qbox = document.getElementById('p' + (i + 1) + 'q'),
+        obox = document.getElementById('p' + (i + 1) + 'opts');
+      obox.innerHTML = '';
+      qbox.innerHTML = '<strong>' + players[i] + ' · 作答结果</strong><div class="result-list">' + s.answers.map((a, n) => '<button type="button" class="result-item ' + (a.correct ? '' : 'wrong') + '" onclick="event.stopPropagation();window.showQuestionDetail(' + i + ',' + n + ')">第' + (n + 1) + '题：' + (a.correct ? '回答正确' : '回答错误') + (a.correct ? '' : '<span class="correction">正确答案：' + a.answer + '</span>') + '</button>').join('') + '</div>';
+    }
+
+    function getReasoning(question, answer) {
+      const q = String(question || '');
+      if (q.includes('郑艳军')) return '郑艳军牛NB666';
+      return '郑艳军牛逼666。';
+    }
+
+    function showQuestionDetail(playerIndex, questionIndex) {
+      const a = states[playerIndex]?.answers?.[questionIndex];
+      if (!a) return;
+      const modal = document.getElementById('questionDetail');
+      document.getElementById('detailTitle').textContent = players[playerIndex] + ' · 第' + (questionIndex + 1) + '题';
+      document.getElementById('detailQuestion').textContent = a.question;
+      document.getElementById('detailAnswer').textContent = a.correct ? '作答结果：回答正确' : '作答结果：回答错误；你的答案：' + (a.choice || '未作答') + '；正确答案：' + a.answer;
+      const reasoning = document.getElementById('detailReasoning');
+      if (a.correct) {
+        reasoning.innerHTML = '';
+        reasoning.style.display = 'none';
+      } else {
+        reasoning.innerHTML = '<strong>判断思路：</strong>' + getReasoning(a.question, a.answer);
+        reasoning.style.display = 'block';
+      }
+      modal.style.display = 'flex';
+      modal.style.visibility = 'visible';
+      modal.style.opacity = '1';
+    }
+    window.showQuestionDetail = showQuestionDetail;
+
+    function closeQuestionDetail() {
+      document.getElementById('questionDetail').style.display = 'none';
+    }
+
+    async function saveRecord(name, i) {
+      try {
+        let sdk = await window.MuskCollectLoader.getInstance();
+        await sdk.save('electro_pk_results', {
+          studentName: name,
+          className: selectedClassName || (mode === 'self' ? '自定义' : ''),
+          category,
+          score: states[i].score,
+          correctCount: states[i].answers.filter(a => a.correct).length,
+          wrongCount: states[i].answers.filter(a => !a.correct).length,
+          questionResults: states[i].answers.map(a => ({
+            ...a,
+            knowledgePoint: a.question
+          })),
+          opponentName: players[1 - i],
+          timestamp: new Date().toISOString()
+        });
+      } catch (e) {
+        // 保存失败不影响使用，静默忽略
+      }
+    }
+
+    async function checkOver() {
+      if (!states[0].finished || !states[1].finished) return;
+      let win = states[0].score > states[1].score ? 0 : states[1].score > states[0].score ? 1 : states[0].timeUsed < states[1].timeUsed ? 0 : states[1].timeUsed < states[0].timeUsed ? 1 : -1;
+      document.getElementById('p1win').style.display = win === 0 ? 'block' : win === -1 ? 'block' : 'none';
+      document.getElementById('p2win').style.display = win === 1 ? 'block' : win === -1 ? 'block' : 'none';
+      document.getElementById('resultTitle').textContent = win === -1 ? '本场平局' : '比赛结束';
+      document.getElementById('winner').textContent = win === -1 ? '平局' : players[win];
+      document.getElementById('winnerScore').textContent = win === -1 ? '双方均得 ' + states[0].score + ' 分' : states[win].score + ' 分';
+      document.getElementById('result').style.display = 'flex';
+      document.getElementById('returnHome').style.display = 'none';
+      playEliminationSound();
+      saveRecord(players[0], 0);
+      saveRecord(players[1], 1);
+      fireworks();
+    }
+
+    function showAnswerResults() {
+      document.getElementById('result').style.display = 'none';
+      document.getElementById('returnHome').style.display = 'none';
+      document.getElementById('resultActions').style.display = 'flex';
+      document.getElementById('againButton').textContent = '再来一轮';
+    }
+
+    function closeResult() {
+      document.getElementById('result').style.display = 'none';
+      document.getElementById('returnHome').style.display = 'none';
+      document.getElementById('resultActions').style.display = 'none';
+      document.getElementById('setup').style.display = 'flex';
+      document.getElementById('p1q').textContent = '准备就绪...';
+      document.getElementById('p2q').textContent = '准备就绪...';
+      document.getElementById('p1score').textContent = '0';
+      document.getElementById('p2score').textContent = '0';
+      document.getElementById('p1name').textContent = '未匹配';
+      document.getElementById('p2name').textContent = '未匹配';
+      document.getElementById('p1opts').innerHTML = '';
+      document.getElementById('p2opts').innerHTML = '';
+    }
+
+    function fireworks() {
+      let c = document.getElementById('fireworks'),
+        x = c.getContext('2d');
+      c.width = innerWidth;
+      c.height = innerHeight;
+      let ps = Array.from({
+        length: 100
+      }, () => ({
+        x: innerWidth * (.2 + Math.random() * .6),
+        y: innerHeight * .3,
+        vx: (Math.random() - .5) * 7,
+        vy: (Math.random() - .5) * 7,
+        l: 80,
+        col: ['#fde047', '#60a5fa', '#f472b6', '#34d399'][Math.floor(Math.random() * 4)]
+      }));
+      let f = () => {
+        x.clearRect(0, 0, c.width, c.height);
+        ps.forEach(p => {
+          p.x += p.vx;
+          p.y += p.vy;
+          p.vy += .05;
+          p.l--;
+          x.globalAlpha = Math.max(0, p.l / 80);
+          x.fillStyle = p.col;
+          x.fillRect(p.x, p.y, 4, 4);
+        });
+        if (ps.some(p => p.l > 0)) requestAnimationFrame(f);
+      };
+      f();
+    }
+  </script>
+</body>
+</html>
