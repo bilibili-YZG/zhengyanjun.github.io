@@ -19,13 +19,11 @@
     this.x = x;
     this.y = y;
   }
-
   Chess.prototype.compareTo = function (chess) {
     if (chess.type === 8 && this.type === 1) return -1;
     if (chess.type === 1 && this.type === 8) return 1;
     return chess.type - this.type;
   };
-
   Chess.prototype.toChar = function () {
     return ["人", "象", "狮", "虎", "豹", "狼", "狗", "猫", "鼠"][this.type];
   };
@@ -117,7 +115,7 @@
     }
   };
 
-  function GameController(callback, playerChanged, path) {
+  function GameController(callback, playerChanged) {
     let ele = document.getElementById("animal-chess");
     let table = document.createElement("table");
     ele.append(table);
@@ -126,14 +124,6 @@
     this.view.updateView(this.model);
     this.playerChangedCallback = playerChanged || function () {};
     this.callback = callback || function () {};
-    if (path) {
-      let head = document.getElementsByTagName("head")[0];
-      let link = document.createElement("link");
-      link.href = path;
-      link.id = "game-style";
-      link.rel = "stylesheet";
-      head.appendChild(link);
-    }
   }
 
   GameController.prototype.chessExist = function (x, y) {
@@ -163,13 +153,14 @@
       || ((chess.color === blue) && ((x === 2 && y === 8) || (x === 3 && y === 7) || (x === 4 && y === 8)));
   };
 
+  /* ================== 音效 ================== */
   let audioCtx = null;
-  function ensureAudio() {
+  window.ensureAudio = function () {
     if (!audioCtx) {
       try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {}
     }
     if (audioCtx && audioCtx.state === "suspended") audioCtx.resume();
-  }
+  };
 
   function playMoveSound() {
     ensureAudio();
@@ -282,109 +273,7 @@
     setTimeout(() => cell.classList.remove("capturing"), 600);
   }
 
-  let fwRAF = null;
-  function startFireworks() {
-    let canvas = document.getElementById("fireworks");
-    if (!canvas) {
-      canvas = document.createElement("canvas");
-      canvas.id = "fireworks";
-      document.body.appendChild(canvas);
-    }
-    canvas.style.display = "block";
-    const ctx = canvas.getContext("2d");
-    let W = canvas.width = window.innerWidth;
-    let H = canvas.height = window.innerHeight;
-
-    window.addEventListener("resize", () => {
-      W = canvas.width = window.innerWidth;
-      H = canvas.height = window.innerHeight;
-    });
-
-    const particles = [];
-    const rockets = [];
-
-    function spawnRocket() {
-      rockets.push({
-        x: Math.random() * W,
-        y: H,
-        vy: -(8 + Math.random() * 4),
-        targetY: H * (0.15 + Math.random() * 0.35),
-        hue: Math.floor(Math.random() * 360)
-      });
-    }
-
-    function explode(x, y, hue) {
-      const count = 60 + Math.floor(Math.random() * 40);
-      for (let i = 0; i < count; i++) {
-        const angle = Math.random() * Math.PI * 2;
-        const speed = 1 + Math.random() * 5;
-        particles.push({
-          x, y,
-          vx: Math.cos(angle) * speed,
-          vy: Math.sin(angle) * speed,
-          life: 60 + Math.random() * 40,
-          maxLife: 100,
-          hue: hue + (Math.random() * 40 - 20),
-          size: 2 + Math.random() * 2
-        });
-      }
-    }
-
-    let running = true;
-    function loop() {
-      ctx.fillStyle = "rgba(2,6,23,0.18)";
-      ctx.fillRect(0, 0, W, H);
-
-      for (let i = rockets.length - 1; i >= 0; i--) {
-        const r = rockets[i];
-        r.y += r.vy;
-        ctx.beginPath();
-        ctx.fillStyle = `hsl(${r.hue}, 100%, 70%)`;
-        ctx.arc(r.x, r.y, 2.5, 0, Math.PI * 2);
-        ctx.fill();
-        if (r.y <= r.targetY) {
-          explode(r.x, r.y, r.hue);
-          rockets.splice(i, 1);
-        }
-      }
-
-      for (let i = particles.length - 1; i >= 0; i--) {
-        const p = particles[i];
-        p.x += p.vx;
-        p.y += p.vy;
-        p.vy += 0.06;
-        p.vx *= 0.985;
-        p.vy *= 0.985;
-        p.life--;
-        const alpha = Math.max(0, p.life / p.maxLife);
-        ctx.beginPath();
-        ctx.fillStyle = `hsla(${p.hue}, 100%, 60%, ${alpha})`;
-        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-        ctx.fill();
-        if (p.life <= 0) particles.splice(i, 1);
-      }
-
-      if (Math.random() < 0.04) spawnRocket();
-      if (running) fwRAF = requestAnimationFrame(loop);
-      else canvas.style.display = "none";
-    }
-
-    for (let i = 0; i < 3; i++) setTimeout(spawnRocket, i * 200);
-    loop();
-
-    setTimeout(() => { running = false; }, 8000);
-  }
-
-  window.showWinner = function (msg) {
-    playVictorySound();
-    startFireworks();
-    setTimeout(() => {
-      let who = msg === "red" ? "郑艳军" : "刘刚";
-      alert("🏆 " + who + " 获胜！");
-      if (window.restartGame) window.restartGame();
-    }, 1200);
-  };
-
+  /* ================== 事件处理 ================== */
   GameController.prototype.eventHandler = function (i, j) {
     let controller = this.reverseLink;
     let model = controller.model;
@@ -393,56 +282,4 @@
     if (selectedChessIndex >= 0 && model.chesses[selectedChessIndex].color === model.player) {
       model.selectedChessIndex = selectedChessIndex;
     } else if (model.selectedChessIndex >= 0) {
-      let previousSelected = model.chesses[model.selectedChessIndex];
-      if (
-        (!(previousSelected.color === red && i === 3 && j === 8
-          || previousSelected.color === blue && i === 3 && j === 0))
-        && ((previousSelected.type === 8) || !isRiver(i, j))
-        && ((Math.abs(i - previousSelected.x) + Math.abs(j - previousSelected.y) <= 1)
-          || ((crossRiver(previousSelected.x, previousSelected.y, i, j))
-            && (previousSelected.type === 2 || previousSelected.type === 3)
-            && (controller.noMice(previousSelected.x, previousSelected.y, i, j))))
-      ) {
-        if (selectedChessIndex < 0) {
-          previousSelected.x = i;
-          previousSelected.y = j;
-          model.selectedChessIndex = -1;
-          playMoveSound();
-          if ((model.player === blue && i === 3 && j === 8
-            || model.player === red && i === 3 && j === 0)) {
-            controller.callback(model.player === red ? "red" : "blue");
-            return;
-          }
-          controller.switchPlayer();
-        } else if (model.chesses[selectedChessIndex].color !== previousSelected.color) {
-          let nowSelected = model.chesses[selectedChessIndex];
-          let result = previousSelected.compareTo(nowSelected);
-          if (result > 0 || controller.inTrap(nowSelected)) {
-            playCaptureAnim(i, j);
-            playEatSound();
-            previousSelected.x = i;
-            previousSelected.y = j;
-            model.chesses.splice(selectedChessIndex, 1);
-            controller.switchPlayer();
-            model.selectedChessIndex = -1;
-          } else if (result === 0) {
-            playCaptureAnim(i, j);
-            playEatSound();
-            let hi = Math.max(selectedChessIndex, model.selectedChessIndex);
-            let lo = Math.min(selectedChessIndex, model.selectedChessIndex);
-            model.chesses.splice(hi, 1);
-            model.chesses.splice(lo, 1);
-            controller.switchPlayer();
-            model.selectedChessIndex = -1;
-          }
-        }
-      }
-    }
-    this.updateView(this.reverseLink.model);
-  };
-
-  document.GameController = GameController;
-  document.Chess = Chess;
-  document.View = View;
-  document.GameModel = GameModel;
-}
+      let previousSelected = model.chesses[model.selectedChessIndex
