@@ -363,6 +363,17 @@
       min-width: 150px
     }
 
+    .match-actions button:last-child {
+      background: transparent;
+      border: 1px dashed #ffffff44;
+      color: #94a3b8
+    }
+
+    .match-actions button:last-child:hover {
+      color: #fff;
+      border-color: #ffffffaa
+    }
+
     .name-inputs {
       display: flex;
       flex-direction: column;
@@ -499,29 +510,6 @@
       text-align: center
     }
 
-    .sub-mode-btn {
-      position: fixed;
-      right: 1.5rem;
-      bottom: 1.5rem;
-      width: 48px;
-      height: 48px;
-      border-radius: 50%;
-      border: 1px solid #ffffff22;
-      background: #ffffff0d;
-      color: #94a3b8;
-      font-size: 1.4rem;
-      cursor: pointer;
-      transition: all .25s ease;
-      z-index: 5
-    }
-
-    .sub-mode-btn:hover {
-      color: #fff;
-      border-color: #ffffff55;
-      background: #ffffff1a;
-      transform: scale(1.08)
-    }
-
     @media(max-width:700px) {
       body {
         overflow: auto
@@ -614,14 +602,6 @@
       .question-detail .detail-question {
         font-size: 1.35rem
       }
-
-      .sub-mode-btn {
-        right: 1rem;
-        bottom: 1rem;
-        width: 42px;
-        height: 42px;
-        font-size: 1.2rem
-      }
     }
 
     @media(max-width:380px) {
@@ -677,22 +657,10 @@
     </div>
     <div class="category">
       <strong>
-        选择题库：
+        题库：
       </strong>
       <label>
-        <input checked="" name="cat" type="radio" value="郑艳军语录"/>
-        郑艳军语录
-      </label>
-      <label>
-        <input name="cat" type="radio" value="郑艳军经历"/>
-        郑艳军经历
-      </label>
-      <label>
-        <input name="cat" type="radio" value="郑艳军管理下的生存方法论"/>
-        郑艳军管理下的生存方法论
-      </label>
-      <label>
-        <input name="cat" type="radio" value="郑治综合"/>
+        <input checked="" name="cat" type="radio" value="郑治综合"/>
         郑治综合
       </label>
     </div>
@@ -711,6 +679,9 @@
         </button>
         <button onclick="openSelfMatch()">
           自行输入选手
+        </button>
+        <button onclick="randomMatch(10)">
+          随机十题挑战
         </button>
       </div>
     </div>
@@ -853,10 +824,6 @@
     </section>
   </main>
 
-  <button class="sub-mode-btn" onclick="randomMatch(10)" title="随机十题挑战（副模式）">
-    ⚡
-  </button>
-
   <script src="/rosters.js"></script>
   <script src="/questions.js"></script>
   <script>
@@ -874,7 +841,7 @@
       seconds = 15;
     let matchQuestions = defaultMatchQuestions;
 
-    let category = "郑艳军语录",
+    let category = "郑治综合",
       classType = "行政班",
       selectedClassName = "",
       players = ["未匹配", "未匹配"],
