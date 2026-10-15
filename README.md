@@ -28,6 +28,9 @@
 ---
 
 ## 📂 文件结构
+
+```
+根目录/
 ├── index.html               ← 启动页（选择有音乐/无音乐）
 ├── icon.png                 ← 网站图标
 ├── questions.js             ← 题库
@@ -40,6 +43,7 @@
 │   └── elimination.mp3      ← 音乐（和 HTML 同文件夹）
 └── nmuspk/
     └── index.html           ← 无音乐版
+```
 
 > 💡 如需新增或修改题目，只需编辑 `questions.js`，无需改动 HTML 主程序。
 
