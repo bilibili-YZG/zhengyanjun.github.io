@@ -1,0 +1,1850 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+ <head>
+ 
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1" name="viewport"/>
+  <title>
+   郑艳军理论双人PK赛
+  </title>
+    <script src="https://metis-online.fbcontent.cn/metis-misc/zgLDUdmazTYc0B4K6Cor.js">
+  </script>
+  <script src="https://metis-online.fbcontent.cn/metis-misc/zZZY40t7WJC7UdQCPACm.js">
+  </script>
+  <script data-sdk="musk-collect" src="https://musk-online.fbcontent.cn/pub-musk-ai-studio/directories/musk-collect/musk-collect-loader.js">
+  </script>
+  <style>
+   :root {
+  --bg: #0f172a;
+  --card: #1e293b;
+  --blue: #3b82f6;
+  --red: #ef4444;
+  --yellow: #fde047;
+  --text: #f8fafc
+}
+
+* {
+  box-sizing: border-box
+}
+
+body {
+  margin: 0;
+  height: 100vh;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Noto Sans SC", Arial, sans-serif
+}
+
+.pk {
+  display: flex;
+  height: 100vh;
+  gap: 2px;
+  background: #334155
+}
+
+.side {
+  flex: 1;
+  min-width: 0;
+  padding: 1.2rem;
+  position: relative;
+  display: flex;
+  flex-direction: column
+}
+
+.p1 {
+  background: linear-gradient(135deg, #1e293b, #1e3a8a)
+}
+
+.p2 {
+  background: linear-gradient(135deg, #1e293b, #7f1d1d)
+}
+
+.head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #ffffff22;
+  padding-bottom: .6rem;
+  margin-bottom: .8rem
+}
+
+.badge {
+  font-weight: 800;
+  font-size: 1.2rem
+}
+
+.score {
+  font-size: 2rem;
+  font-weight: 900
+}
+
+.q {
+  background: #0003;
+  border-radius: 1rem;
+  padding: 1.1rem;
+  min-height: 140px;
+  font-size: 2.4rem;
+  line-height: 1.45;
+  margin-bottom: 1rem
+}
+
+.q small {
+  font-size: .8rem;
+  opacity: .6;
+  display: block;
+  margin-bottom: .4rem
+}
+
+.opts {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+  margin-top: auto
+}
+
+.opts.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: stretch
+}
+
+.opts.one-col {
+  display: flex;
+  flex-direction: column
+}
+
+.opt {
+  padding: 14px;
+  border: 1px solid #ffffff33;
+  background: #ffffff14;
+  border-radius: 10px;
+  text-align: left;
+  font-weight: 700;
+  font-size: 2rem;
+  cursor: pointer;
+  min-height: 48px;
+  width: 100%
+}
+
+.opt:hover {
+  background: #ffffff2b
+}
+
+.track {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 6px;
+  background: #ffffff22
+}
+
+.fill {
+  height: 100%;
+  transition: width .15s
+}
+
+.bluefill {
+  background: var(--blue)
+}
+
+.redfill {
+  background: var(--red)
+}
+
+.overlay,
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #020617dd
+}
+
+.overlay {
+  flex-direction: column;
+  text-align: center
+}
+
+.title {
+  font-size: 6rem;
+  line-height: 1.05;
+  margin: 0 0 1.4rem;
+  font-weight: 900;
+  letter-spacing: .04em
+}
+
+.logo {
+  font-size: 5rem;
+  font-weight: 900;
+  font-style: italic;
+  background: linear-gradient(90deg, var(--blue), var(--red));
+  color: transparent;
+  background-clip: text;
+  margin-bottom: 1rem
+}
+
+.setup {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin: 1rem
+}
+
+.setup select,
+.setup button,
+.setup input {
+  font-size: 1rem;
+  padding: 10px 14px;
+  border-radius: 10px;
+  color: #fff;
+  border: 1px solid #ffffff44;
+  background: #1e293b
+}
+
+.setup input::placeholder {
+  color: #94a3b8
+}
+
+.setup button {
+  background: #2563eb;
+  cursor: pointer;
+  font-weight: 800
+}
+
+.category {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin: 1rem 0
+}
+
+.category label {
+  padding: 9px 13px;
+  border: 1px solid #ffffff33;
+  border-radius: 10px;
+  background: #ffffff0d;
+  cursor: pointer
+}
+
+.category input {
+  accent-color: #60a5fa
+}
+
+.match-card,
+.result-card {
+  position: relative;
+  text-align: center;
+  background: linear-gradient(145deg, #172554, #3f1d3d);
+  border: 4px solid #60a5fa;
+  border-radius: 40px;
+  box-shadow: 0 0 80px #3b82f655;
+  cursor: default
+}
+
+.match-card {
+  width: min(920px, 82vw);
+  padding: 60px 52px;
+  transform: scale(.6667)
+}
+
+.match-card h2 {
+  font-size: 3.6rem;
+  color: #93c5fd;
+  margin: 0 0 34px
+}
+
+.names {
+  display: flex;
+  gap: 28px;
+  justify-content: center;
+  margin: 30px 0
+}
+
+.name {
+  min-width: 240px;
+  padding: 28px 32px;
+  border-radius: 24px;
+  font-size: 4.6rem;
+  font-weight: 900
+}
+
+.name.blue {
+  background: #3b82f655;
+  border: 2px solid #60a5fa
+}
+
+.name.red {
+  background: #ef444455;
+  border: 2px solid #f87171
+}
+
+.hint {
+  font-size: 1.9rem;
+  color: #cbd5e1
+}
+
+.start {
+  border: 0;
+  border-radius: 999px;
+  padding: 1.8rem 5.5rem;
+  font-size: 2.8rem;
+  font-weight: 900;
+  cursor: pointer;
+  background: #fff;
+  color: #0f172a
+}
+
+.result-card {
+  width: min(560px, 85vw);
+  padding: 32px;
+  border-color: var(--yellow)
+}
+
+.result-card h2 {
+  color: var(--yellow);
+  font-size: 2.2rem
+}
+
+.winner {
+  color: var(--yellow);
+  font-weight: 900;
+  font-size: 3.7rem;
+  margin: 12px
+}
+
+.result-list {
+  font-size: .9rem;
+  display: grid;
+  gap: 5px;
+  text-align: left
+}
+
+.result-item {
+  padding: 6px 8px;
+  background: #ffffff12;
+  border-radius: 6px
+}
+
+.wrong {
+  border-left: 4px solid var(--yellow)
+}
+
+.correction {
+  color: var(--yellow);
+  font-weight: 800;
+  margin-left: 8px
+}
+
+.win-tag {
+  display: none;
+  position: absolute;
+  top: 1rem;
+  left: 180px;
+  color: var(--yellow);
+  border: 3px solid var(--yellow);
+  border-radius: 8px;
+  padding: 4px 8px;
+  font-weight: 900;
+  z-index: 3
+}
+
+@media(max-width:700px) {
+  body {
+    overflow: auto
+  }
+
+  .pk {
+    min-height: 100vh;
+    height: auto;
+    flex-direction: column
+  }
+
+  .side {
+    min-height: 50vh
+  }
+
+  .q {
+    font-size: 2rem
+  }
+
+  .title {
+    font-size: 3rem;
+    max-width: 92vw
+  }
+
+  .logo {
+    font-size: 4rem
+  }
+
+  .names {
+    gap: 8px
+  }
+
+  .name {
+    min-width: 0;
+    flex: 1;
+    font-size: 2.7rem;
+    padding: 18px 8px
+  }
+
+  .hint {
+    font-size: 1.1rem
+  }
+
+  .start {
+    font-size: 1.6rem;
+    padding: 1rem 2.5rem
+  }
+
+  .win-tag {
+    left: 140px;
+    font-size: .8rem
+  }
+}
+
+.match-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap
+}
+
+.match-actions button {
+  min-width: 150px
+}
+
+.name-inputs {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 12px 8px;
+}
+
+.name-input-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.name-input-row label {
+  min-width: 90px;
+  text-align: right;
+  font-size: 1.8rem;
+  font-weight: 700;
+}
+
+.name-input-row label.blue-label {
+  color: #60a5fa;
+}
+
+.name-input-row label.red-label {
+  color: #f87171;
+}
+
+.name-input-row input {
+  flex: 1;
+  font-size: 2rem;
+  padding: 14px 18px;
+  border-radius: 12px;
+  border: 2px solid #ffffff44;
+  background: #ffffff14;
+  color: #fff;
+  outline: none;
+}
+
+.name-input-row input:focus {
+  border-color: #60a5fa;
+  background: #ffffff22;
+}
+
+.self-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 24px
+}
+
+.result-actions {
+  position: fixed;
+  right: 28px;
+  bottom: 24px;
+  z-index: 31;
+  display: flex;
+  gap: 10px
+}
+
+.result-actions button {
+  border: 0;
+  border-radius: 12px;
+  padding: 14px 24px;
+  background: var(--yellow);
+  color: #172554;
+  font-size: 1.1rem;
+  font-weight: 900;
+  cursor: pointer
+}
+
+@media(max-width:700px) {
+  .name-input-row label {
+    min-width: 70px;
+    font-size: 1.3rem;
+  }
+  
+  .name-input-row input {
+    font-size: 1.4rem;
+    padding: 10px 14px;
+  }
+
+  .result-actions {
+    right: 14px;
+    bottom: 14px
+  }
+
+  .result-actions button {
+    padding: 12px 18px;
+    font-size: 1rem
+  }
+}
+
+.result-item {
+  appearance: none;
+  width: 100%;
+  border: 1px solid #ffffff22;
+  text-align: left;
+  color: inherit;
+  font: inherit;
+  cursor: pointer
+}
+
+.result-item:hover {
+  background: #ffffff26;
+  transform: translateY(-1px)
+}
+
+.question-detail {
+  max-width: min(760px, 88vw);
+  padding: 34px 40px;
+  text-align: left;
+  background: linear-gradient(145deg, #172554, #3f1d3d);
+  border: 3px solid #60a5fa;
+  border-radius: 24px;
+  box-shadow: 0 0 60px #3b82f655
+}
+
+.question-detail h2 {
+  margin: 0 0 18px;
+  color: #93c5fd;
+  font-size: 1.8rem
+}
+
+.question-detail .detail-question {
+  font-size: 2rem;
+  line-height: 1.55;
+  color: #fff
+}
+
+.question-detail .detail-answer {
+  margin-top: 18px;
+  padding: 12px 16px;
+  border-left: 4px solid var(--yellow);
+  background: #ffffff12;
+  color: var(--yellow);
+  font-weight: 800
+}
+
+.question-detail .detail-reasoning {
+  margin-top: 14px;
+  padding: 14px 16px;
+  border-left: 4px solid #60a5fa;
+  background: #60a5fa14;
+  color: #dbeafe;
+  line-height: 1.65
+}
+
+.question-detail .detail-reasoning strong {
+  color: #93c5fd
+}
+
+.question-detail .detail-hint {
+  margin: 22px 0 0;
+  color: #cbd5e1;
+  text-align: center
+}
+
+@media(max-width:700px) {
+  .return-home {
+    right: 14px;
+    bottom: 14px;
+    padding: 12px 18px;
+    font-size: 1rem
+  }
+
+  .question-detail {
+    padding: 24px 20px
+  }
+
+  .question-detail h2 {
+    font-size: 1.35rem
+  }
+
+  .question-detail .detail-question {
+    font-size: 1.35rem
+  }
+}
+  </style>
+
+ </head>
+ <body>
+  <div class="overlay" id="setup">
+   <h1 class="title">
+    郑艳军理论 &middot; 双人PK赛
+   </h1>
+   <div class="logo">
+    VS
+   </div>
+   <div class="category">
+    <strong>
+     选择题库：
+    </strong>
+    
+    <label>
+     <input name="cat" type="radio" value="郑治综合"/>
+     郑治综合
+    </label>
+   </div>
+   <div class="setup">
+    <label for="classSelect">
+     选择班级
+    </label>
+    <select id="classSelect" onchange="selectedClassName=this.value">
+     <option value="">
+      请选择班级
+     </option>
+    </select>
+    <div class="match-actions">
+     <button onclick="randomMatch()">
+      随机匹配
+     </button>
+     <button onclick="openSelfMatch()">
+      自行输入选手
+     </button>
+    </div>
+   </div>
+  </div>
+  <div class="modal" id="match" onclick="if(event.target.id==='match')closeMatch()" style="display:none">
+   <div class="match-card">
+    <h2 id="matchTitle">
+     匹配结果
+    </h2>
+    <div class="names">
+     <div class="name blue" id="m1">
+      &mdash;
+     </div>
+     <div class="name red" id="m2">
+      &mdash;
+     </div>
+    </div>
+    <p class="hint">
+     确认选手后点击下方按钮开始比赛
+    </p>
+    <button class="start" onclick="event.stopPropagation();startGame()">
+     开始对决
+    </button>
+   </div>
+  </div>
+  <div class="modal" id="selfMatch" onclick="if(event.target.id==='selfMatch')closeSelfMatch()" style="display:none">
+   <div class="match-card self-card" onclick="event.stopPropagation()">
+    <h2 id="selfTitle">
+     输入选手名称
+    </h2>
+    <div class="name-inputs">
+     <div class="name-input-row">
+      <label class="blue-label">蓝方选手：</label>
+      <input type="text" id="player1Input" placeholder="请输入蓝方选手姓名" maxlength="20"/>
+     </div>
+     <div class="name-input-row">
+      <label class="red-label">红方选手：</label>
+      <input type="text" id="player2Input" placeholder="请输入红方选手姓名" maxlength="20"/>
+     </div>
+    </div>
+    <div class="self-footer">
+     <span id="selfHint">
+      请输入两位选手名称
+     </span>
+     <button class="start" onclick="confirmSelfMatch()">
+      确定
+     </button>
+    </div>
+   </div>
+  </div>
+  <div class="modal" id="result" onclick="showAnswerResults()" style="display:none">
+   <canvas id="fireworks" style="position:absolute;inset:0;pointer-events:none">
+   </canvas>
+   <div class="result-card">
+    <h2 id="resultTitle">
+     比赛结束
+    </h2>
+    <div class="winner" id="winner">
+     &mdash;
+    </div>
+    <p id="winnerScore">
+     &mdash;
+    </p>
+    <p>
+     点击任意位置查看学生答题结果
+    </p>
+   </div>
+  </div>
+  <button class="return-home" id="returnHome" onclick="closeResult()">
+   返回首页
+  </button>
+  <div class="result-actions" id="resultActions" style="display:none">
+   <button id="againButton" onclick="event.stopPropagation();againMatch()">
+    再来一轮
+   </button>
+   <button id="homeButton" onclick="event.stopPropagation();closeResult()">
+    返回首页
+   </button>
+  </div>
+  <div class="modal" id="questionDetail" onclick="closeQuestionDetail()" style="display:none">
+   <div class="question-detail" onclick="event.stopPropagation()">
+    <h2 id="detailTitle">
+     题目详情
+    </h2>
+    <div class="detail-question" id="detailQuestion">
+    </div>
+    <div class="detail-answer" id="detailAnswer">
+    </div>
+    <div class="detail-reasoning" id="detailReasoning">
+    </div>
+    <p class="detail-hint">
+     点击任意位置返回比赛结果显示页面
+    </p>
+   </div>
+  </div>
+  <main class="pk">
+   <section class="side p1">
+    <div class="head">
+     <span class="badge" id="p1name">
+      未匹配
+     </span>
+     <span class="score" id="p1score">
+      0
+     </span>
+    </div>
+    <div class="q" id="p1q">
+     准备就绪...
+    </div>
+    <div class="opts" id="p1opts">
+    </div>
+    <div class="track">
+     <div class="fill bluefill" id="p1fill" style="width:100%">
+     </div>
+    </div>
+    <div class="win-tag" id="p1win">
+     WINNER
+    </div>
+   </section>
+   <section class="side p2">
+    <div class="head">
+     <span class="badge" id="p2name">
+      未匹配
+     </span>
+     <span class="score" id="p2score">
+      0
+     </span>
+    </div>
+    <div class="q" id="p2q">
+     准备就绪...
+    </div>
+    <div class="opts" id="p2opts">
+    </div>
+    <div class="track">
+     <div class="fill redfill" id="p2fill" style="width:100%">
+     </div>
+    </div>
+    <div class="win-tag" id="p2win">
+     WINNER
+    </div>
+   </section>
+  </main>
+  <script>
+   const rosters = {
+  "行政班": {
+    "1班": ["徐菁泽", "权智洋", "何思涵", "宋欣玥", "延梓源", "路羽辰", "郭樱乔" , "姜瑞萱", "陈嘉怡", "王艺冰", "宋振豪", "夏红桢", "延昊成", "邱希芃", "张启太", "康沐垚", "刘佳晨", "李谦睿", "贺敬轩", "崔桐歌", "陈镜轩", "周瀚清", "李硕学",  "孟柯", "李思钰", "李庚鉴", "丁奕丹", "李冠成", "刘泽宏", "张珏", "王奕涵", "邢雅茜", "于凯丞", "李米", "方紫洁", "杨紫凝", "严雨菡", "杨思瑞", "段沐昕", ],
+    "2班": ["张九韬", "谭楚涵", "李思睿", "毛梓墨", "程麟雅", "马泽涵", "陈悦诚", "张逸晨", "项琳", "孙一诚", "张可尧", "王悦嘉", "张新宇", "王海森", "赖若茗", "焦塬贺", "杨佳和", "曹清逸", "门武衡", "刘子源", "赵湛泸", "张家霖", "谢澍兴"],
+    "3班": ["阳佳怡", "冯绍轩", "刘岩笑", "任芷墨", "李佑祺", "李子奇", "杨寓淇", "魏际璇", "郭梦萱", "任羽飞", "谭伟轩", "石耘搏", "闫逸航", "贺思源", "黄伟涵", "刘天浩", "苏楷洋", "施沐泽", "李建泽", "付子涵", "宋明轩", "张铠熙", "杜谨成", "万佳仪", "冯思越"],
+    "4班": ["熊智皓", "周煦晨", "赵鸣远", "朱笛尔", "李佳瑜", "赵林葳", "康岚", "王安安", "陈天睿", "杨小焜", "李可萱", "王子文", "刘馨桐", "魏宏扬", "常一江", "张奥博", "仝启正", "张宁远", "赵子一"]
+  }
+};
+const banks = {
+  "郑艳军语录": [{
+  text: "【重点】伟大领袖郑艳军同志曾经说过____。",
+    ans: "做人不要活得太通透",
+    opts: ["原电池中，电子由负极经外电路流向正极。", "刘刚积攒正能量", "每天说完学生都特别爽", "做人不要活得太通透"],
+    type: "concept",
+    source: "练习册：郑艳军.pdf"
+  }, {
+  text: "【概念】下列用语形容郑艳军同志的是______。",
+    ans: "热量的耗（二声）散",
+    opts: ["可惜不是你，陪我到最后", "觉醒30000", "枪挑紫金冠", "热量的耗（二声）散"],
+    type: "concept",
+    source: "练习册：郑艳军.pdf"
+  }, {
+  text: "【重点】郑艳军曾经说过____，有效的指导了我们的学习生活。",
+    ans: "如果你一不小心考上了大学，我奉劝你，最好提前准备四六级",
+    opts: ["一分都不给你", "我有四不吃，一：地大附中食堂我不吃", "班会888", "如果你一不小心考上了大学，我奉劝你，最好提前准备四六级"],
+    type: "concept",
+    source: "练习册：郑艳军.pdf"
+  }, {
+  text: "【概念】郑艳军曾经说过了一句很有哲理的话：_____",
+    ans: "你会收益终生的",
+    opts: ["没吃过猪还没见过猪跑？", "你会受益终生的", "黄老师你是教历史的吧", "TCL"],
+    type: "concept",
+    source: "练习册：郑艳军.pdf"
+  }, {
+  text: "【重点】下列是郑艳军同志所说的，且说法正确的是：____。",
+    ans: "这是刘刚老师弄的，他就是个大废物",
+    opts: ["这是刘刚老师弄的，他就是个大废物", "我不扶烂泥，我不翻咸鱼，我不对牛弹琴", "仓鼠？仓鼠是谁啊？", "这是角速度的公式：Δs比上一个t"],
+    type: "choice",
+    source: "练习册：郑艳军.pdf"
+  }, {
+  text: "【重点】下列短语与郑艳军同志相关的是____。",
+    ans: "这纸不臭啊",
+    opts: ["0.5 mol", "烂泥、咸鱼和牛", "这纸不臭啊", "Sep1st"],
+    type: "choice",
+    source: "练习册：郑艳军.pdf"
+  }, {
+  text: "【重点】以下语句是郑艳军所说过的是____。",
+    ans: "温馨提示：订餐",
+    opts: ["温馨提示：订餐", "38324", "明日听写：alphabet至amusement", "奇变偶不变"],
+    type: "choice",
+    source: "练习册：郑艳军.pdf"
+  }, {
+  text: "【重点】以下语句是郑艳军所说过的是____。",
+    ans: "找我面试",
+    opts: ["找我面试", "你的期中目标是什么", "我要赶紧去赶15号线去了", "小米同学"],
+    type: "choice",
+    source: "练习册：郑艳军.pdf"
+  }, {
+  text: "【大场面】郑艳军在批评学生时的经典口头禅是____。",
+    ans: "你算什么东西",
+    opts: ["跟我读c ai~ 菜！", "这个选项唯心了", "你算什么东西", "你们的英语要飞黄腾达了"],
+    type: "concept",
+    source: "练习册：郑艳军.pdf"
+  }, {
+    text: "【经典】郑艳军经常说的口头禅是____。",
+    ans: "你怎么活得这么拧巴",
+    opts: ["你有毛病吧", "清学葱姜蒜", "你怎么活得这么拧巴", "董欣璇爱吃虾"],
+    type: "concept",
+    source: "练习册：郑艳军.pdf"
+  },{
+    text: "【语录】郑艳军老师曾经说过哪个以“别”开头的短语？",
+    ans: "别咳嗽",
+    opts: ["别咳嗽", "别算数", "别睡觉", "别骂人"],
+    type: "concept",
+    source: "练习册：郑艳军.pdf"
+  }, {
+    text: "【语录】郑艳军老师曾经说过哪个以“别”开头的短语？",
+    ans: "别喝水",
+    opts: ["别上厕所", "别喝水", "别写作业", "别做眼保健操"],
+    type: "concept",
+    source: "练习册：郑艳军.pdf"
+  }, {
+    text: "【语录】郑艳军老师曾经说过哪个以“别”开头的短语？",
+    ans: "别带情绪",
+    opts: ["别带情绪", "别睡觉", "别不学习", "别写物理作业"],
+    type: "concept",
+    source: "练习册：郑艳军.pdf"
+  }, {
+    text: "【语录】郑艳军老师曾经说过哪个以“别”开头的短语？",
+    ans: "别太有个性",
+    opts: ["别顶嘴", "别说话", "别太有个性", "别骂刘刚老师"],
+    type: "concept",
+    source: "练习册：郑艳军.pdf"
+  }, {
+    text: "【语录】郑艳军老师曾经问过？",
+    ans: "你是不是对我有意见",
+    opts: ["上的是正经小学吗", "你是不是对我有意见", "仓鼠？仓鼠是谁？", "同学你的期末目标是什么"],
+    type: "concept",
+    source: "练习册：郑艳军.pdf"
+  },  {
+    text: "【语录】郑艳军老师曾经问过？",
+    ans: "课代表呢？",
+    opts: ["课代表呢？", "幼儿园直升高中？", "刘刚是个大废物", "跑操什么时候结束"],
+    type: "concept",
+    source: "练习册：郑艳军.pdf"
+  },  {
+    text: "【语录】郑艳军老师曾经问过？",
+    ans: "你算哪根葱？",
+    opts: ["同学你的期末目标一天念多少遍", "没吃过猪还没见过猪跑？", "你算哪根葱？", "以上都不是"],
+    type: "concept",
+    source: "练习册：郑艳军.pdf"
+  },  {
+    text: "【经典】下列短语与郑艳军老师相关的是：",
+    ans: "对我有威胁",
+    opts: ["对我有威胁", "厕所有股味", "说学生很爽", "长跑拉风箱"],
+    type: "concept",
+    source: "练习册：郑艳军.pdf"
+  },{
+    text: "【语录】郑艳军老师曾经诊断出了：",
+    ans: "刘馨桐脑子不好",
+    opts: ["张奥博脑子不好", "刘馨桐脑子不好", "张启太脑子不好", "自己脑子不好"],
+    type: "concept",
+    source: "练习册：郑艳军.pdf"
+  },{
+    text: "【捡史】郑艳军老师开学时写过哪四个字？",
+    ans: "永远1班",
+    opts: ["天下为公", "永远1班", "我缺钱了", "开学快乐"],
+    type: "concept",
+    source: "练习册：郑艳军.pdf"
+  },{
+    text: "【名言】郑艳军老师曾经说过哪一句名言？",
+    ans: "注意力不集中是精神分裂前兆",
+    opts: ["实践是检验真理的唯一标准", "注意力不集中是精神分裂前兆", "我缺钱了，v我五十", "同学们你们的紫金冠歪了"],
+    type: "concept",
+    source: "练习册：郑艳军.pdf"
+  },{
+    text: "【名言】郑艳军老师曾经说过哪一句名言？",
+    ans: "做眼保健操！",
+    opts: ["狗熊哆嗦毛", "做物理作业！", "做眼保健操！", "我最爱我的电动牙刷了"],
+    type: "concept",
+    source: "练习册：郑艳军.pdf"
+  }],
+  "郑艳军经历": [{
+    text: "【经历】郑艳军老师说自己数学哪块一直想不明白，高考都没考好？",
+    ans: "立体几何",
+    opts: ["圆", "立体几何", "积分", "郑艳军是神，没有不会的"],
+    type: "concept",
+    source: "练习册：郑艳军.pdf"
+  }, {
+    text: "【经历】郑艳军老师曾经说过哪首歌让他印象深刻，甚至在课堂上被提及？",
+    ans: "月亮代表我的心",
+    opts: ["可惜不是你", "父亲的草原母亲的河", "月亮代表我的心", "地大附中校歌"],
+    type: "concept",
+    source: "练习册：郑艳军.pdf"
+  }, {
+    text: "【常识】郑艳军老师的出生年月日是？",
+    ans: "19720910",
+    opts: ["19720910", "19780817", "88888882", "20250901"],
+    type: "concept",
+    source: "练习册：郑艳军.pdf"
+  }, {
+    text: "【经历】郑艳军老师的故乡是___。",
+    ans: "内蒙古",
+    opts: ["青海", "内蒙古", "日本东京市", "北京市海淀区"],
+    type: "concept",
+    source: "练习册：郑艳军.pdf"
+  }, {
+    text: "【经历】郑艳军老师的文件夹、文件时经常加的后缀是____。",
+    ans: "88888882",
+    opts: ["高二一班", "不加", "88888882", "积攒正能量"],
+    type: "concept",
+    source: "练习册：郑艳军.pdf"
+  }, {
+    text: "【经历】郑艳军老师在大学时期拿到了什么证书，曾经向我们提及？",
+    ans: "计算机二级",
+    opts: ["计算机二级", "四六级", "教师资格证", "研究生考试"],
+    type: "concept",
+    source: "练习册：郑艳军.pdf"
+  }, {
+    text: "【经历】郑艳军老师的日常用两个字形容是。",
+    ans: "拧巴",
+    opts: ["糊涂", "通透", "现实", "拧巴"],
+    type: "concept",
+    source: "练习册：郑艳军.pdf"
+  }, {
+    text: "【经历】郑艳军老师与刘刚老师的关系相当于：____",
+    ans: "邵新宇老师和贾洁晶老师",
+    opts: ["邵新宇老师和贾洁晶老师", "董欣璇老师和王鹤老师", "罗长文老师和洪世松老师", "康沐垚同学和习近平主席"],
+    type: "concept",
+    source: "练习册：郑艳军.pdf"
+  }, {
+    text: "【经历】郑艳军老师念「耗散」这个词时，经典的错误读音是____声。",
+    ans: "二",
+    opts: ["一", "二", "三", "四"],
+    type: "concept",
+    source: "练习册：郑艳军.pdf"
+  },  {
+    text: "【经典】下列短语与郑艳军老师相关的是：",
+    ans: "红薯味的屁",
+    opts: ["刘刚教必胜", "红薯味的屁", "38324", "董欣璇回归"],
+    type: "concept",
+    source: "练习册：郑艳军.pdf"
+  },  {
+    text: "【经典】下列短语与郑艳军老师相关的是：",
+    ans: "都不是",
+    opts: ["洞洞幺", "呆呆", "都不是", "亡蜂大汉奸"],
+    type: "concept",
+    source: "练习册：郑艳军.pdf"
+  },  {
+    text: "【经典】下列短语与郑艳军老师相关的是：",
+    ans: "别太有个性",
+    opts: ["习近平宿敌", "农大高材生", "戒烟防草包", "别太有个性"],
+    type: "concept",
+    source: "练习册：郑艳军.pdf"
+  },  {
+    text: "【经历】郑艳军老师经常对___发号施令：___",
+    ans: "陈镜轩；开窗通风",
+    opts: ["陈镜轩；开窗通风", "康沐垚；剪头发", "于凯丞；擦黑板", "食堂小孩；别说话"],
+    type: "concept",
+    source: "练习册：郑艳军.pdf"
+  },  {
+    text: "【经历】郑艳军老师经常对___发号施令：___",
+    ans: "孟柯；拿手机",
+    opts: ["张奥博；别喝水", "孟柯；拿手机", "李庚鉴；别拧巴", "刘刚；别往仪器上涂油"],
+    type: "concept",
+    source: "练习册：郑艳军.pdf"
+  },{
+    text: "【经历】郑艳军老师经常对___发号施令：___",
+    ans: "康沐垚；别发表意见",
+    opts: ["康沐垚；别发表意见", "刘泽宏；别抖腿", "董欣璇；别吃虾", "王鹤；别骂人"],
+    type: "concept",
+    source: "练习册：郑艳军.pdf"
+  },{
+    text: "【经历】郑艳军老师曾经参与了：",
+    ans: "电动牙刷事件",
+    opts: ["文化大革命", "电动牙刷事件", "郑艳军刺秦王", "觉醒3000贴吧吧主身份被撤除"],
+    type: "concept",
+    source: "练习册：郑艳军.pdf"
+  },{
+    text: "【经历】郑艳军老师曾经参与了：",
+    ans: "261012食堂被骂事件",
+    opts: ["国民党的建立", "刺杀肯尼迪", "261012食堂被骂事件", "化学科目的教学"],
+    type: "concept",
+    source: "练习册：郑艳军.pdf"
+  },{
+    text: "【经历】郑艳军老师曾经参与了：",
+    ans: "物理学科的教学",
+    opts: ["物理学科的教学", "日本首相的任职", "通透教育的贯彻", "以上均不是"],
+    type: "concept",
+    source: "练习册：郑艳军.pdf"
+  },{
+    text: "【捡史】郑艳军老师在2026年10月12日被谁辱骂了",
+    ans: "食堂小孩",
+    opts: ["食堂小孩", "安倍晋三", "董欣璇", "物理组组长"],
+    type: "concept",
+    source: "练习册：郑艳军.pdf"
+  }],
+  "郑艳军管理下的生存方法论": [{
+    text: "【生存法则】上郑艳军老师的课，谁更有可能被针对？",
+    ans: "都有可能",
+    opts: ["聊天的张奥博同学", "听课的刘刚老师", "睡觉的李庚鉴同学", "都有可能"],
+    type: "concept",
+    source: "练习册：郑艳军.pdf"
+  }, {
+    text: "【生存法则】如果郑艳军老师在班里抽风，最安全的做法是____。",
+    ans: "写作业，只要不给我处分都是在调情",
+    opts: ["立刻反驳解释", "写作业，只要不给我处分都是在调情", "偷偷和同学骂他神经病", "收拾书包准备走"],
+    type: "concept",
+    source: "练习册：郑艳军.pdf"
+  }, {
+    text: "【生存法则】要在郑艳军老师面前做到什么____。",
+    ans: "别抱怨",
+    opts: ["鸟都不鸟，直接走开", "背“1101081972”开头的数字", "别抱怨", "念叨《刚教》相关内容"],
+    type: "concept",
+    source: "练习册：郑艳军.pdf"
+  }, {
+    text: "【生存法则】郑艳军老师最喜欢的值日步骤是____。",
+    ans: "往地上泼水洗地",
+    opts: ["拿砂纸搓墙", "把黑板擦成白板", "把三氯异氰尿酸钠消毒片扔进水盆", "往地上泼水洗地"],
+    type: "concept",
+    source: "练习册：郑艳军.pdf"
+  },{
+    text: "【常识】郑艳军老师在周几有区教研",
+    ans: "周三",
+    opts: ["周一", "周三", "周五", "周日"],
+    type: "concept",
+    source: "练习册：郑艳军.pdf"
+  },{
+    text: "【推理】高二1班同学在周几可以按时放学？",
+    ans: "周三",
+    opts: ["周一", "周三", "周五", "周日"],
+    type: "concept",
+    source: "练习册：郑艳军.pdf"
+  }]
+};
+const supplementaryOriginal = [
+  {
+    text: "【生存法则】上郑艳军老师的课，谁更有可能被针对？",
+    ans: "都有可能",
+    opts: ["聊天的张奥博同学", "听课的刘刚老师", "睡觉的李庚鉴同学", "都有可能"],
+    type: "concept",
+    source: "练习册：郑艳军.pdf"
+  }, {
+    text: "【生存法则】如果郑艳军老师在班里抽风，最安全的做法是____。",
+    ans: "写作业，只要不给我处分都是在调情",
+    opts: ["立刻反驳解释", "写作业，只要不给我处分都是在调情", "偷偷和同学骂他神经病", "收拾书包准备走"],
+    type: "concept",
+    source: "练习册：郑艳军.pdf"
+  }, {
+    text: "【生存法则】要在郑艳军老师面前做到什么____。",
+    ans: "别抱怨",
+    opts: ["鸟都不鸟，直接走开", "背“1101081972”开头的数字", "别抱怨", "念叨《刚教》相关内容"],
+    type: "concept",
+    source: "练习册：郑艳军.pdf"
+  }, {
+    text: "【生存法则】郑艳军老师最喜欢的值日步骤是____。",
+    ans: "往地上泼水洗地",
+    opts: ["拿砂纸搓墙", "把黑板擦成白板", "把三氯异氰尿酸钠消毒片扔进水盆", "往地上泼水洗地"],
+    type: "concept",
+    source: "练习册：郑艳军.pdf"
+  },{
+  text: "【重点】伟大领袖郑艳军同志曾经说过____。",
+    ans: "做人不要活得太通透",
+    opts: ["原电池中，电子由负极经外电路流向正极。", "刘刚积攒正能量", "每天说完学生都特别爽", "做人不要活得太通透"],
+    type: "concept",
+    source: "练习册：郑艳军.pdf"
+  }, {
+  text: "【概念】下列用语形容郑艳军同志的是______。",
+    ans: "热量的耗（二声）散",
+    opts: ["可惜不是你，陪我到最后", "觉醒30000", "枪挑紫金冠", "热量的耗（二声）散"],
+    type: "concept",
+    source: "练习册：郑艳军.pdf"
+  }, {
+  text: "【重点】郑艳军曾经说过____，有效的指导了我们的学习生活。",
+    ans: "如果你一不小心考上了大学，我奉劝你，最好提前准备四六级",
+    opts: ["一分都不给你", "我有四不吃，一：地大附中食堂我不吃", "班会888", "如果你一不小心考上了大学，我奉劝你，最好提前准备四六级"],
+    type: "concept",
+    source: "练习册：郑艳军.pdf"
+  }, {
+  text: "【概念】郑艳军曾经说过了一句很有哲理的话：_____",
+    ans: "你会收益终生的",
+    opts: ["没吃过猪还没见过猪跑？", "你会受益终生的", "黄老师你是教历史的吧", "TCL"],
+    type: "concept",
+    source: "练习册：郑艳军.pdf"
+  }, {
+  text: "【重点】下列是郑艳军同志所说的，且说法正确的是：____。",
+    ans: "这是刘刚老师弄的，他就是个大废物",
+    opts: ["这是刘刚老师弄的，他就是个大废物", "我不扶烂泥，我不翻咸鱼，我不对牛弹琴", "仓鼠？仓鼠是谁啊？", "这是角速度的公式：Δs比上一个t"],
+    type: "choice",
+    source: "练习册：郑艳军.pdf"
+  }, {
+  text: "【重点】下列短语与郑艳军同志相关的是____。",
+    ans: "这纸不臭啊",
+    opts: ["0.5 mol", "烂泥、咸鱼和牛", "这纸不臭啊", "Sep1st"],
+    type: "choice",
+    source: "练习册：郑艳军.pdf"
+  }, {
+  text: "【重点】以下语句是郑艳军所说过的是____。",
+    ans: "温馨提示：订餐",
+    opts: ["温馨提示：订餐", "38324", "明日听写：alphabet至amusement", "奇变偶不变"],
+    type: "choice",
+    source: "练习册：郑艳军.pdf"
+  }, {
+  text: "【重点】以下语句是郑艳军所说过的是____。",
+    ans: "找我面试",
+    opts: ["找我面试", "你的期中目标是什么", "我要赶紧去赶15号线去了", "小米同学"],
+    type: "choice",
+    source: "练习册：郑艳军.pdf"
+  }, {
+  text: "【大场面】郑艳军在批评学生时的经典口头禅是____。",
+    ans: "你算什么东西",
+    opts: ["跟我读c ai~ 菜！", "这个选项唯心了", "你算什么东西", "你们的英语要飞黄腾达了"],
+    type: "concept",
+    source: "练习册：郑艳军.pdf"
+  }, {
+    text: "【经典】郑艳军经常说的口头禅是____。",
+    ans: "你怎么活得这么拧巴",
+    opts: ["你有毛病吧", "清学葱姜蒜", "你怎么活得这么拧巴", "董欣璇爱吃虾"],
+    type: "concept",
+    source: "练习册：郑艳军.pdf"
+  },{
+    text: "【经历】郑艳军老师说自己数学哪块一直想不明白，高考都没考好？",
+    ans: "立体几何",
+    opts: ["圆", "立体几何", "积分", "郑艳军是神，没有不会的"],
+    type: "concept",
+    source: "练习册：郑艳军.pdf"
+  }, {
+    text: "【经历】郑艳军老师曾经说过哪首歌让他印象深刻，甚至在课堂上被提及？",
+    ans: "月亮代表我的心",
+    opts: ["可惜不是你", "父亲的草原母亲的河", "月亮代表我的心", "地大附中校歌"],
+    type: "concept",
+    source: "练习册：郑艳军.pdf"
+  }, {
+    text: "【常识】郑艳军老师的出生年月日是？",
+    ans: "19720910",
+    opts: ["19720910", "19780817", "88888882", "20250901"],
+    type: "concept",
+    source: "练习册：郑艳军.pdf"
+  }, {
+    text: "【经历】郑艳军老师的故乡是___。",
+    ans: "内蒙古",
+    opts: ["青海", "内蒙古", "日本东京市", "北京市海淀区"],
+    type: "concept",
+    source: "练习册：郑艳军.pdf"
+  }, {
+    text: "【经历】郑艳军老师的文件夹、文件时经常加的后缀是____。",
+    ans: "88888882",
+    opts: ["高二一班", "不加", "88888882", "积攒正能量"],
+    type: "concept",
+    source: "练习册：郑艳军.pdf"
+  }, {
+    text: "【经历】郑艳军老师在大学时期拿到了什么证书，曾经向我们提及？",
+    ans: "计算机二级",
+    opts: ["计算机二级", "四六级", "教师资格证", "研究生考试"],
+    type: "concept",
+    source: "练习册：郑艳军.pdf"
+  }, {
+    text: "【经历】郑艳军老师的日常用两个字形容是。",
+    ans: "拧巴",
+    opts: ["糊涂", "通透", "现实", "拧巴"],
+    type: "concept",
+    source: "练习册：郑艳军.pdf"
+  }, {
+    text: "【经历】郑艳军老师与刘刚老师的关系相当于：____",
+    ans: "邵新宇老师和贾洁晶老师",
+    opts: ["邵新宇老师和贾洁晶老师", "董欣璇老师和王鹤老师", "罗长文老师和洪世松老师", "康沐垚同学和习近平主席"],
+    type: "concept",
+    source: "练习册：郑艳军.pdf"
+  }, {
+    text: "【经历】郑艳军老师念「耗散」这个词时，经典的错误读音是____声。",
+    ans: "二",
+    opts: ["一", "二", "三", "四"],
+    type: "concept",
+    source: "练习册：郑艳军.pdf"
+  },{
+    text: "【语录】郑艳军老师曾经说过哪个以“别”开头的短语？",
+    ans: "别咳嗽",
+    opts: ["别咳嗽", "别算数", "别睡觉", "别骂人"],
+    type: "concept",
+    source: "练习册：郑艳军.pdf"
+  }, {
+    text: "【语录】郑艳军老师曾经说过哪个以“别”开头的短语？",
+    ans: "别喝水",
+    opts: ["别上厕所", "别喝水", "别写作业", "别做眼保健操"],
+    type: "concept",
+    source: "练习册：郑艳军.pdf"
+  }, {
+    text: "【语录】郑艳军老师曾经说过哪个以“别”开头的短语？",
+    ans: "别带情绪",
+    opts: ["别带情绪", "别睡觉", "别不学习", "别写物理作业"],
+    type: "concept",
+    source: "练习册：郑艳军.pdf"
+  }, {
+    text: "【语录】郑艳军老师曾经说过哪个以“别”开头的短语？",
+    ans: "别太有个性",
+    opts: ["别顶嘴", "别说话", "别太有个性", "别骂刘刚老师"],
+    type: "concept",
+    source: "练习册：郑艳军.pdf"
+  }, {
+    text: "【语录】郑艳军老师曾经问过？",
+    ans: "你是不是对我有意见",
+    opts: ["上的是正经小学吗", "你是不是对我有意见", "仓鼠？仓鼠是谁？", "同学你的期末目标是什么"],
+    type: "concept",
+    source: "练习册：郑艳军.pdf"
+  },  {
+    text: "【语录】郑艳军老师曾经问过？",
+    ans: "课代表呢？",
+    opts: ["课代表呢？", "幼儿园直升高中？", "刘刚是个大废物", "跑操什么时候结束"],
+    type: "concept",
+    source: "练习册：郑艳军.pdf"
+  },  {
+    text: "【语录】郑艳军老师曾经问过？",
+    ans: "你算哪根葱？",
+    opts: ["同学你的期末目标一天念多少遍", "没吃过猪还没见过猪跑？", "你算哪根葱？", "以上都不是"],
+    type: "concept",
+    source: "练习册：郑艳军.pdf"
+  }, {
+    text: "【经典】下列短语与郑艳军老师相关的是：",
+    ans: "对我有威胁",
+    opts: ["对我有威胁", "厕所有股味", "说学生很爽", "长跑拉风箱"],
+    type: "concept",
+    source: "练习册：郑艳军.pdf"
+  },  {
+    text: "【经典】下列短语与郑艳军老师相关的是：",
+    ans: "红薯味的屁",
+    opts: ["刘刚教必胜", "红薯味的屁", "38324", "董欣璇回归"],
+    type: "concept",
+    source: "练习册：郑艳军.pdf"
+  },  {
+    text: "【经典】下列短语与郑艳军老师相关的是：",
+    ans: "都不是",
+    opts: ["洞洞幺", "呆呆", "都不是", "亡蜂大汉奸"],
+    type: "concept",
+    source: "练习册：郑艳军.pdf"
+  },  {
+    text: "【经典】下列短语与郑艳军老师相关的是：",
+    ans: "别太有个性",
+    opts: ["习近平宿敌", "农大高材生", "戒烟防草包", "别太有个性"],
+    type: "concept",
+    source: "练习册：郑艳军.pdf"
+  },  {
+    text: "【经历】郑艳军老师经常对___发号施令：___",
+    ans: "陈镜轩；开窗通风",
+    opts: ["陈镜轩；开窗通风", "康沐垚；剪头发", "于凯丞；擦黑板", "食堂小孩；别说话"],
+    type: "concept",
+    source: "练习册：郑艳军.pdf"
+  },  {
+    text: "【经历】郑艳军老师经常对___发号施令：___",
+    ans: "孟柯；拿手机",
+    opts: ["张奥博；别喝水", "孟柯；拿手机", "李庚鉴；别拧巴", "刘刚；别往仪器上涂油"],
+    type: "concept",
+    source: "练习册：郑艳军.pdf"
+  },{
+    text: "【经历】郑艳军老师经常对___发号施令：___",
+    ans: "康沐垚；别发表意见",
+    opts: ["康沐垚；别发表意见", "刘泽宏；别抖腿", "董欣璇；别吃虾", "王鹤；别骂人"],
+    type: "concept",
+    source: "练习册：郑艳军.pdf"
+  },{
+    text: "【语录】郑艳军老师曾经诊断出了：",
+    ans: "张奥博肾不好",
+    opts: ["张奥博肾不好", "王鹤心理阴暗", "自己活得通透", "王峰不是东西"],
+    type: "concept",
+    source: "练习册：郑艳军.pdf"
+  },{
+    text: "【语录】郑艳军老师曾经诊断出了：",
+    ans: "刘馨桐脑子不好",
+    opts: ["张奥博脑子不好", "刘馨桐脑子不好", "张启太脑子不好", "自己脑子不好"],
+    type: "concept",
+    source: "练习册：郑艳军.pdf"
+  },{
+    text: "【经历】郑艳军老师曾经参与了：",
+    ans: "电动牙刷事件",
+    opts: ["文化大革命", "电动牙刷事件", "郑艳军刺秦王", "觉醒3000贴吧吧主身份被撤除"],
+    type: "concept",
+    source: "练习册：郑艳军.pdf"
+  },{
+    text: "【经历】郑艳军老师曾经参与了：",
+    ans: "261012食堂被骂事件",
+    opts: ["国民党的建立", "刺杀肯尼迪", "261012食堂被骂事件", "化学科目的教学"],
+    type: "concept",
+    source: "练习册：郑艳军.pdf"
+  },{
+    text: "【经历】郑艳军老师曾经参与了：",
+    ans: "物理学科的教学",
+    opts: ["物理学科的教学", "日本首相的任职", "通透教育的贯彻", "以上均不是"],
+    type: "concept",
+    source: "练习册：郑艳军.pdf"
+  },{
+    text: "【捡史】郑艳军老师在2026年10月12日被谁辱骂了",
+    ans: "食堂小孩",
+    opts: ["食堂小孩", "安倍晋三", "董欣璇", "物理组组长"],
+    type: "concept",
+    source: "练习册：郑艳军.pdf"
+  },{
+    text: "【常识】郑艳军老师在周几有区教研",
+    ans: "周三",
+    opts: ["周一", "周三", "周五", "周日"],
+    type: "concept",
+    source: "练习册：郑艳军.pdf"
+  },{
+    text: "【推理】高二1班同学在周几可以按时放学？",
+    ans: "周三",
+    opts: ["周一", "周三", "周五", "周日"],
+    type: "concept",
+    source: "练习册：郑艳军.pdf"
+  },{
+    text: "【捡史】郑艳军老师开学时写过哪四个字？",
+    ans: "永远1班",
+    opts: ["天下为公", "永远1班", "我缺钱了", "开学快乐"],
+    type: "concept",
+    source: "练习册：郑艳军.pdf"
+  },{
+    text: "【名言】郑艳军老师曾经说过哪一句名言？",
+    ans: "注意力不集中是精神分裂前兆",
+    opts: ["实践是检验真理的唯一标准", "注意力不集中是精神分裂前兆", "我缺钱了，v我五十", "同学们你们的紫金冠歪了"],
+    type: "concept",
+    source: "练习册：郑艳军.pdf"
+  },{
+    text: "【名言】郑艳军老师曾经说过哪一句名言？",
+    ans: "做眼保健操！",
+    opts: ["狗熊哆嗦毛", "做物理作业！", "做眼保健操！", "我最爱我的电动牙刷了"],
+    type: "concept",
+    source: "练习册：郑艳军.pdf"
+  },{
+    text: "【读音】郑艳军老师将mgcosθ读作？",
+    ans: "ai（二声）mu（四声）zhei（四声）kou（二声）sai（四声）ying（四声）sei（二声）ta（四声）",
+    opts: ["ai（二声）mu（四声）zhei（四声）kou（二声）sai（四声）ying（四声）sei（二声）ta（四声）", "ai（二声）mu（四声）zhei（一声）kou（一声）sai（四声）ying（四声）sei（一声）ta（四声）", "ai（二声）mu（四声）ji（四声）kou（二声）sai（四声）ying（四声）sei（二声）ta（四声）", "以上均不是"],
+    type: "concept",
+    source: "练习册：郑艳军.pdf"
+  },{
+    text: "【读音】郑艳军老师将渎职读作？",
+    ans: "du（一声）职",
+    opts: ["du（三声）职", "du（二声）职", "du（一声）职", "以上均不是"],
+    type: "concept",
+    source: "练习册：郑艳军.pdf"
+  },{
+    text: "【读音】郑艳军老师将陈嘉怡作？",
+    ans: "陈嘉欣",
+    opts: ["陈嘉怡", "陈嘉欣", "陈镜轩", "以上均不是"],
+    type: "concept",
+    source: "练习册：郑艳军.pdf"
+  },{
+    text: "【语法】郑艳军老师用什么形容表扬？",
+    ans: "遭到了表扬",
+    opts: ["受到了表扬", "遭到了表扬", "被赋予了表扬", "以上均不是"],
+    type: "concept",
+    source: "练习册：郑艳军.pdf"
+  },{
+    text: "【语法】郑艳军老师经常说人怎么活得怎么样？",
+    ans: "通透",
+    opts: ["通透", "遭罪", "恶心", "阴暗"],
+    type: "concept",
+    source: "练习册：郑艳军.pdf"
+  },{
+    text: "【语法】郑艳军老师经常说人怎么活得怎么样？",
+    ans: "自私",
+    opts: ["神经", "自私", "孤独", "缺爱"],
+    type: "concept",
+    source: "练习册：郑艳军.pdf"
+  },{
+    text: "【语法】郑艳军老师经常说人怎么活得怎么样？",
+    ans: "虚伪",
+    opts: ["神经", "认真", "虚伪", "妥协"],
+    type: "concept",
+    source: "练习册：郑艳军.pdf"
+  },{
+    text: "【语法】郑艳军老师经常说人怎么活得怎么样？",
+    ans: "自我",
+    opts: ["阴间", "傻", "废物", "自我"],
+    type: "concept",
+    source: "练习册：郑艳军.pdf"
+  },
+];
+const addOriginal = supplementaryOriginal.filter(q => q.source === "练习册：郑艳军.pdf"),
+  addSupplement = supplementaryOriginal.filter(q => q.source === "补充题库.pdf");
+banks["郑艳军语录"].push(...supplementaryOriginal.filter(q => q.source === "练习册：郑艳军.pdf").slice(0, 8));
+banks["郑艳军经历"].push(...supplementaryOriginal.filter(q => q.source === "练习册：郑艳军.pdf").slice(8, 15));
+banks["郑艳军管理下的生存方法论"].push(...supplementaryOriginal.filter(q => q.source === "练习册：郑艳军.pdf").slice(15));
+const comprehensiveBank = [...banks["郑艳军语录"], ...banks["郑艳军经历"], ...banks["郑艳军管理下的生存方法论"], ...addOriginal];
+banks["郑治综合"] = comprehensiveBank;
+const matchQuestions = 20,
+  seconds = 15;
+let category = "郑艳军语录",
+  classType = "行政班",
+  selectedClassName = "",
+  players = ["未匹配", "未匹配"],
+  mode = "",
+  qset = [],
+  states = [],
+  optionOrders = [],
+  selfSelected = [];
+let randomWindow = {
+  type: "",
+  selectedClassName: "",
+  used: new Set(),
+  rounds: 0
+};
+let timers = [null, null];
+
+function selectedCategory() {
+  return document.querySelector('input[name="cat"]:checked').value
+}
+
+function refreshClassOptions() {
+  classType = "行政班";
+  const select = document.getElementById('classSelect');
+  const old = select.value;
+  select.innerHTML = '<option value="">请选择班级</option>';
+  Object.keys(rosters[classType]).forEach(k => {
+    const o = document.createElement('option');
+    o.value = k;
+    o.textContent = k;
+    select.appendChild(o)
+  });
+  if (rosters[classType][old]) select.value = old;
+  selectedClassName = select.value || ''
+}
+
+function currentRoster() {
+  classType = "行政班";
+  const activeClass = document.getElementById('classSelect')?.value || selectedClassName;
+  selectedClassName = activeClass;
+  return rosters[classType]?.[activeClass] || []
+}
+
+function syncClassSelection() {
+  classType = "行政班";
+  selectedClassName = document.getElementById('classSelect')?.value || '';
+  return {
+    classType,
+    selectedClassName
+  }
+}
+
+function updateMatchDialog() {
+  const titlePrefix = mode === 'random' ? '随机匹配' : '自选挑战';
+  const classInfo = selectedClassName ? (' · ' + selectedClassName) : ' · 自定义';
+  document.getElementById('matchTitle').textContent = titlePrefix + classInfo + ' · ' + category;
+  document.getElementById('m1').textContent = players[0] || '—';
+  document.getElementById('m2').textContent = players[1] || '—'
+}
+
+function openSelfMatch() {
+  category = selectedCategory();
+  document.getElementById('player1Input').value = '';
+  document.getElementById('player2Input').value = '';
+  document.getElementById('selfHint').textContent = '请输入两位选手名称';
+  document.getElementById('selfMatch').style.display = 'flex';
+  setTimeout(() => document.getElementById('player1Input').focus(), 100);
+}
+
+function closeSelfMatch() {
+  document.getElementById('selfMatch').style.display = 'none'
+}
+
+function confirmSelfMatch() {
+  const p1 = document.getElementById('player1Input').value.trim();
+  const p2 = document.getElementById('player2Input').value.trim();
+  
+  if (!p1 || !p2) {
+    alert('请输入两位选手的姓名');
+    return
+  }
+  if (p1 === p2) {
+    alert('两位选手不能同名，请重新输入');
+    return
+  }
+  
+  players = [p1, p2];
+  mode = 'self';
+  updateMatchDialog();
+  closeSelfMatch();
+  document.getElementById('match').style.display = 'flex';
+}
+
+function randomPair() {
+  const roster = currentRoster();
+  if (roster.length < 2) {
+    alert('当前班级至少需要两名学生');
+    return null
+  }
+  if (randomWindow.type !== classType || randomWindow.selectedClassName !== selectedClassName || randomWindow.rounds >= 5) {
+    randomWindow = {
+      type: classType,
+      selectedClassName,
+      used: new Set(),
+      rounds: 0
+    }
+  }
+  let available = roster.filter(n => !randomWindow.used.has(n));
+  if (available.length < 2) {
+    randomWindow = {
+      type: classType,
+      selectedClassName,
+      used: new Set(),
+      rounds: 0
+    };
+    available = [...roster]
+  }
+  const pair = [...available].sort(() => Math.random() - .5).slice(0, 2);
+  pair.forEach(n => randomWindow.used.add(n));
+  randomWindow.rounds++;
+  if (randomWindow.rounds >= 5) {
+    randomWindow = {
+      type: classType,
+      selectedClassName,
+      used: new Set(),
+      rounds: 0
+    }
+  }
+  return pair
+}
+
+function randomMatch() {
+  syncClassSelection();
+  if (!selectedClassName) {
+    alert('请先选择班级');
+    return
+  }
+  category = selectedCategory();
+  const pair = randomPair();
+  if (!pair) return;
+  mode = 'random';
+  players = pair;
+  updateMatchDialog();
+  document.getElementById('match').style.display = 'flex'
+}
+
+function againMatch() {
+  if (mode === 'self') {
+    startGame()
+  } else {
+    const pair = randomPair();
+    if (pair) {
+      players = pair;
+      updateMatchDialog();
+      startGame()
+    }
+  }
+}
+
+function closeMatch() {
+  document.getElementById('match').style.display = 'none'
+}
+refreshClassOptions();
+
+function shuffleOptions(options) {
+  const a = [...options];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]]
+  }
+  return a
+}
+
+function makeDifferentOrder(options, first) {
+  let next = shuffleOptions(options),
+    tries = 0;
+  while (next.join('\u0001') === first.join('\u0001') && tries < 12) {
+    next = shuffleOptions(options);
+    tries++
+  }
+  if (next.join('\u0001') === first.join('\u0001') && next.length > 1)[next[0], next[1]] = [next[1], next[0]];
+  return next
+}
+
+function buildOptionOrders() {
+  return qset.map(q => {
+    const blue = shuffleOptions(q.opts);
+    const red = makeDifferentOrder(q.opts, blue);
+    return [blue, red]
+  })
+}
+
+function uniqueQuestions(list) {
+  const seen = new Set(),
+    out = [];
+  for (const q of list) {
+    const key = String(q.text || '').replace(/\s+/g, '').trim();
+    if (!seen.has(key)) {
+      seen.add(key);
+      out.push(q)
+    }
+  }
+  return out
+}
+
+function drawQuestions() {
+  const pool = uniqueQuestions([...banks[category]].sort(() => Math.random() - .5));
+  if (pool.length < matchQuestions) {
+    alert('当前题库去重后不足20道不同题目，请更换题库后再开始比赛。');
+    return null
+  }
+  return pool.slice(0, matchQuestions)
+}
+
+function startGame() {
+  const drawn = drawQuestions();
+  if (!drawn) return;
+  closeMatch();
+  document.getElementById('setup').style.display = 'none';
+  document.getElementById('p1name').textContent = players[0];
+  document.getElementById('p2name').textContent = players[1];
+  qset = drawn;
+  optionOrders = buildOptionOrders();
+  states = [newState(), newState()];
+  document.getElementById('p1win').style.display = 'none';
+  document.getElementById('p2win').style.display = 'none';
+  render(0);
+  render(1)
+}
+
+function newState() {
+  return {
+    current: 0,
+    score: 0,
+    finished: false,
+    answers: [],
+    timeUsed: 0
+  }
+}
+
+function render(i) {
+  let s = states[i],
+    qbox = document.getElementById('p' + (i + 1) + 'q'),
+    obox = document.getElementById('p' + (i + 1) + 'opts');
+  if (s.current >= matchQuestions) {
+    s.finished = true;
+    clearInterval(timers[i]);
+    renderResults(i);
+    checkOver();
+    return
+  }
+  let q = qset[s.current];
+  qbox.innerHTML = '<small>第 ' + (s.current + 1) + ' / ' + matchQuestions + ' 题 · ' + players[i] + '</small>' + q.text.replace('____', '<span style="border-bottom:3px dashed #fff;display:inline-block;min-width:90px">?</span>');
+  obox.className = 'opts ' + (q.opts.some(o => Array.from(o).length > 8) ? 'one-col' : 'two-col');
+  obox.innerHTML = '';
+  optionOrders[s.current][i].forEach(o => {
+    let b = document.createElement('button');
+    b.className = 'opt';
+    b.textContent = o;
+    b.onclick = () => answer(i, o, q);
+    obox.appendChild(b)
+  });
+  startTimer(i)
+}
+
+function startTimer(i) {
+  clearInterval(timers[i]);
+  let left = seconds;
+  document.getElementById('p' + (i + 1) + 'fill').style.width = '100%';
+  timers[i] = setInterval(() => {
+    left -= .1;
+    states[i].timeUsed += .1;
+    document.getElementById('p' + (i + 1) + 'fill').style.width = Math.max(0, left / seconds * 100) + '%';
+    if (left <= 0) {
+      clearInterval(timers[i]);
+      answer(i, null, qset[states[i].current])
+    }
+  }, 100)
+}
+
+function answer(i, choice, q) {
+  let s = states[i];
+  clearInterval(timers[i]);
+  let ok = choice === q.ans;
+  s.answers.push({
+    question: q.text,
+    choice: choice === null ? '超时' : choice,
+    correct: ok,
+    answer: q.ans
+  });
+  if (ok) {
+    s.score += 5;
+    document.getElementById('p' + (i + 1) + 'score').textContent = s.score
+  }
+  s.current++;
+  setTimeout(() => render(i), 260)
+}
+
+function renderResults(i) {
+  let s = states[i],
+    qbox = document.getElementById('p' + (i + 1) + 'q'),
+    obox = document.getElementById('p' + (i + 1) + 'opts');
+  obox.innerHTML = '';
+  qbox.innerHTML = '<strong>' + players[i] + ' · 作答结果</strong><div class="result-list">' + s.answers.map((a, n) => '<button type="button" class="result-item ' + (a.correct ? '' : 'wrong') + '" onclick="event.stopPropagation();window.showQuestionDetail(' + i + ',' + n + ')">第' + (n + 1) + '题：' + (a.correct ? '回答正确' : '回答错误') + (a.correct ? '' : '<span class="correction">正确答案：' + a.answer + '</span>') + '</button>').join('') + '</div>'
+}
+
+function getReasoning(question, answer) {
+  const q = String(question || '');
+  if (q.includes('郑艳军')) return '郑艳军牛NB666';
+  return '郑艳军牛逼666。'
+}
+
+function showQuestionDetail(playerIndex, questionIndex) {
+  const a = states[playerIndex]?.answers?.[questionIndex];
+  if (!a) return;
+  const modal = document.getElementById('questionDetail');
+  document.getElementById('detailTitle').textContent = players[playerIndex] + ' · 第' + (questionIndex + 1) + '题';
+  document.getElementById('detailQuestion').textContent = a.question;
+  document.getElementById('detailAnswer').textContent = a.correct ? '作答结果：回答正确' : '作答结果：回答错误；你的答案：' + (a.choice || '未作答') + '；正确答案：' + a.answer;
+  const reasoning = document.getElementById('detailReasoning');
+  if (a.correct) {
+    reasoning.innerHTML = '';
+    reasoning.style.display = 'none'
+  } else {
+    reasoning.innerHTML = '<strong>判断思路：</strong>' + getReasoning(a.question, a.answer);
+    reasoning.style.display = 'block'
+  }
+  modal.style.display = 'flex';
+  modal.style.visibility = 'visible';
+  modal.style.opacity = '1'
+}
+window.showQuestionDetail = showQuestionDetail
+
+function closeQuestionDetail() {
+  document.getElementById('questionDetail').style.display = 'none'
+}
+async function saveRecord(name, i) {
+  try {
+    let sdk = await window.MuskCollectLoader.getInstance();
+    await sdk.save('electro_pk_results', {
+      studentName: name,
+      className: selectedClassName || (mode === 'self' ? '自定义' : ''),
+      category,
+      score: states[i].score,
+      correctCount: states[i].answers.filter(a => a.correct).length,
+      wrongCount: states[i].answers.filter(a => !a.correct).length,
+      questionResults: states[i].answers.map(a => ({
+        ...a,
+        knowledgePoint: a.question
+      }), ),
+      opponentName: players[1 - i],
+      timestamp: new Date().toISOString()
+    })
+  } catch (e) {
+    // 保存失败不影响使用，静默忽略
+  }
+}
+async function checkOver() {
+  if (!states[0].finished || !states[1].finished) return;
+  let win = states[0].score > states[1].score ? 0 : states[1].score > states[0].score ? 1 : states[0].timeUsed < states[1].timeUsed ? 0 : states[1].timeUsed < states[0].timeUsed ? 1 : -1;
+  document.getElementById('p1win').style.display = win === 0 ? 'block' : win === -1 ? 'block' : 'none';
+  document.getElementById('p2win').style.display = win === 1 ? 'block' : win === -1 ? 'block' : 'none';
+  document.getElementById('resultTitle').textContent = win === -1 ? '本场平局' : '比赛结束';
+  document.getElementById('winner').textContent = win === -1 ? '平局' : players[win];
+  document.getElementById('winnerScore').textContent = win === -1 ? '双方均得 ' + states[0].score + ' 分' : states[win].score + ' 分';
+  document.getElementById('result').style.display = 'flex';
+  document.getElementById('returnHome').style.display = 'none';
+  saveRecord(players[0], 0);
+  saveRecord(players[1], 1);
+  fireworks()
+}
+
+function showAnswerResults() {
+  document.getElementById('result').style.display = 'none';
+  document.getElementById('returnHome').style.display = 'none';
+  document.getElementById('resultActions').style.display = 'flex';
+  document.getElementById('againButton').textContent = '再来一轮'
+}
+
+function closeResult() {
+  document.getElementById('result').style.display = 'none';
+  document.getElementById('returnHome').style.display = 'none';
+  document.getElementById('resultActions').style.display = 'none';
+  document.getElementById('setup').style.display = 'flex';
+  document.getElementById('p1q').textContent = '准备就绪...';
+  document.getElementById('p2q').textContent = '准备就绪...';
+  document.getElementById('p1score').textContent = '0';
+  document.getElementById('p2score').textContent = '0';
+  document.getElementById('p1name').textContent = '未匹配';
+  document.getElementById('p2name').textContent = '未匹配';
+  document.getElementById('p1opts').innerHTML = '';
+  document.getElementById('p2opts').innerHTML = ''
+}
+
+function fireworks() {
+  let c = document.getElementById('fireworks'),
+    x = c.getContext('2d');
+  c.width = innerWidth;
+  c.height = innerHeight;
+  let ps = Array.from({
+    length: 100
+  }, () => ({
+    x: innerWidth * (.2 + Math.random() * .6),
+    y: innerHeight * .3,
+    vx: (Math.random() - .5) * 7,
+    vy: (Math.random() - .5) * 7,
+    l: 80,
+    col: ['#fde047', '#60a5fa', '#f472b6', '#34d399'][Math.floor(Math.random() * 4)]
+  }));
+  let f = () => {
+    x.clearRect(0, 0, c.width, c.height);
+    ps.forEach(p => {
+      p.x += p.vx;
+      p.y += p.vy;
+      p.vy += .05;
+      p.l--;
+      x.globalAlpha = Math.max(0, p.l / 80);
+      x.fillStyle = p.col;
+      x.fillRect(p.x, p.y, 4, 4)
+    });
+    if (ps.some(p => p.l > 0)) requestAnimationFrame(f)
+  };
+  f()
+}
+  </script>
+ </body>
+</html>
