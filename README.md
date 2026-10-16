@@ -31,24 +31,35 @@
 
 ```
 根目录/
-├── muspk/                     有音乐版目录
-│   ├── elimination.mp3        背景音乐
-│   └── index.html             有音乐版主程序
-├── nmuspk/                    无音乐版目录
-│   └── index.html             无音乐版主程序
-├── play/                      娱乐小游戏目录
-│   ├── chess/                 斗兽棋目录
-│   │   ├── game.js            斗兽棋核心逻辑
-│   │   ├── index.html         斗兽棋主页面
-│   │   └── style.css          斗兽棋样式
-│   └── index.html             小游戏应用库首页
-├── 404.html                   404 错误页
-├── CNAME                      自定义域名配置
-├── README.md                  项目说明文档
-├── icon.png                   网站图标
-├── index.html                 网站首页 / 启动页
-├── questions.js               题库
-└── rosters.js                 学生名单
+├── muspk/                         有音乐版目录
+│   ├── elimination.mp3            背景音乐
+│   └── index.html                 有音乐版主程序
+├── nmuspk/                        无音乐版目录
+│   └── index.html                 无音乐版主程序
+├── play/                          娱乐小游戏目录
+│   ├── chess/                     斗兽棋目录
+│   │   ├── game.js                斗兽棋核心逻辑
+│   │   ├── index.html             斗兽棋主页面
+│   │   └── style.css              斗兽棋样式
+│   ├── tetris/                    俄罗斯方块目录
+│   │   ├── assets/                资源目录
+│   │   │   ├── index.html         资源页
+│   │   │   └── zyj.png            图片资源
+│   │   ├── css/                   样式目录
+│   │   │   └── style.css          俄罗斯方块样式
+│   │   ├── js/                    脚本目录
+│   │   │   ├── effects.js         特效逻辑
+│   │   │   ├── game.js            游戏核心逻辑
+│   │   │   └── tetris.js          俄罗斯方块逻辑
+│   │   └── index.html             俄罗斯方块主页面
+│   └── index.html                 小游戏应用库首页
+├── 404.html                       404 错误页
+├── CNAME                          自定义域名配置
+├── README.md                      项目说明文档
+├── icon.png                       网站图标
+├── index.html                     网站首页 / 启动页
+├── questions.js                   题库
+└── rosters.js                     学生名单
 ```
 
 > 💡 如需新增或修改题目，只需编辑 `questions.js`，无需改动 HTML 主程序。
