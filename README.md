@@ -43,7 +43,6 @@
 │   │   └── style.css              斗兽棋样式
 │   ├── tetris/                    俄罗斯方块目录
 │   │   ├── assets/                资源目录
-│   │   │   ├── index.html         资源页
 │   │   │   └── zyj.png            图片资源
 │   │   ├── css/                   样式目录
 │   │   │   └── style.css          俄罗斯方块样式
