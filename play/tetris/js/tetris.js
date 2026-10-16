@@ -1,41 +1,65 @@
-const COLS = 10;
-const ROWS = 20;
+/* =====================================================
+   TETRIS 核心
+===================================================== */
+
+const COLS=10;
+const ROWS=20;
 
 
-/* ==================================
-   ZYJ 图片
-================================== */
+/* =====================================================
+   图片
 
-const BLOCK_IMAGE =
+   注意：
+   index.html 位于 /play/tetris/
+   所以这里必须是 ./assets/zyj.png
+===================================================== */
+
+const BLOCK_IMAGE=
     new Image();
 
-BLOCK_IMAGE.src =
-    "../tetris/assets/zyj.png";
+BLOCK_IMAGE.src=
+    "./assets/zyj.png";
 
 
-/* ==================================
-   不染图片，只染描边
-================================== */
+/* =====================================================
+   方块颜色
+===================================================== */
 
-const PIECE_COLORS = [
+const PIECE_COLORS=[
 
     "#00eaff",
-    "#ffd333",
-    "#c65cff",
-    "#42ff91",
-    "#ff4775",
-    "#ff8b35",
-    "#4f7cff"
+    "#ffd43b",
+    "#c75cff",
+    "#40ff91",
+    "#ff4770",
+    "#ff8a35",
+    "#4d7dff"
 
 ];
 
 
-const SHAPES = {
+/* =====================================================
+   7种标准俄罗斯方块
+
+   I = 四个格子！！！
+
+   横：
+   ████
+
+   竖：
+   █
+   █
+   █
+   █
+===================================================== */
+
+const SHAPES={
 
     I:[
         [
             [1,1,1,1]
         ],
+
         [
             [1],
             [1],
@@ -158,6 +182,10 @@ const SHAPES = {
 };
 
 
+/* =====================================================
+   Board
+===================================================== */
+
 class TetrisBoard{
 
     constructor(canvas,index){
@@ -170,9 +198,11 @@ class TetrisBoard{
         this.index=index;
 
         this.grid=
-            this.createGrid();
+            this.makeGrid();
 
         this.current=null;
+
+        this.next=null;
 
         this.score=0;
 
@@ -180,22 +210,34 @@ class TetrisBoard{
 
         this.combo=0;
 
+        this.energy=0;
+
         this.alive=true;
 
         this.dropCounter=0;
 
-        this.dropInterval=750;
+        this.dropInterval=720;
 
         this.lastTime=
             performance.now();
 
+        this.flashCells=[];
+
         this.resize();
+
+        /*
+         * 第一块与下一块
+         * 使用真正的7种方块
+         */
+
+        this.next=
+            this.randomPiece();
 
         this.spawn();
     }
 
 
-    createGrid(){
+    makeGrid(){
 
         return Array.from(
             {length:ROWS},
@@ -206,43 +248,45 @@ class TetrisBoard{
 
     resize(){
 
-        const players=
+        const count=
             window.Game
                 ? Game.count
                 : 2;
 
-        let width;
 
-        if(players===1)
-            width=330;
+        let boardWidth;
 
-        else if(players===2)
-            width=285;
+        if(count===1)
+            boardWidth=330;
 
-        else if(players===3)
-            width=235;
+        else if(count===2)
+            boardWidth=270;
+
+        else if(count===3)
+            boardWidth=215;
 
         else
-            width=190;
+            boardWidth=180;
 
 
         const maxHeight=
-            window.innerHeight*.63;
-
-        const cell=
-            Math.floor(
-                Math.min(
-                    width/COLS,
-                    maxHeight/ROWS
-                )
+            Math.max(
+                280,
+                window.innerHeight*.61
             );
 
 
         this.cell=
             Math.max(
                 10,
-                cell
+                Math.floor(
+                    Math.min(
+                        boardWidth/COLS,
+                        maxHeight/ROWS
+                    )
+                )
             );
+
 
         this.canvas.width=
             COLS*this.cell;
@@ -250,34 +294,79 @@ class TetrisBoard{
         this.canvas.height=
             ROWS*this.cell;
 
+
         this.draw();
     }
 
 
     randomPiece(){
 
-        const types=
-            Object.keys(SHAPES);
+        /*
+         * 七袋系统
+         *
+         * 防止某种方块长时间不出现
+         *
+         * 并且 I 方块确实存在
+         */
+
+        if(!this._bag ||
+           this._bag.length===0){
+
+            this._bag=
+                [
+                    "I",
+                    "O",
+                    "T",
+                    "S",
+                    "Z",
+                    "J",
+                    "L"
+                ];
+
+            for(
+                let i=this._bag.length-1;
+                i>0;
+                i--
+            ){
+
+                const j=
+                    Math.floor(
+                        Math.random()*(i+1)
+                    );
+
+                [
+                    this._bag[i],
+                    this._bag[j]
+                ]=[
+                    this._bag[j],
+                    this._bag[i]
+                ];
+            }
+        }
+
 
         const type=
-            types[
-                Math.floor(
-                    Math.random()*types.length
-                )
-            ];
+            this._bag.pop();
+
+
+        /*
+         * 第一方向永远使用定义的第0个
+         */
 
         const matrix=
             SHAPES[type][0]
-                .map(row=>row.slice());
+                .map(
+                    row=>row.slice()
+                );
 
 
         return{
 
-            type,
-
-            matrix,
+            type:type,
 
             rotation:0,
+
+            matrix:matrix,
 
             x:
                 Math.floor(
@@ -299,8 +388,40 @@ class TetrisBoard{
 
     spawn(){
 
+        /*
+         * next -> current
+         */
+
         this.current=
+            this.next ||
             this.randomPiece();
+
+
+        /*
+         * 预先准备下一块
+         */
+
+        this.next=
+            this.randomPiece();
+
+
+        /*
+         * 居中
+         */
+
+        this.current.x=
+            Math.floor(
+                (COLS-
+                 this.current.matrix[0].length)
+                /2
+            );
+
+        this.current.y=-1;
+
+
+        /*
+         * 出生检测
+         */
 
         if(
             this.collides(
@@ -318,6 +439,9 @@ class TetrisBoard{
                     this.index
                 );
         }
+
+
+        this.draw();
     }
 
 
@@ -343,6 +467,7 @@ class TetrisBoard{
                 if(!matrix[y][x])
                     continue;
 
+
                 const nx=
                     piece.x+x+dx;
 
@@ -354,15 +479,19 @@ class TetrisBoard{
                     nx<0 ||
                     nx>=COLS ||
                     ny>=ROWS
-                )
+                ){
+
                     return true;
+                }
 
 
                 if(
                     ny>=0 &&
                     this.grid[ny][nx]
-                )
+                ){
+
                     return true;
+                }
             }
         }
 
@@ -373,7 +502,8 @@ class TetrisBoard{
     move(dx){
 
         if(!this.alive)
-            return;
+            return false;
+
 
         if(
             !this.collides(
@@ -385,6 +515,8 @@ class TetrisBoard{
         ){
 
             this.current.x+=dx;
+
+            SoundFX.move();
 
             this.draw();
 
@@ -400,6 +532,7 @@ class TetrisBoard{
         if(!this.alive)
             return;
 
+
         if(
             !this.collides(
                 this.current,
@@ -411,12 +544,15 @@ class TetrisBoard{
 
             this.current.y++;
 
-            this.score++;
+            this.score+=1;
 
         }else{
 
             this.lock();
         }
+
+
+        this.dropCounter=0;
 
         this.draw();
     }
@@ -427,7 +563,9 @@ class TetrisBoard{
         if(!this.alive)
             return;
 
+
         let distance=0;
+
 
         while(
             !this.collides(
@@ -443,8 +581,13 @@ class TetrisBoard{
             distance++;
         }
 
+
         this.score+=
             distance*2;
+
+
+        SoundFX.drop();
+
 
         this.lock();
 
@@ -455,21 +598,30 @@ class TetrisBoard{
     rotate(){
 
         if(!this.alive)
-            return;
+            return false;
+
 
         const rotations=
             SHAPES[
                 this.current.type
             ];
 
-        const next=
+
+        const nextRotation=
             (
                 this.current.rotation+1
             )%rotations.length;
 
-        const matrix=
-            rotations[next];
 
+        const matrix=
+            rotations[
+                nextRotation
+            ];
+
+
+        /*
+         * 简单墙踢
+         */
 
         const kicks=[
             0,
@@ -480,7 +632,9 @@ class TetrisBoard{
         ];
 
 
-        for(const kick of kicks){
+        for(
+            const kick of kicks
+        ){
 
             if(
                 !this.collides(
@@ -492,14 +646,18 @@ class TetrisBoard{
             ){
 
                 this.current.rotation=
-                    next;
+                    nextRotation;
 
                 this.current.matrix=
                     matrix.map(
                         row=>row.slice()
                     );
 
-                this.current.x+=kick;
+                this.current.x+=
+                    kick;
+
+
+                SoundFX.rotate();
 
                 this.draw();
 
@@ -507,13 +665,20 @@ class TetrisBoard{
             }
         }
 
+
         return false;
     }
 
 
     lock(){
 
-        const p=this.current;
+        const p=
+            this.current;
+
+
+        /*
+         * 放进棋盘
+         */
 
         for(
             let y=0;
@@ -530,8 +695,13 @@ class TetrisBoard{
                 if(!p.matrix[y][x])
                     continue;
 
-                const gy=p.y+y;
-                const gx=p.x+x;
+
+                const gx=
+                    p.x+x;
+
+                const gy=
+                    p.y+y;
+
 
                 if(
                     gy>=0 &&
@@ -549,16 +719,29 @@ class TetrisBoard{
         }
 
 
+        /*
+         * 落地冲击
+         */
+
+        if(window.Game)
+            Game.landEffect(
+                this.index
+            );
+
+
+        /*
+         * 检查消行
+         */
+
         const cleared=
             this.clearLines();
 
 
-        if(cleared){
+        if(cleared>0){
 
-            this.lines+=
-                cleared;
+            this.lines+=cleared;
 
-            this.combo++;
+            this.combo+=1;
 
 
             const points={
@@ -577,6 +760,22 @@ class TetrisBoard{
                 );
 
 
+            /*
+             * 能量
+             */
+
+            this.energy=
+                Math.min(
+                    100,
+                    this.energy+
+                    cleared*18+
+                    Math.max(
+                        0,
+                        this.combo-1
+                    )*5
+                );
+
+
             if(window.Game){
 
                 Game.linesCleared(
@@ -586,11 +785,16 @@ class TetrisBoard{
                 );
             }
 
+
         }else{
 
             this.combo=0;
         }
 
+
+        /*
+         * 继续生成
+         */
 
         this.spawn();
     }
@@ -601,12 +805,14 @@ class TetrisBoard{
         let count=0;
 
 
-        outer:
         for(
             let y=ROWS-1;
             y>=0;
             y--
         ){
+
+            let full=true;
+
 
             for(
                 let x=0;
@@ -614,23 +820,44 @@ class TetrisBoard{
                 x++
             ){
 
-                if(!this.grid[y][x])
-                    continue outer;
+                if(
+                    !this.grid[y][x]
+                ){
+
+                    full=false;
+
+                    break;
+                }
             }
 
 
-            this.grid.splice(
-                y,
-                1
-            );
+            if(full){
 
-            this.grid.unshift(
-                Array(COLS).fill(null)
-            );
+                /*
+                 * 特效记录
+                 */
 
-            count++;
+                this.flashCells.push(
+                    y
+                );
 
-            y++;
+
+                this.grid.splice(
+                    y,
+                    1
+                );
+
+
+                this.grid.unshift(
+                    Array(COLS)
+                        .fill(null)
+                );
+
+
+                count++;
+
+                y++;
+            }
         }
 
 
@@ -645,9 +872,12 @@ class TetrisBoard{
 
 
         amount=
-            Math.min(
-                amount,
-                ROWS
+            Math.max(
+                0,
+                Math.min(
+                    amount,
+                    8
+                )
             );
 
 
@@ -674,8 +904,9 @@ class TetrisBoard{
                         if(x===hole)
                             return null;
 
+
                         return{
-                            color:"#697184",
+                            color:"#68738a",
                             type:"GARBAGE"
                         };
                     }
@@ -686,6 +917,29 @@ class TetrisBoard{
         }
 
 
+        /*
+         * 如果当前方块被顶住
+         */
+
+        while(
+            this.collides(
+                this.current,
+                0,
+                0,
+                this.current.matrix
+            ) &&
+            this.current.y>-5
+        ){
+
+            this.current.y--;
+        }
+
+
+        /*
+         * 仍然无法放置
+         * K.O.
+         */
+
         if(
             this.collides(
                 this.current,
@@ -695,24 +949,47 @@ class TetrisBoard{
             )
         ){
 
-            this.current.y--;
+            this.alive=false;
 
-            if(
-                this.collides(
-                    this.current,
-                    0,
-                    0,
-                    this.current.matrix
+            if(window.Game)
+                Game.playerDied(
+                    this.index
+                );
+        }
+
+
+        this.draw();
+    }
+
+
+    clearBottomRows(amount){
+
+        amount=
+            Math.max(
+                1,
+                Math.min(
+                    amount,
+                    4
                 )
-            ){
+            );
 
-                this.alive=false;
 
-                if(window.Game)
-                    Game.playerDied(
-                        this.index
-                    );
-            }
+        this.grid.splice(
+            ROWS-amount,
+            amount
+        );
+
+
+        for(
+            let i=0;
+            i<amount;
+            i++
+        ){
+
+            this.grid.unshift(
+                Array(COLS)
+                    .fill(null)
+            );
         }
 
 
@@ -725,12 +1002,16 @@ class TetrisBoard{
         if(!this.alive)
             return;
 
+
         const delta=
             time-this.lastTime;
 
+
         this.lastTime=time;
 
-        this.dropCounter+=delta;
+
+        this.dropCounter+=
+            delta;
 
 
         if(
@@ -739,28 +1020,94 @@ class TetrisBoard{
         ){
 
             this.softDrop();
-
-            this.dropCounter=0;
         }
+
+
+        /*
+         * 高度危险
+         */
+
+        if(window.Game){
+
+            let danger=false;
+
+
+            for(
+                let y=0;
+                y<5;
+                y++
+            ){
+
+                if(
+                    this.grid[y]
+                    .some(
+                        x=>x!==null
+                    )
+                ){
+
+                    danger=true;
+
+                    break;
+                }
+            }
+
+
+            Game.setDanger(
+                this.index,
+                danger
+            );
+        }
+    }
+
+
+    ghostY(){
+
+        if(!this.current)
+            return this.current.y;
+
+
+        let y=
+            this.current.y;
+
+
+        while(
+            !this.collides(
+                this.current,
+                0,
+                y-this.current.y+1,
+                this.current.matrix
+            )
+        ){
+
+            y++;
+        }
+
+
+        return y;
     }
 
 
     drawCell(
         x,
         y,
-        color
+        color,
+        alpha=1,
+        ghost=false
     ){
 
         const s=this.cell;
 
-        const px=x*s;
-        const py=y*s;
+        const px=
+            x*s;
+
+        const py=
+            y*s;
 
 
         const gap=
             Math.max(
                 2,
-                s*.12
+                s*.1
             );
 
 
@@ -771,9 +1118,13 @@ class TetrisBoard{
         this.ctx.save();
 
 
+        this.ctx.globalAlpha=
+            alpha;
+
+
         /*
-            图片原样绘制
-        */
+         * 图片原样
+         */
 
         if(
             BLOCK_IMAGE.complete &&
@@ -791,7 +1142,7 @@ class TetrisBoard{
         }else{
 
             this.ctx.fillStyle=
-                "#555";
+                "#666";
 
             this.ctx.fillRect(
                 px+gap,
@@ -803,26 +1154,25 @@ class TetrisBoard{
 
 
         /*
-            只有外围描边有颜色
-        */
+         * 只有外框染色
+         */
 
         this.ctx.strokeStyle=
             color;
 
         this.ctx.lineWidth=
-            Math.max(
-                1.4,
-                s*.08
-            );
+            ghost
+                ? Math.max(1,s*.05)
+                : Math.max(1.5,s*.075);
+
 
         this.ctx.shadowColor=
             color;
 
         this.ctx.shadowBlur=
-            Math.max(
-                3,
-                s*.22
-            );
+            ghost
+                ? 4
+                : Math.max(3,s*.2);
 
 
         this.ctx.strokeRect(
@@ -849,7 +1199,9 @@ class TetrisBoard{
         );
 
 
-        /* 网格 */
+        /*
+         * 网格
+         */
 
         ctx.strokeStyle=
             "rgba(255,255,255,.035)";
@@ -901,7 +1253,9 @@ class TetrisBoard{
         }
 
 
-        /* 已落方块 */
+        /*
+         * 垃圾行特殊背景
+         */
 
         for(
             let y=0;
@@ -918,6 +1272,7 @@ class TetrisBoard{
                 const block=
                     this.grid[y][x];
 
+
                 if(block){
 
                     this.drawCell(
@@ -930,32 +1285,42 @@ class TetrisBoard{
         }
 
 
-        /* 当前方块 */
+        /*
+         * 幽灵方块
+         */
 
-        if(this.current){
+        if(
+            this.current &&
+            this.alive
+        ){
 
-            const p=
-                this.current;
+            const gy=
+                this.ghostY();
 
 
             for(
                 let y=0;
-                y<p.matrix.length;
+                y<this.current.matrix.length;
                 y++
             ){
 
                 for(
                     let x=0;
-                    x<p.matrix[y].length;
+                    x<this.current.matrix[y].length;
                     x++
                 ){
 
-                    if(!p.matrix[y][x])
+                    if(
+                        !this.current.matrix[y][x]
+                    )
                         continue;
 
 
-                    const px=p.x+x;
-                    const py=p.y+y;
+                    const px=
+                        this.current.x+x;
+
+                    const py=
+                        gy+y;
 
 
                     if(py>=0){
@@ -963,11 +1328,84 @@ class TetrisBoard{
                         this.drawCell(
                             px,
                             py,
-                            p.color
+                            this.current.color,
+                            .22,
+                            true
                         );
                     }
                 }
             }
+
+
+            /*
+             * 当前方块
+             */
+
+            for(
+                let y=0;
+                y<this.current.matrix.length;
+                y++
+            ){
+
+                for(
+                    let x=0;
+                    x<this.current.matrix[y].length;
+                    x++
+                ){
+
+                    if(
+                        !this.current.matrix[y][x]
+                    )
+                        continue;
+
+
+                    const px=
+                        this.current.x+x;
+
+                    const py=
+                        this.current.y+y;
+
+
+                    if(py>=0){
+
+                        this.drawCell(
+                            px,
+                            py,
+                            this.current.color
+                        );
+                    }
+                }
+            }
+        }
+
+
+        /*
+         * 清行闪光
+         */
+
+        if(this.flashCells.length){
+
+            ctx.fillStyle=
+                "rgba(255,255,255,.2)";
+
+
+            this.flashCells.forEach(
+                row=>{
+
+                    if(row>=0){
+
+                        ctx.fillRect(
+                            0,
+                            row*this.cell,
+                            this.canvas.width,
+                            this.cell
+                        );
+                    }
+                }
+            );
+
+
+            this.flashCells=[];
         }
     }
 }
