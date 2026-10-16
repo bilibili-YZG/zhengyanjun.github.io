@@ -31,24 +31,24 @@
 
 ```
 根目录/
-├── muspk/
-│ ├── elimination.mp3 # 有音乐版的背景音乐
-│ └── index.html # 有音乐版主程序，进入比赛时播放音乐
-├── nmuspk/
-│ └── index.html # 无音乐版主程序，静音进行比赛
-├── play/
-│ ├── chess/
-│ │ ├── game.js # 斗兽棋核心逻辑（MVC 架构）
-│ │ ├── index.html # 斗兽棋主页面
-│ │ └── style.css # 斗兽棋样式（深色主题、动画）
-│ └── index.html # 娱乐小游戏应用库首页
-├── 404.html # 404 错误页，自动跳回首页
-├── CNAME # 自定义域名配置，绑定 zyj.slpd.club
-├── README.md # 项目说明文档（本文件）
-├── icon.png # 网站图标（favicon）
-├── index.html # 网站首页 / 启动页
-├── questions.js # 郑艳军理论题库，加题只改它
-└── rosters.js # 班级学生名单，加人只改它
+├── muspk/                     有音乐版目录
+│   ├── elimination.mp3        背景音乐
+│   └── index.html             有音乐版主程序
+├── nmuspk/                    无音乐版目录
+│   └── index.html             无音乐版主程序
+├── play/                      娱乐小游戏目录
+│   ├── chess/                 斗兽棋目录
+│   │   ├── game.js            斗兽棋核心逻辑
+│   │   ├── index.html         斗兽棋主页面
+│   │   └── style.css          斗兽棋样式
+│   └── index.html             小游戏应用库首页
+├── 404.html                   404 错误页
+├── CNAME                      自定义域名配置
+├── README.md                  项目说明文档
+├── icon.png                   网站图标
+├── index.html                 网站首页 / 启动页
+├── questions.js               题库
+└── rosters.js                 学生名单
 ```
 
 > 💡 如需新增或修改题目，只需编辑 `questions.js`，无需改动 HTML 主程序。
