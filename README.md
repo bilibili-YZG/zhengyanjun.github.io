@@ -52,9 +52,11 @@
 │   │   │   └── tetris.js          俄罗斯方块逻辑
 │   │   └── index.html             俄罗斯方块主页面
 │   └── index.html                 小游戏应用库首页
+├── _config.yml                    Jekyll 配置，让 README.md 自动渲染
 ├── 404.html                       404 错误页
 ├── CNAME                          自定义域名配置
 ├── README.md                      项目说明文档
+├── readme.html                    README 渲染页（浏览器里直接看美化版）
 ├── icon.png                       网站图标
 ├── index.html                     网站首页 / 启动页
 ├── questions.js                   题库
