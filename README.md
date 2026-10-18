@@ -51,6 +51,42 @@
 │   │   │   ├── game.js            游戏核心逻辑
 │   │   │   └── tetris.js          俄罗斯方块逻辑
 │   │   └── index.html             俄罗斯方块主页面
+│   ├── homecoming/                15号线大冒险目录
+│   │   ├── assets/                资源目录
+│   │   │   ├── audio/             音频目录
+│   │   │   │   ├── koop/          特殊音频目录
+│   │   │   │   ├── Canopy 98.mp3
+│   │   │   │   ├── Foothills 105.mp3
+│   │   │   │   ├── Forest Floor 115.mp3
+│   │   │   │   ├── Red Cave 152.mp3
+│   │   │   │   └── Troth Boss 150.mp3
+│   │   │   └── zyj.png            图片资源
+│   │   ├── css/                   样式目录
+│   │   │   ├── style.css          主样式
+│   │   │   └── editor.css         编辑器样式
+│   │   ├── editor/                编辑器目录
+│   │   │   └── editor.js          编辑器逻辑
+│   │   ├── js/                    脚本目录
+│   │   │   ├── data/              数据目录
+│   │   │   │   ├── campaign.js
+│   │   │   │   ├── codex.js
+│   │   │   │   ├── data.js
+│   │   │   │   └── level-builder.js
+│   │   │   ├── levels/            关卡数据目录 (包含 c1-01.js 等大量关卡文件)
+│   │   │   ├── audio.js           音频逻辑
+│   │   │   ├── game.js            游戏核心逻辑
+│   │   │   ├── gfx.js             图形渲染
+│   │   │   ├── gfx2.js
+│   │   │   ├── gfx3.js
+│   │   │   ├── meta-ui.js         界面 UI 逻辑
+│   │   │   └── meta.js            元数据逻辑
+│   │   ├── levels/                关卡说明目录
+│   │   │   └── None.md
+│   │   ├── tools/                 工具目录
+│   │   │   └── validate.js        验证脚本
+│   │   ├── README.md              说明文档
+│   │   ├── editor.html            编辑器页面
+│   │   └── index.html             游戏主页面
 │   └── index.html                 小游戏应用库首页
 ├── _config.yml                    Jekyll 配置，让 README.md 自动渲染
 ├── 404.html                       404 错误页
