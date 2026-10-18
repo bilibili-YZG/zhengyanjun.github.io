@@ -1,1411 +1,470 @@
-/* =====================================================
-   TETRIS 核心
-===================================================== */
-
-const COLS=10;
-const ROWS=20;
-
-
-/* =====================================================
-   图片
-
-   注意：
-   index.html 位于 /play/tetris/
-   所以这里必须是 ./assets/zyj.png
-===================================================== */
-
-const BLOCK_IMAGE=
-    new Image();
-
-BLOCK_IMAGE.src=
-    "./assets/zyj.png";
-
-
-/* =====================================================
-   方块颜色
-===================================================== */
-
-const PIECE_COLORS=[
-
-    "#00eaff",
-    "#ffd43b",
-    "#c75cff",
-    "#40ff91",
-    "#ff4770",
-    "#ff8a35",
-    "#4d7dff"
-
-];
-
-
-/* =====================================================
-   7种标准俄罗斯方块
-
-   I = 四个格子！！！
-
-   横：
-   ████
-
-   竖：
-   █
-   █
-   █
-   █
-===================================================== */
-
-const SHAPES={
-
-    I:[
-        [
-            [1,1,1,1]
-        ],
-
-        [
-            [1],
-            [1],
-            [1],
-            [1]
-        ]
-    ],
-
-
-    O:[
-        [
-            [1,1],
-            [1,1]
-        ]
-    ],
-
-
-    T:[
-        [
-            [0,1,0],
-            [1,1,1]
-        ],
-
-        [
-            [1,0],
-            [1,1],
-            [1,0]
-        ],
-
-        [
-            [1,1,1],
-            [0,1,0]
-        ],
-
-        [
-            [0,1],
-            [1,1],
-            [0,1]
-        ]
-    ],
-
-
-    S:[
-        [
-            [0,1,1],
-            [1,1,0]
-        ],
-
-        [
-            [1,0],
-            [1,1],
-            [0,1]
-        ]
-    ],
-
-
-    Z:[
-        [
-            [1,1,0],
-            [0,1,1]
-        ],
-
-        [
-            [0,1],
-            [1,1],
-            [1,0]
-        ]
-    ],
-
-
-    J:[
-        [
-            [1,0,0],
-            [1,1,1]
-        ],
-
-        [
-            [1,1],
-            [1,0],
-            [1,0]
-        ],
-
-        [
-            [1,1,1],
-            [0,0,1]
-        ],
-
-        [
-            [0,1],
-            [0,1],
-            [1,1]
-        ]
-    ],
-
-
-    L:[
-        [
-            [0,0,1],
-            [1,1,1]
-        ],
-
-        [
-            [1,0],
-            [1,0],
-            [1,1]
-        ],
-
-        [
-            [1,1,1],
-            [1,0,0]
-        ],
-
-        [
-            [1,1],
-            [0,1],
-            [0,1]
-        ]
-    ]
-
-};
-
-
-/* =====================================================
-   Board
-===================================================== */
-
-class TetrisBoard{
-
-    constructor(canvas,index){
-
-        this.canvas=canvas;
-
-        this.ctx=
-            canvas.getContext("2d");
-
-        this.index=index;
-
-        this.grid=
-            this.makeGrid();
-
-        this.current=null;
-
-        this.next=null;
-
-        this.score=0;
-
-        this.lines=0;
-
-        this.combo=0;
-
-        this.energy=0;
-
-        this.alive=true;
-
-        this.dropCounter=0;
-
-        this.dropInterval=720;
-
-        this.lastTime=
-            performance.now();
-
-        this.flashCells=[];
-
-        this.resize();
-
-        /*
-         * 第一块与下一块
-         * 使用真正的7种方块
-         */
-
-        this.next=
-            this.randomPiece();
-
-        this.spawn();
+"use strict";
+
+window.TetrisCore = (() => {
+  const COLS = 10;
+  const ROWS = 20;
+  const CELL = 30;
+
+  const SHAPES = {
+    I: [[1, 1, 1, 1]],
+    O: [[1, 1], [1, 1]],
+    T: [[0, 1, 0], [1, 1, 1]],
+    S: [[0, 1, 1], [1, 1, 0]],
+    Z: [[1, 1, 0], [0, 1, 1]],
+    J: [[1, 0, 0], [1, 1, 1]],
+    L: [[0, 0, 1], [1, 1, 1]]
+  };
+
+  const COLORS = {
+    I: "#39efff",
+    O: "#ffe36d",
+    T: "#ad82ff",
+    S: "#65ffab",
+    Z: "#ff557c",
+    J: "#6494ff",
+    L: "#ffad61"
+  };
+
+  const TYPES = Object.keys(SHAPES);
+
+  function cloneMatrix(matrix) {
+    return matrix.map(row => row.slice());
+  }
+
+  function rotateMatrix(matrix) {
+    return matrix[0].map((_, i) => matrix.map(row => row[i]).reverse());
+  }
+
+  function createBag() {
+    const bag = TYPES.slice();
+    for (let i = bag.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [bag[i], bag[j]] = [bag[j], bag[i]];
+    }
+    return bag;
+  }
+
+  class TetrisBoard {
+    constructor(player, canvas, fxCanvas, nextCanvas, callbacks = {}) {
+      this.player = player;
+      this.canvas = canvas;
+      this.ctx = canvas.getContext("2d");
+      this.fxCanvas = fxCanvas;
+      this.nextCanvas = nextCanvas;
+      this.nextCtx = nextCanvas.getContext("2d");
+      this.callbacks = callbacks;
+      this.grid = [];
+      this.queue = [];
+      this.piece = null;
+      this.fallTime = 0;
+      this.lockTime = 0;
+      this.lockResets = 0;
+      this.lastRotate = false;
+      this.combo = -1;
+      this.backToBack = false;
+      this.lines = 0;
+      this.score = 0;
+      this.level = 1;
+      this.energy = 0;
+      this.shield = 0;
+      this.alive = true;
+      this.paused = false;
+      this.flashRows = [];
+      this.reset();
     }
 
-
-    makeGrid(){
-
-        return Array.from(
-            {length:ROWS},
-            ()=>Array(COLS).fill(null)
-        );
+    reset() {
+      this.grid = Array.from({ length: ROWS }, () => Array(COLS).fill(null));
+      this.queue = [];
+      this.piece = null;
+      this.fallTime = 0;
+      this.lockTime = 0;
+      this.lockResets = 0;
+      this.lastRotate = false;
+      this.combo = -1;
+      this.backToBack = false;
+      this.lines = 0;
+      this.score = 0;
+      this.level = 1;
+      this.energy = 0;
+      this.shield = 0;
+      this.alive = true;
+      this.paused = false;
+      this.flashRows = [];
+      this.fillQueue();
+      this.spawn();
+      this.render();
     }
 
-
-    resize(){
-
-        const count=
-            window.Game
-                ? Game.count
-                : 2;
-
-
-        let boardWidth;
-
-        if(count===1)
-            boardWidth=330;
-
-        else if(count===2)
-            boardWidth=270;
-
-        else if(count===3)
-            boardWidth=215;
-
-        else
-            boardWidth=180;
-
-
-        const maxHeight=
-            Math.max(
-                280,
-                window.innerHeight*.61
-            );
-
-
-        this.cell=
-            Math.max(
-                10,
-                Math.floor(
-                    Math.min(
-                        boardWidth/COLS,
-                        maxHeight/ROWS
-                    )
-                )
-            );
-
-
-        this.canvas.width=
-            COLS*this.cell;
-
-        this.canvas.height=
-            ROWS*this.cell;
-
-
-        this.draw();
+    fillQueue() {
+      while (this.queue.length < 10) this.queue.push(...createBag());
     }
 
+    nextType() {
+      this.fillQueue();
+      return this.queue.shift();
+    }
 
-    randomPiece(){
+    makePiece(type) {
+      const shape = cloneMatrix(SHAPES[type]);
+      return {
+        type,
+        shape,
+        x: Math.floor((COLS - shape[0].length) / 2),
+        y: 0
+      };
+    }
 
-        /*
-         * 七袋系统
-         *
-         * 防止某种方块长时间不出现
-         *
-         * 并且 I 方块确实存在
-         */
+    spawn() {
+      this.piece = this.makePiece(this.nextType());
+      this.fallTime = 0;
+      this.lockTime = 0;
+      this.lockResets = 0;
+      this.lastRotate = false;
+      this.drawNext();
+      if (this.collides(this.piece, 0, 0, this.piece.shape)) {
+        this.alive = false;
+        if (this.callbacks.onTopOut) this.callbacks.onTopOut(this.player);
+      }
+    }
 
-        if(!this._bag ||
-           this._bag.length===0){
-
-            this._bag=
-                [
-                    "I",
-                    "O",
-                    "T",
-                    "S",
-                    "Z",
-                    "J",
-                    "L"
-                ];
-
-            for(
-                let i=this._bag.length-1;
-                i>0;
-                i--
-            ){
-
-                const j=
-                    Math.floor(
-                        Math.random()*(i+1)
-                    );
-
-                [
-                    this._bag[i],
-                    this._bag[j]
-                ]=[
-                    this._bag[j],
-                    this._bag[i]
-                ];
-            }
+    collides(piece, dx = 0, dy = 0, shape = piece.shape) {
+      for (let y = 0; y < shape.length; y++) {
+        for (let x = 0; x < shape[y].length; x++) {
+          if (!shape[y][x]) continue;
+          const bx = piece.x + x + dx;
+          const by = piece.y + y + dy;
+          if (bx < 0 || bx >= COLS || by >= ROWS) return true;
+          if (by >= 0 && this.grid[by][bx]) return true;
         }
-
-
-        const type=
-            this._bag.pop();
-
-
-        /*
-         * 第一方向永远使用定义的第0个
-         */
-
-        const matrix=
-            SHAPES[type][0]
-                .map(
-                    row=>row.slice()
-                );
-
-
-        return{
-
-            type:type,
-
-            rotation:0,
-
-            matrix:matrix,
-
-            x:
-                Math.floor(
-                    (COLS-matrix[0].length)/2
-                ),
-
-            y:-1,
-
-            color:
-                PIECE_COLORS[
-                    Math.floor(
-                        Math.random()*
-                        PIECE_COLORS.length
-                    )
-                ]
-        };
+      }
+      return false;
     }
 
-
-    spawn(){
-
-        /*
-         * next -> current
-         */
-
-        this.current=
-            this.next ||
-            this.randomPiece();
-
-
-        /*
-         * 预先准备下一块
-         */
-
-        this.next=
-            this.randomPiece();
-
-
-        /*
-         * 居中
-         */
-
-        this.current.x=
-            Math.floor(
-                (COLS-
-                 this.current.matrix[0].length)
-                /2
-            );
-
-        this.current.y=-1;
-
-
-        /*
-         * 出生检测
-         */
-
-        if(
-            this.collides(
-                this.current,
-                0,
-                0,
-                this.current.matrix
-            )
-        ){
-
-            this.alive=false;
-
-            if(window.Game)
-                Game.playerDied(
-                    this.index
-                );
-        }
-
-
-        this.draw();
+    move(dx) {
+      if (!this.alive || this.paused || !this.piece) return false;
+      if (this.collides(this.piece, dx, 0)) return false;
+      this.piece.x += dx;
+      this.lastRotate = false;
+      this.refreshLock();
+      this.render();
+      return true;
     }
 
+    refreshLock() {
+      if (!this.collides(this.piece, 0, 1) && this.lockResets < 8) {
+        this.lockTime = 0;
+        this.lockResets++;
+      }
+    }
 
-    collides(
-        piece,
-        dx,
-        dy,
-        matrix
-    ){
+    rotate(direction = 1) {
+      if (!this.alive || this.paused || !this.piece) return false;
+      if (this.piece.type === "O") return true;
 
-        for(
-            let y=0;
-            y<matrix.length;
-            y++
-        ){
+      let shape = cloneMatrix(this.piece.shape);
+      const turns = direction > 0 ? 1 : 3;
+      for (let i = 0; i < turns; i++) shape = rotateMatrix(shape);
 
-            for(
-                let x=0;
-                x<matrix[y].length;
-                x++
-            ){
+      // 简单墙踢：旋转受边界阻挡时尝试向左右和上方微调。
+      const kicks = [
+        [0, 0], [-1, 0], [1, 0], [-2, 0], [2, 0],
+        [0, -1], [-1, -1], [1, -1], [0, -2]
+      ];
 
-                if(!matrix[y][x])
-                    continue;
-
-
-                const nx=
-                    piece.x+x+dx;
-
-                const ny=
-                    piece.y+y+dy;
-
-
-                if(
-                    nx<0 ||
-                    nx>=COLS ||
-                    ny>=ROWS
-                ){
-
-                    return true;
-                }
-
-
-                if(
-                    ny>=0 &&
-                    this.grid[ny][nx]
-                ){
-
-                    return true;
-                }
-            }
+      for (const [kx, ky] of kicks) {
+        if (!this.collides(this.piece, kx, ky, shape)) {
+          this.piece.x += kx;
+          this.piece.y += ky;
+          this.piece.shape = shape;
+          this.lastRotate = true;
+          this.refreshLock();
+          this.render();
+          return true;
         }
+      }
+      return false;
+    }
 
+    softDrop() {
+      if (!this.alive || this.paused || !this.piece) return false;
+      if (this.collides(this.piece, 0, 1)) {
+        this.lockTime += 35;
         return false;
+      }
+      this.piece.y++;
+      this.score += 1;
+      this.fallTime = 0;
+      this.lastRotate = false;
+      this.render();
+      return true;
     }
 
+    hardDrop() {
+      if (!this.alive || this.paused || !this.piece) return;
+      let distance = 0;
+      while (!this.collides(this.piece, 0, 1)) {
+        this.piece.y++;
+        distance++;
+      }
+      this.score += distance * 2;
+      if (window.GameEffects) window.GameEffects.play("drop");
+      this.lockPiece();
+      this.render();
+    }
 
-    move(dx){
+    tick(dt) {
+      if (!this.alive || this.paused || !this.piece) return;
+      this.fallTime += dt;
 
-        if(!this.alive)
-            return false;
-
-
-        if(
-            !this.collides(
-                this.current,
-                dx,
-                0,
-                this.current.matrix
-            )
-        ){
-
-            this.current.x+=dx;
-
-            SoundFX.move();
-
-            this.draw();
-
-            return true;
+      const interval = Math.max(75, 800 * Math.pow(.84, this.level - 1));
+      while (this.fallTime >= interval) {
+        this.fallTime -= interval;
+        if (!this.collides(this.piece, 0, 1)) {
+          this.piece.y++;
+          this.lockTime = 0;
+          this.lastRotate = false;
+        } else {
+          this.lockTime += interval;
+          break;
         }
+      }
 
-        return false;
+      if (this.collides(this.piece, 0, 1)) {
+        this.lockTime += dt;
+        if (this.lockTime >= 450) this.lockPiece();
+      } else {
+        this.lockTime = 0;
+      }
+      this.render();
     }
 
-
-    softDrop(){
-
-        if(!this.alive)
+    lockPiece() {
+      if (!this.piece || !this.alive) return;
+      const p = this.piece;
+      for (let y = 0; y < p.shape.length; y++) {
+        for (let x = 0; x < p.shape[y].length; x++) {
+          if (!p.shape[y][x]) continue;
+          const by = p.y + y;
+          const bx = p.x + x;
+          if (by < 0) {
+            this.alive = false;
+            if (this.callbacks.onTopOut) this.callbacks.onTopOut(this.player);
             return;
+          }
+          this.grid[by][bx] = p.type;
+        }
+      }
 
+      if (window.GameEffects) window.GameEffects.play("lock");
+      const clearedRows = [];
+      for (let y = ROWS - 1; y >= 0; y--) {
+        if (this.grid[y].every(cell => cell !== null)) {
+          clearedRows.push(y);
+        }
+      }
 
-        if(
-            !this.collides(
-                this.current,
-                0,
-                1,
-                this.current.matrix
-            )
-        ){
+      let attack = 0;
+      if (clearedRows.length > 0) {
+        this.flashRows = clearedRows.slice();
+        const oldGrid = this.grid;
+        const clearedSet = new Set(clearedRows);
+        this.grid = oldGrid.filter((_, y) => !clearedSet.has(y));
+        while (this.grid.length < ROWS) this.grid.unshift(Array(COLS).fill(null));
 
-            this.current.y++;
+        const count = clearedRows.length;
+        const points = [0, 100, 300, 500, 800];
+        this.score += (points[Math.min(count, 4)] || count * 250) * this.level;
+        this.lines += count;
+        this.level = Math.floor(this.lines / 10) + 1;
+        this.energy = Math.min(3, this.energy + Math.max(1, count));
 
-            this.score+=1;
+        this.combo++;
+        const comboBonus = this.combo > 0 ? Math.min(4, this.combo) : 0;
+        this.score += comboBonus * 50 * this.level;
 
-        }else{
+        attack = [0, 0, 1, 2, 4][Math.min(count, 4)] || 0;
+        if (count === 4 && this.backToBack) attack++;
+        if (count === 4) this.backToBack = true;
+        else this.backToBack = false;
+        attack += comboBonus >= 2 ? 1 : 0;
 
-            this.lock();
+        if (window.GameEffects) {
+          window.GameEffects.play("clear" + Math.min(count, 4));
+          window.GameEffects.clearFlash(
+            this.fxCanvas,
+            clearedRows,
+            count >= 4 ? "#ffffff" : "#7ef8ff"
+          );
+          const rect = this.canvas.getBoundingClientRect();
+          window.GameEffects.createParticles(
+            this.fxCanvas,
+            rect.width / 2,
+            rect.height * .5,
+            count >= 4 ? "#ffffff" : "#39efff",
+            12 + count * 8
+          );
+          if (count >= 2) window.GameEffects.shake(this.canvas, 3 + count, 200);
+          if (count === 4) window.GameEffects.toast("⚡ TETRIS！四行清除！");
+          else if (this.combo > 0) window.GameEffects.toast("COMBO × " + (this.combo + 1));
         }
 
+        if (this.callbacks.onLines) {
+          this.callbacks.onLines(this.player, count, attack, clearedRows);
+        }
+      } else {
+        this.combo = -1;
+      }
 
-        this.dropCounter=0;
-
-        this.draw();
+      this.piece = null;
+      this.spawn();
+      this.render();
     }
 
-
-    hardDrop(){
-
-        if(!this.alive)
-            return;
-
-
-        let distance=0;
-
-
-        while(
-            !this.collides(
-                this.current,
-                0,
-                1,
-                this.current.matrix
-            )
-        ){
-
-            this.current.y++;
-
-            distance++;
+    addGarbage(count = 1) {
+      if (!this.alive || count <= 0) return;
+      if (this.shield > 0) {
+        this.shield--;
+        if (window.GameEffects) {
+          window.GameEffects.play("shield");
+          window.GameEffects.toast("🛡 护盾抵挡了攻击！");
         }
+        return;
+      }
 
-
-        this.score+=
-            distance*2;
-
-
-        SoundFX.drop();
-
-
-        this.lock();
-
-        this.draw();
-    }
-
-
-    rotate(){
-
-        if(!this.alive)
-            return false;
-
-
-        const rotations=
-            SHAPES[
-                this.current.type
-            ];
-
-
-        const nextRotation=
-            (
-                this.current.rotation+1
-            )%rotations.length;
-
-
-        const matrix=
-            rotations[
-                nextRotation
-            ];
-
-
-        /*
-         * 简单墙踢
-         */
-
-        const kicks=[
-            0,
-            -1,
-            1,
-            -2,
-            2
-        ];
-
-
-        for(
-            const kick of kicks
-        ){
-
-            if(
-                !this.collides(
-                    this.current,
-                    kick,
-                    0,
-                    matrix
-                )
-            ){
-
-                this.current.rotation=
-                    nextRotation;
-
-                this.current.matrix=
-                    matrix.map(
-                        row=>row.slice()
-                    );
-
-                this.current.x+=
-                    kick;
-
-
-                SoundFX.rotate();
-
-                this.draw();
-
-                return true;
-            }
+      count = Math.min(ROWS, Math.floor(count));
+      for (let n = 0; n < count; n++) {
+        if (this.grid[0].some(cell => cell !== null)) {
+          this.alive = false;
+          if (this.callbacks.onTopOut) this.callbacks.onTopOut(this.player);
+          return;
         }
-
-
-        return false;
-    }
-
-
-    lock(){
-
-        const p=
-            this.current;
-
-
-        /*
-         * 放进棋盘
-         */
-
-        for(
-            let y=0;
-            y<p.matrix.length;
-            y++
-        ){
-
-            for(
-                let x=0;
-                x<p.matrix[y].length;
-                x++
-            ){
-
-                if(!p.matrix[y][x])
-                    continue;
-
-
-                const gx=
-                    p.x+x;
-
-                const gy=
-                    p.y+y;
-
-
-                if(
-                    gy>=0 &&
-                    gy<ROWS &&
-                    gx>=0 &&
-                    gx<COLS
-                ){
-
-                    this.grid[gy][gx]={
-                        color:p.color,
-                        type:p.type
-                    };
-                }
-            }
-        }
-
-
-        /*
-         * 落地冲击
-         */
-
-        if(window.Game)
-            Game.landEffect(
-                this.index
-            );
-
-
-        /*
-         * 检查消行
-         */
-
-        const cleared=
-            this.clearLines();
-
-
-        if(cleared>0){
-
-            this.lines+=cleared;
-
-            this.combo+=1;
-
-
-            const points={
-                1:100,
-                2:300,
-                3:500,
-                4:800
-            };
-
-
-            this.score+=
-                points[cleared]*
-                Math.max(
-                    1,
-                    this.combo
-                );
-
-
-            /*
-             * 能量
-             */
-
-            this.energy=
-                Math.min(
-                    100,
-                    this.energy+
-                    cleared*18+
-                    Math.max(
-                        0,
-                        this.combo-1
-                    )*5
-                );
-
-
-            if(window.Game){
-
-                Game.linesCleared(
-                    this.index,
-                    cleared,
-                    this.combo
-                );
-            }
-
-
-        }else{
-
-            this.combo=0;
-        }
-
-
-        /*
-         * 继续生成
-         */
-
-        this.spawn();
-    }
-
-
-    clearLines(){
-
-        let count=0;
-
-
-        for(
-            let y=ROWS-1;
-            y>=0;
-            y--
-        ){
-
-            let full=true;
-
-
-            for(
-                let x=0;
-                x<COLS;
-                x++
-            ){
-
-                if(
-                    !this.grid[y][x]
-                ){
-
-                    full=false;
-
-                    break;
-                }
-            }
-
-
-            if(full){
-
-                /*
-                 * 特效记录
-                 */
-
-                this.flashCells.push(
-                    y
-                );
-
-
-                this.grid.splice(
-                    y,
-                    1
-                );
-
-
-                this.grid.unshift(
-                    Array(COLS)
-                        .fill(null)
-                );
-
-
-                count++;
-
-                y++;
-            }
-        }
-
-
-        return count;
-    }
-
-
-    addGarbage(amount){
-
-        if(!this.alive)
-            return;
-
-
-        amount=
-            Math.max(
-                0,
-                Math.min(
-                    amount,
-                    8
-                )
-            );
-
-
-        for(
-            let i=0;
-            i<amount;
-            i++
-        ){
-
-            this.grid.shift();
-
-
-            const hole=
-                Math.floor(
-                    Math.random()*COLS
-                );
-
-
-            const row=
-                Array.from(
-                    {length:COLS},
-                    (_,x)=>{
-
-                        if(x===hole)
-                            return null;
-
-
-                        return{
-                            color:"#68738a",
-                            type:"GARBAGE"
-                        };
-                    }
-                );
-
-
-            this.grid.push(row);
-        }
-
-
-        /*
-         * 如果当前方块被顶住
-         */
-
-        while(
-            this.collides(
-                this.current,
-                0,
-                0,
-                this.current.matrix
-            ) &&
-            this.current.y>-5
-        ){
-
-            this.current.y--;
-        }
-
-
-        /*
-         * 仍然无法放置
-         * K.O.
-         */
-
-        if(
-            this.collides(
-                this.current,
-                0,
-                0,
-                this.current.matrix
-            )
-        ){
-
-            this.alive=false;
-
-            if(window.Game)
-                Game.playerDied(
-                    this.index
-                );
-        }
-
-
-        this.draw();
-    }
-
-
-    clearBottomRows(amount){
-
-        amount=
-            Math.max(
-                1,
-                Math.min(
-                    amount,
-                    4
-                )
-            );
-
-
-        this.grid.splice(
-            ROWS-amount,
-            amount
+        this.grid.shift();
+        const hole = Math.floor(Math.random() * COLS);
+        const row = Array.from({ length: COLS }, (_, x) =>
+          x === hole ? null : "G"
         );
-
-
-        for(
-            let i=0;
-            i<amount;
-            i++
-        ){
-
-            this.grid.unshift(
-                Array(COLS)
-                    .fill(null)
-            );
-        }
-
-
-        this.draw();
+        this.grid.push(row);
+      }
+      if (window.GameEffects) {
+        window.GameEffects.play("attack");
+        window.GameEffects.shake(this.canvas, 4, 220);
+      }
+      this.render();
     }
 
+    getGhostY() {
+      if (!this.piece) return 0;
+      let y = this.piece.y;
+      while (!this.collides({ ...this.piece, y }, 0, 1)) y++;
+      return y;
+    }
 
-    update(time){
+    drawCell(ctx, x, y, type, alpha = 1, scale = 1) {
+      const px = x * CELL, py = y * CELL;
+      const color = type === "G" ? "#a3aec7" : COLORS[type] || "#a3aec7";
+      const img = window.GameEffects ? window.GameEffects.getImage() : null;
 
-        if(!this.alive)
-            return;
+      ctx.save();
+      ctx.globalAlpha = alpha;
 
+      if (type !== "G" && img && img.complete && img.naturalWidth > 0) {
+        // 图片保持原色，不使用 hue-rotate 或整体染色。
+        ctx.drawImage(img, px + 1, py + 1, CELL - 2, CELL - 2);
+      } else {
+        const grad = ctx.createLinearGradient(px, py, px + CELL, py + CELL);
+        grad.addColorStop(0, type === "G" ? "#5c6883" : "#24314b");
+        grad.addColorStop(1, "#0c1427");
+        ctx.fillStyle = grad;
+        ctx.fillRect(px + 1, py + 1, CELL - 2, CELL - 2);
+      }
 
-        const delta=
-            time-this.lastTime;
+      ctx.strokeStyle = color;
+      ctx.lineWidth = type === "G" ? 2 : 1.8;
+      ctx.shadowColor = color;
+      ctx.shadowBlur = type === "G" ? 3 : 5;
+      ctx.strokeRect(px + 1.5, py + 1.5, CELL - 3, CELL - 3);
+      ctx.shadowBlur = 0;
+      ctx.restore();
+    }
 
+    render() {
+      const ctx = this.ctx;
+      ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+      ctx.fillStyle = "#070b15";
+      ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
-        this.lastTime=time;
+      ctx.strokeStyle = "#283753";
+      ctx.lineWidth = .6;
+      for (let x = 0; x <= COLS; x++) {
+        ctx.beginPath();
+        ctx.moveTo(x * CELL, 0);
+        ctx.lineTo(x * CELL, ROWS * CELL);
+        ctx.stroke();
+      }
+      for (let y = 0; y <= ROWS; y++) {
+        ctx.beginPath();
+        ctx.moveTo(0, y * CELL);
+        ctx.lineTo(COLS * CELL, y * CELL);
+        ctx.stroke();
+      }
 
-
-        this.dropCounter+=
-            delta;
-
-
-        if(
-            this.dropCounter>
-            this.dropInterval
-        ){
-
-            this.softDrop();
+      for (let y = 0; y < ROWS; y++) {
+        for (let x = 0; x < COLS; x++) {
+          if (this.grid[y][x]) this.drawCell(ctx, x, y, this.grid[y][x]);
         }
+      }
 
-
-        /*
-         * 高度危险
-         */
-
-        if(window.Game){
-
-            let danger=false;
-
-
-            for(
-                let y=0;
-                y<5;
-                y++
-            ){
-
-                if(
-                    this.grid[y]
-                    .some(
-                        x=>x!==null
-                    )
-                ){
-
-                    danger=true;
-
-                    break;
-                }
+      if (this.piece && this.alive) {
+        const ghostY = this.getGhostY();
+        for (let y = 0; y < this.piece.shape.length; y++) {
+          for (let x = 0; x < this.piece.shape[y].length; x++) {
+            if (this.piece.shape[y][x]) {
+              this.drawCell(ctx, this.piece.x + x, ghostY + y, this.piece.type, .24);
             }
-
-
-            Game.setDanger(
-                this.index,
-                danger
-            );
+          }
         }
-    }
-
-
-    ghostY(){
-
-        if(!this.current)
-            return this.current.y;
-
-
-        let y=
-            this.current.y;
-
-
-        while(
-            !this.collides(
-                this.current,
-                0,
-                y-this.current.y+1,
-                this.current.matrix
-            )
-        ){
-
-            y++;
-        }
-
-
-        return y;
-    }
-
-
-    drawCell(
-        x,
-        y,
-        color,
-        alpha=1,
-        ghost=false
-    ){
-
-        const s=this.cell;
-
-        const px=
-            x*s;
-
-        const py=
-            y*s;
-
-
-        const gap=
-            Math.max(
-                2,
-                s*.1
-            );
-
-
-        const imageSize=
-            s-gap*2;
-
-
-        this.ctx.save();
-
-
-        this.ctx.globalAlpha=
-            alpha;
-
-
-        /*
-         * 图片原样
-         */
-
-        if(
-            BLOCK_IMAGE.complete &&
-            BLOCK_IMAGE.naturalWidth>0
-        ){
-
-            this.ctx.drawImage(
-                BLOCK_IMAGE,
-                px+gap,
-                py+gap,
-                imageSize,
-                imageSize
-            );
-
-        }else{
-
-            this.ctx.fillStyle=
-                "#666";
-
-            this.ctx.fillRect(
-                px+gap,
-                py+gap,
-                imageSize,
-                imageSize
-            );
-        }
-
-
-        /*
-         * 只有外框染色
-         */
-
-        this.ctx.strokeStyle=
-            color;
-
-        this.ctx.lineWidth=
-            ghost
-                ? Math.max(1,s*.05)
-                : Math.max(1.5,s*.075);
-
-
-        this.ctx.shadowColor=
-            color;
-
-        this.ctx.shadowBlur=
-            ghost
-                ? 4
-                : Math.max(3,s*.2);
-
-
-        this.ctx.strokeRect(
-            px+1.5,
-            py+1.5,
-            s-3,
-            s-3
-        );
-
-
-        this.ctx.restore();
-    }
-
-
-    draw(){
-
-        const ctx=this.ctx;
-
-        ctx.clearRect(
-            0,
-            0,
-            this.canvas.width,
-            this.canvas.height
-        );
-
-
-        /*
-         * 网格
-         */
-
-        ctx.strokeStyle=
-            "rgba(255,255,255,.035)";
-
-        ctx.lineWidth=1;
-
-
-        for(
-            let x=0;
-            x<=COLS;
-            x++
-        ){
-
-            ctx.beginPath();
-
-            ctx.moveTo(
-                x*this.cell+.5,
-                0
-            );
-
-            ctx.lineTo(
-                x*this.cell+.5,
-                this.canvas.height
-            );
-
-            ctx.stroke();
-        }
-
-
-        for(
-            let y=0;
-            y<=ROWS;
-            y++
-        ){
-
-            ctx.beginPath();
-
-            ctx.moveTo(
-                0,
-                y*this.cell+.5
-            );
-
-            ctx.lineTo(
-                this.canvas.width,
-                y*this.cell+.5
-            );
-
-            ctx.stroke();
-        }
-
-
-        /*
-         * 垃圾行特殊背景
-         */
-
-        for(
-            let y=0;
-            y<ROWS;
-            y++
-        ){
-
-            for(
-                let x=0;
-                x<COLS;
-                x++
-            ){
-
-                const block=
-                    this.grid[y][x];
-
-
-                if(block){
-
-                    this.drawCell(
-                        x,
-                        y,
-                        block.color
-                    );
-                }
+        for (let y = 0; y < this.piece.shape.length; y++) {
+          for (let x = 0; x < this.piece.shape[y].length; x++) {
+            if (this.piece.shape[y][x]) {
+              this.drawCell(ctx, this.piece.x + x, this.piece.y + y, this.piece.type);
             }
+          }
         }
+      }
 
-
-        /*
-         * 幽灵方块
-         */
-
-        if(
-            this.current &&
-            this.alive
-        ){
-
-            const gy=
-                this.ghostY();
-
-
-            for(
-                let y=0;
-                y<this.current.matrix.length;
-                y++
-            ){
-
-                for(
-                    let x=0;
-                    x<this.current.matrix[y].length;
-                    x++
-                ){
-
-                    if(
-                        !this.current.matrix[y][x]
-                    )
-                        continue;
-
-
-                    const px=
-                        this.current.x+x;
-
-                    const py=
-                        gy+y;
-
-
-                    if(py>=0){
-
-                        this.drawCell(
-                            px,
-                            py,
-                            this.current.color,
-                            .22,
-                            true
-                        );
-                    }
-                }
-            }
-
-
-            /*
-             * 当前方块
-             */
-
-            for(
-                let y=0;
-                y<this.current.matrix.length;
-                y++
-            ){
-
-                for(
-                    let x=0;
-                    x<this.current.matrix[y].length;
-                    x++
-                ){
-
-                    if(
-                        !this.current.matrix[y][x]
-                    )
-                        continue;
-
-
-                    const px=
-                        this.current.x+x;
-
-                    const py=
-                        this.current.y+y;
-
-
-                    if(py>=0){
-
-                        this.drawCell(
-                            px,
-                            py,
-                            this.current.color
-                        );
-                    }
-                }
-            }
-        }
-
-
-        /*
-         * 清行闪光
-         */
-
-        if(this.flashCells.length){
-
-            ctx.fillStyle=
-                "rgba(255,255,255,.2)";
-
-
-            this.flashCells.forEach(
-                row=>{
-
-                    if(row>=0){
-
-                        ctx.fillRect(
-                            0,
-                            row*this.cell,
-                            this.canvas.width,
-                            this.cell
-                        );
-                    }
-                }
-            );
-
-
-            this.flashCells=[];
-        }
+      if (!this.alive) {
+        ctx.fillStyle = "#080b18aa";
+        ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+      }
     }
-}
+
+    drawNext() {
+      const ctx = this.nextCtx;
+      ctx.clearRect(0, 0, this.nextCanvas.width, this.nextCanvas.height);
+      ctx.fillStyle = "#080e20";
+      ctx.fillRect(0, 0, this.nextCanvas.width, this.nextCanvas.height);
+      const type = this.queue[0];
+      if (!type) return;
+      const shape = SHAPES[type];
+      const cell = 15;
+      const width = shape[0].length * cell;
+      const height = shape.length * cell;
+      const ox = (this.nextCanvas.width - width) / 2;
+      const oy = (this.nextCanvas.height - height) / 2;
+      for (let y = 0; y < shape.length; y++) {
+        for (let x = 0; x < shape[y].length; x++) {
+          if (!shape[y][x]) continue;
+          const px = ox + x * cell, py = oy + y * cell;
+          ctx.fillStyle = "#182744";
+          ctx.fillRect(px, py, cell - 1, cell - 1);
+          ctx.strokeStyle = COLORS[type];
+          ctx.lineWidth = 1.5;
+          ctx.strokeRect(px + .75, py + .75, cell - 2, cell - 2);
+        }
+      }
+    }
+  }
+
+  return { TetrisBoard, COLS, ROWS, CELL, COLORS };
+})();
