@@ -1,258 +1,92 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport"
-      content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
-
-<title>郑块大PK</title>
-
-<link rel="stylesheet" href="./css/style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#080b18">
+  <title>郑块大PK · 多人俄罗斯方块</title>
+  <link rel="stylesheet" href="css/style.css">
 </head>
-
 <body>
+  <header class="top">
+    <div class="eyebrow">LOCAL MULTIPLAYER · BLOCK BATTLE</div>
+    <h1>郑块大<span>PK</span></h1>
+    <p class="subtitle">消除方块 · 发起攻击 · 成为最后的赢家</p>
+    <div id="status" class="status">选择人数，准备开战</div>
+  </header>
 
-<!-- 背景 -->
-<div id="backgroundFX"></div>
-<div id="particles"></div>
-<div id="flashLayer"></div>
-<div class="scanlines"></div>
-
-
-<!-- =====================================================
-     主菜单
-===================================================== -->
-
-<section id="menu" class="screen">
-
-    <div class="menu-aura aura1"></div>
-    <div class="menu-aura aura2"></div>
-
-    <div class="logo">
-
-        <div class="logo-mini">
-            ZYJ GAME CENTER
-        </div>
-
-        <div class="logo-main">
-            郑块<span>大PK</span>
-        </div>
-
-        <div class="logo-en">
-            BLOCK BATTLE
-        </div>
-
-    </div>
-
-
-    <div class="select-title">
-        SELECT PLAYERS
-    </div>
-
-
-    <div class="mode-grid">
-
-        <button class="mode-card" data-players="1">
-
-            <span class="mode-index">01</span>
-
-            <div class="mode-symbol">
-                ◆
-            </div>
-
-            <strong>
-                单人练习
-            </strong>
-
-            <small>
-                SOLO
-            </small>
-
+  <main>
+    <section id="lobby" class="lobby">
+      <h2>选择参战人数</h2>
+      <p>同一台电脑，本地多人竞技</p>
+      <div class="mode-list">
+        <button class="mode-button" data-count="1">
+          <strong>01</strong><span>单人练习</span>
         </button>
-
-
-        <button class="mode-card" data-players="2">
-
-            <span class="mode-index">02</span>
-
-            <div class="mode-symbol">
-                ◆◆
-            </div>
-
-            <strong>
-                双人 PK
-            </strong>
-
-            <small>
-                DUEL
-            </small>
-
+        <button class="mode-button selected" data-count="2">
+          <strong>02</strong><span>双人 PK</span>
         </button>
-
-
-        <button class="mode-card" data-players="3">
-
-            <span class="mode-index">03</span>
-
-            <div class="mode-symbol">
-                ◆◆◆
-            </div>
-
-            <strong>
-                三人混战
-            </strong>
-
-            <small>
-                TRIPLE
-            </small>
-
+        <button class="mode-button" data-count="3">
+          <strong>03</strong><span>三人混战</span>
         </button>
-
-
-        <button class="mode-card" data-players="4">
-
-            <span class="mode-index">04</span>
-
-            <div class="mode-symbol">
-                ◆◆◆◆
-            </div>
-
-            <strong>
-                四人乱斗
-            </strong>
-
-            <small>
-                BATTLE ROYALE
-            </small>
-
+        <button class="mode-button" data-count="4">
+          <strong>04</strong><span>四人乱斗</span>
         </button>
+      </div>
+      <div class="lobby-actions">
+        <button id="startButton" class="button primary">⚡ 开始游戏</button>
+        <button id="soundButton" class="button">🔊 音效：开</button>
+      </div>
+      <p class="lobby-note">
+        消行积攒能量，使用道具干扰对手。多人模式下，最后存活的玩家获胜。
+      </p>
+    </section>
 
-    </div>
-
-
-    <div class="menu-tip">
-        消除 · 连击 · 道具 · 技能 · 攻击 · K.O.
-    </div>
-
-</section>
-
-
-
-<!-- =====================================================
-     游戏
-===================================================== -->
-
-<section id="gameScreen" class="game-screen hidden">
-
-    <header class="topbar">
-
-        <div class="brand">
-            郑块<span>大PK</span>
+    <section id="gameArea" class="game-area hidden">
+      <div class="game-toolbar">
+        <div>
+          <div class="toolbar-title">竞技场 <span>ARENA</span></div>
+          <div id="roundInfo" class="muted">等待开始</div>
         </div>
-
-        <div id="gameMode"
-             class="game-mode">
-            DUEL
+        <div class="toolbar-actions">
+          <button id="pauseButton" class="button">Ⅱ 暂停</button>
+          <button id="restartButton" class="button">↻ 重开</button>
+          <button id="menuButton" class="button">返回菜单</button>
         </div>
+      </div>
+      <div id="arena" class="arena"></div>
+      <div class="legend">
+        <span><i class="dot cyan"></i>移动</span>
+        <span><i class="dot pink"></i>旋转</span>
+        <span><i class="dot yellow"></i>硬降</span>
+        <span><i class="dot purple"></i>道具攻击</span>
+      </div>
+    </section>
+  </main>
 
-        <div id="timer"
-             class="timer">
-            03:00
-        </div>
-
-        <button id="menuButton"
-                class="small-button">
-            返回
-        </button>
-
-    </header>
-
-
-    <main id="battle"
-          class="battle">
-    </main>
-
-</section>
-
-
-
-<!-- =====================================================
-     倒计时
-===================================================== -->
-
-<div id="countdown"
-     class="countdown hidden">
-
-    <div id="countdownNumber">
-        3
-    </div>
-
-</div>
-
-
-
-<!-- =====================================================
-     战斗提示
-===================================================== -->
-
-<div id="battleAnnouncement"
-     class="battle-announcement">
-
-    <div id="announcementText"></div>
-
-</div>
-
-
-
-<!-- =====================================================
-     结果
-===================================================== -->
-
-<section id="resultScreen"
-         class="screen hidden">
-
+  <div id="overlay" class="overlay hidden" role="dialog" aria-modal="true">
     <div class="result-card">
-
-        <div class="result-label">
-            BATTLE RESULT
-        </div>
-
-        <div id="winnerText"
-             class="winner">
-            PLAYER 1
-        </div>
-
-        <div id="winnerSub"
-             class="winner-sub">
-            VICTORY
-        </div>
-
-        <div id="finalScores"
-             class="final-scores">
-        </div>
-
-        <div class="result-buttons">
-
-            <button id="againButton"
-                    class="primary-button">
-                再来一局
-            </button>
-
-            <button id="resultMenuButton"
-                    class="secondary-button">
-                返回选人
-            </button>
-
-        </div>
-
+      <div id="resultIcon" class="result-icon">🏆</div>
+      <div class="eyebrow">MATCH RESULT</div>
+      <h2 id="resultTitle">玩家 1 获胜！</h2>
+      <p id="resultDescription"></p>
+      <div id="resultScores" class="result-scores"></div>
+      <div class="result-actions">
+        <button id="againButton" class="button primary">🔄 再来一局</button>
+        <button id="resultMenuButton" class="button">返回菜单</button>
+      </div>
     </div>
+  </div>
 
-</section>
+  <div id="toast" class="toast" aria-live="polite"></div>
 
+  <footer>
+    <p>郑块大PK · PLAY FAIR, PLAY HARD.</p>
+    <p>方块图片：<code>assets/zyj.png</code> · 音效由浏览器实时合成</p>
+  </footer>
 
-<script src="./js/effects.js"></script>
-<script src="./js/tetris.js"></script>
-<script src="./js/game.js"></script>
-
+  <script src="js/effects.js"></script>
+  <script src="js/tetris.js"></script>
+  <script src="js/game.js"></script>
 </body>
 </html>
