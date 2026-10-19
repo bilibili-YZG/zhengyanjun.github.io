@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>15号线大冒险 · 关卡工坊</title>
 <link rel="stylesheet" href="editor/editor.css">
+<link rel="stylesheet" href="editor/editor-dlc.css">
 </head>
 <body>
 <div id="lock" class="lock">
@@ -42,11 +43,16 @@
     <input id="fileInput" type="file" accept=".json,application/json" hidden>
   </div>
 </header>
+<div id="targetBar" class="target-bar hidden"><span>正在编辑 DLC：<b id="targetName"></b> —— 发布、试玩、导入导出都只作用于这个 DLC</span><button id="backToMain">← 返回主线</button></div>
 
 <div class="work">
-  <!-- 左：主线结构 / 剧情 -->
+  <!-- 左：主线结构 / 剧情 / DLC管理 -->
   <aside class="side left">
-    <div class="tabs"><button data-tab="tree" class="on">主线结构</button><button data-tab="story">开场与结局</button></div>
+    <div class="tabs">
+      <button data-tab="tree" class="on">主线结构</button>
+      <button data-tab="story">开场与结局</button>
+      <button data-tab="dlc">DLC管理</button>
+    </div>
     <div id="tab-tree" class="tabpane">
       <div id="tree" class="tree"></div>
       <button id="addChapter" class="full dashed">＋ 新增章节</button>
@@ -54,9 +60,43 @@
         <h3>本章设置</h3>
         <label>章节名<input id="chName"></label>
         <label>副标题（章节选择里显示）<input id="chSub"></label>
+        <label>关卡文件名 <i>导出 .js 时的前缀，如 xx-01.js；DLC 不能和主线 c1、c2… 重名</i><input id="chJsName"></label>
         <label>主题/音乐<select id="chBiome"></select></label>
         <label>章节开场剧情 <i>每行一页，可写“场景|文字”</i><textarea id="chIntro" rows="4"></textarea></label>
         <label>章节结束剧情<textarea id="chOutro" rows="4"></textarea></label>
+      </div>
+      <div id="themePanel" class="card">
+        <h3>主题工坊 <i>自定义配色 · 音乐 · 天气</i></h3>
+        <label>编辑哪个主题<select id="thSel"></select></label>
+        <div class="two"><button id="thNew" class="mini wide">＋ 新建主题</button><button id="thDup" class="mini wide" title="基于当前选中的主题复制出一个可编辑的新主题">⧉ 复制选中</button></div>
+        <p id="thBuiltin" class="hint">内置主题不能直接改。点「复制选中」基于它新建一个自己的主题，再随便调。</p>
+        <div id="thFields" class="hidden">
+          <label>主题名称<input id="thName" maxlength="20"></label>
+          <label>质感基础 <i>决定地块与背景景物的画法（熔岩裂纹、苔藓、积雪、森林/洞窟/城市剪影……）；配色在下面单独调</i><select id="thBase"></select></label>
+          <h4>配色</h4>
+          <div class="colors">
+            <label>天空·上<input type="color" id="thSky0"></label><label>天空·下<input type="color" id="thSky1"></label>
+            <label>远景<input type="color" id="thFar"></label><label>中景<input type="color" id="thMid"></label>
+            <label>地面表层<input type="color" id="thTop"></label><label>地面主体<input type="color" id="thBody"></label>
+            <label>地面暗部<input type="color" id="thDark"></label><label>强调色<input type="color" id="thAccent"></label>
+            <label>发光色<input type="color" id="thGlow"></label>
+          </div>
+          <h4>音乐</h4>
+          <label>关卡音乐 <i>assets/audio 里的曲名（可直接输入）</i><input id="thMusic" list="thTracks"></label>
+          <label>Boss 战音乐 <i>留空 = 默认 Boss 曲</i><input id="thBoss" list="thTracks"></label>
+          <label>BPM（程序合成音乐的速度；找不到曲子时使用）<input id="thBpm" type="number" min="40" max="240"></label>
+          <datalist id="thTracks"></datalist>
+          <h4>天气</h4>
+          <label>天气类型<select id="thWeather"></select></label>
+          <div class="two">
+            <label>粒子数量<input id="thWn" type="number" min="0" max="300"></label><label>粒子颜色<input type="color" id="thWc"></label>
+            <label>水平速度<input id="thWvx" type="number" step="1"></label><label>垂直速度（负=上升）<input id="thWvy" type="number" step="1"></label>
+            <label>粒子大小<input id="thWr" type="number" step="0.1" min="0.5" max="8"></label>
+            <label class="chk"><input type="checkbox" id="thWglow">发光</label><label class="chk"><input type="checkbox" id="thWleaf">叶片形状</label>
+          </div>
+          <div class="two"><button id="thReset" class="mini wide" title="清除本主题所有改动，恢复成基础主题的样子">↺ 恢复为基础主题</button><button id="thDel" class="mini wide danger">✕ 删除主题</button></div>
+        </div>
+        <div class="two"><button id="thApplyLevel" class="mini wide">用于当前房间</button><button id="thApplyChapter" class="mini wide">用于本章全部房间</button></div>
       </div>
     </div>
     <div id="tab-story" class="tabpane hidden">
@@ -64,7 +104,38 @@
       <label>开场（新游戏时播放）<textarea id="prologue" rows="9"></textarea></label>
       <label>结局（最后一章结束后播放）<textarea id="epilogue" rows="9"></textarea></label>
     </div>
-  </aside>
+    <div id="tab-dlc" class="tabpane hidden">
+      <p class="hint">DLC → 场景 → 关卡。点开某个 DLC，点击场景或关卡即可在画布里编辑；编辑完点右上角「发布到游戏」，游戏的 DLC 菜单就会使用新内容。</p>
+
+      <div class="dlc-list" id="dlcList"></div>
+
+      <button id="addDLC" class="full dashed">＋ 创建新DLC</button>
+
+      <div id="dlcPanel" class="card hidden">
+        <h3>DLC设置</h3>
+        <label>DLC ID（英文，不可重复）<input id="dlcId" placeholder="例如: my_dlc"></label>
+        <label>DLC名称<input id="dlcName" placeholder="例如: 未竟之梦"></label>
+        <label>副标题<input id="dlcSubtitle" placeholder="例如: 深渊回响"></label>
+        <label>描述<textarea id="dlcDesc" rows="3" placeholder="简短介绍这个DLC的内容"></textarea></label>
+        <label>图标（Emoji）<input id="dlcIcon" placeholder="🌀" maxlength="2"></label>
+
+        <h4>解锁条件</h4>
+        <label>解锁类型
+          <select id="dlcUnlockType">
+            <option value="shards">收集碎片</option>
+            <option value="complete">通关主线</option>
+            <option value="none">无条件解锁</option>
+          </select>
+        </label>
+        <label id="dlcUnlockAmountLabel">需要碎片数量<input id="dlcUnlockAmount" type="number" value="100"></label>
+
+        <div class="dlc-actions">
+          <button id="saveDlcBtn" class="primary">保存DLC设置</button>
+          <button id="cancelDlcBtn">取消</button>
+          <button id="deleteDlcBtn" class="danger">删除此DLC</button>
+        </div>
+      </div>
+    </div>  </aside>
 
   <!-- 中：画布 -->
   <main class="center">
@@ -95,7 +166,7 @@
     <div id="rtab-props" class="tabpane hidden"><div id="props"><p class="hint">在地图上点选一个物件。</p></div></div>
     <div id="rtab-level" class="tabpane hidden">
       <label>房间名<input id="lvName"></label>
-      <div class="two"><label>宽（格）<input id="lvW" type="number" min="20" max="240"></label><label>高（格）<input id="lvH" type="number" min="12" max="60"></label></div>
+      <div class="two"><label>宽（格）<input id="lvW" type="number" min="20" max="320"></label><label>高（格）<input id="lvH" type="number" min="12" max="160"></label></div>
       <label>改尺寸时对齐<select id="lvAnchor"><option value="bottom">底部对齐（保留地面）</option><option value="top">顶部对齐</option></select></label>
       <label>主题/音乐<select id="lvBg"></select></label>
       <label>目标（HUD 显示）<input id="lvObj"></label>
@@ -112,6 +183,7 @@
 <div id="toast" class="toast"></div>
 <script src="js/data/defs.js"></script>
 <script src="js/data/level-builder.js"></script>
+<script src="js/data/dlc-kit.js"></script>
 <script src="js/levels/c1-01.js"></script>
 <script src="js/levels/c1-02.js"></script>
 <script src="js/levels/c1-03.js"></script>
@@ -136,10 +208,34 @@
 <script src="js/levels/c4-04.js"></script>
 <script src="js/levels/c4-05.js"></script>
 <script src="js/levels/c4-06.js"></script>
+<!-- DLC关卡：深渊回响 -->
+<script src="js/levels/d1-01.js"></script>
+<script src="js/levels/d1-02.js"></script>
+<script src="js/levels/d1-03.js"></script>
+<script src="js/levels/d1-04.js"></script>
+<script src="js/levels/d2-01.js"></script>
+<script src="js/levels/d2-02.js"></script>
+<script src="js/levels/d2-03.js"></script>
+<script src="js/levels/d2-04.js"></script>
+<script src="js/levels/d3-01.js"></script>
+<script src="js/levels/d3-02.js"></script>
+<script src="js/levels/d3-03.js"></script>
+<script src="js/levels/d3-04.js"></script>
 <script src="js/data/campaign.js"></script>
+<script src="js/data/dlc-campaign.js"></script>
+<script src="js/data/metro-kit.js"></script>
+<script src="js/levels/metro1-01.js"></script>
+<script src="js/levels/metro1-02.js"></script>
+<script src="js/levels/metro1-03.js"></script>
+<script src="js/levels/metro1-04.js"></script>
+<script src="js/data/dlc-subway.js"></script>
+<script src="js/dlc-registry.js"></script>
 <script src="js/gfx.js"></script>
 <script src="js/gfx2.js"></script>
 <script src="js/gfx3.js"></script>
+<script src="js/gfx4.js"></script>
+<script src="js/assets.js"></script>
 <script src="editor/editor.js"></script>
+<script src="editor/editor-dlc.js"></script>
 </body>
 </html>

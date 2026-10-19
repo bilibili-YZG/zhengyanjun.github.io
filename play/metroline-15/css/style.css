@@ -16,8 +16,8 @@ button{cursor:pointer;border:0;background:none}
 .hidden{display:none!important}
 
 /* ---------- 品牌 ---------- */
-.line-badge{display:inline-grid;place-items:center;width:calc(30px*var(--ui));height:calc(30px*var(--ui));border-radius:50%;background:var(--line15);color:#fff;font-weight:900;font-size:calc(14px*var(--ui));box-shadow:0 0 0 2px #fff,0 4px 14px rgba(0,0,0,.35);flex:none}
-.line-badge.big{width:1.1em;height:1.1em;font-size:1em;margin-right:.12em;vertical-align:-.12em}
+.line-badge{display:inline-grid;place-items:center;width:calc(30px*var(--ui));height:calc(30px*var(--ui));border-radius:50%;background:var(--line15);color:#fff;font-weight:900;font-size:calc(14px*var(--ui));box-shadow:0 0 0 2px #fff,0 4px 14px rgba(0,0,0,.35);flex:none;line-height:1;padding:0}
+.line-badge.big{width:1.77em;height:1.77em;font-size:.62em;margin-right:.2em;vertical-align:.26em;line-height:1;letter-spacing:-.04em;text-indent:-.04em}
 .line-badge.big::after{content:"";}
 
 /* ---------- HUD ---------- */
@@ -226,3 +226,11 @@ body.lay-cluster .joy-tip{display:none}
 .panel h2 small{font-size:14px;font-weight:600;margin-left:8px}
 
 /* 出口停留进度：画在画布上，这里无需样式 */
+
+/* 冲刺体力条 */
+.dashbar{display:flex;gap:4px;align-items:center;width:max-content;margin-top:4px;padding:4px 10px;border-radius:999px;background:var(--glass);border:1px solid var(--edge)}
+.dashbar::before{content:"⚡";font-size:calc(12px*var(--ui));color:#9ff3ee;margin-right:2px}
+.dashbar i{display:block;width:calc(34px*var(--ui));height:calc(8px*var(--ui));border-radius:99px;background:#1b2a3c;overflow:hidden;transition:box-shadow .15s}
+.dashbar i b{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#4fd6d0,#a6f6f0)}
+.dashbar i.full{box-shadow:0 0 8px #6fe0dc88}
+.dashbar.no i{box-shadow:0 0 0 2px #ff6b84}

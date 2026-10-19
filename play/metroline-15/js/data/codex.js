@@ -55,7 +55,25 @@ var CODEX=[
  {k:'shard',cat:'item',n:'信标碎片',d:'每一枚碎片里，都封着孩子们说过的一句话。收集情况会记录在「成就 · 晶体」里。'},
  {k:'dashgem',cat:'item',n:'冲刺水晶',d:'碰一下就补满冲刺和二段跳，几秒后会重新凝结。'},
  {k:'heart',cat:'item',n:'保温杯',d:'喝一口，恢复 1 点生命。生命满了的时候先留着。'},
- /* 地块 */
+ {k:'blueshard',cat:'item',n:'蓝色碎片',d:'DLC 专属收集物。每一枚都封着一个没问出口的问题：为什么？怎么算？还有别的可能吗？'},
+ /* DLC障碍物 */
+ {k:'emfield',cat:'hazard',n:'电磁场',d:'图中的 ⊗ 表示磁感线垂直纸面向里。导体在磁场里运动会产生感应电流，感应电流又阻碍运动——电磁阻尼，跑得越快越费劲。'},
+ {k:'plasma',cat:'hazard',n:'等离子体',d:'物质的第四态：气体被加热到电离，成了带电粒子的“汤”。它周期性放电，亮起之前会先闪烁预警。'},
+ {k:'cryotrap',cat:'hazard',n:'低温陷阱',d:'喷出极低温的气体，被碰到会冻住片刻。温度越低，分子热运动越慢——你也一样。'},
+ {k:'voltarc',cat:'hazard',n:'电弧',d:'空气被强电场击穿后形成的电流通道，就像微型闪电。连着开关时，断开开关＝断路＝没有电流。'},
+ {k:'gravwell',cat:'hazard',n:'重力井',d:'万有引力的夸张版：区域里重力变大，还把你拉向中心。质量越大、距离越近，引力越强。'},
+ /* DLC敌人 */
+ {k:'drone',cat:'creature',n:'监控无人机',d:'实验室的自动巡逻单位，发现你会悬停锁定，开火前机身发红。能量弹也能用教鞭弹开。'},
+ {k:'probe',cat:'creature',n:'探测球',d:'牛顿第二定律的活教材：它朝你受力，加速度就朝你；有惯性，冲过头还会绕回来。'},
+ {k:'sentinel',cat:'creature',n:'哨兵机器人',d:'重型防御单位，装甲厚、动得慢。站定后连发三枚扇形炮弹，留意它开火前炮口变红。'},
+ {k:'wraith',cat:'creature',n:'冰霜怨灵',d:'你盯着它，它就变淡变慢，像被观测的粒子；一转身它就扑来。碰到会被冻住。'},
+ {k:'anomaly',cat:'creature',n:'异常体',d:'量子隧穿的玩笑版：预警后瞬移，落点向四周弹出能量球。'},
+ {k:'boss_paradox',cat:'creature',n:'悖论',d:'DLC 最终 Boss，三段血条三个形态：力的平衡（抛体、摆锤、摩擦滑行）、动量（向右狂奔，把动量球打回去）、势能（向上攀升，躲开熵增之渊）。'},
+ /* DLC NPC */
+ {k:'scientist',cat:'npc',n:'科学家',d:'实验室的研究员，什么都想用物理定律解释。他的白大褂口袋里永远插着一支笔。'},
+ {k:'ai',cat:'npc',n:'AI助手',d:'实验室的人工智能系统，冷静、理性、高效，但似乎缺少了什么。'},
+ {k:'shadow',cat:'npc',n:'影子',d:'混沌中的人影，可能是记忆的投影。它总爱用问题开场。'},
+ {k:'echo',cat:'npc',n:'回声',d:'冰洞里回荡的声音，来自那些没说完的话。回声测距：s=vt/2。'}, /* 地块 */
  {k:'ground',cat:'terrain',n:'地面',d:'最普通的地面，抓地力十足，说停就能停。'},
  {k:'thin',cat:'terrain',n:'薄地板',d:'可以从下面跳上去，也可以按住 ↓ 再跳下穿。'},
  {k:'bounce',cat:'terrain',n:'弹跳菌',d:'踩上去会被弹起，像一团蓬松的弹簧。'},
@@ -64,6 +82,7 @@ var CODEX=[
 ];
 var CATS=[['creature','生物'],['npc','NPC'],['hazard','障碍物'],['mech','机关'],['item','道具'],['terrain','地块']];
 function N(n){return function(m){return m.cnt[n]||0}}
+function blueCount(m){var bs=m.blueShards||{},c=0,k,id;for(k in bs)for(id in bs[k])c++;return c}
 var ACH=[
  {id:'shard_1',n:'初见微光',d:'捡到第一枚信标碎片',prog:function(m,i){return [Math.min(1,i.have),1]}},
  {id:'shard_25',n:'小有收获',d:'累计收集 25 枚信标碎片',prog:function(m,i){return [Math.min(25,i.have),25]}},
@@ -86,7 +105,23 @@ var ACH=[
  {id:'clear',n:'老师到家了',d:'通关全部章节',prog:function(m){return [Math.min(1,m.clears||0),1]}},
  {id:'clear_clean',n:'一路平安',d:'一次也没倒下就通关',prog:function(m){return [Math.min(1,m.clean||0),1]}},
  {id:'codex_half',n:'见多识广',d:'图鉴收集过半',prog:function(m,i){var t=Math.ceil(i.codexTotal/2);return [Math.min(t,i.codexSeen),t]}},
- {id:'codex_all',n:'博物学家',d:'图鉴全部收集',prog:function(m,i){return [i.codexSeen,i.codexTotal]}}
-];
+ {id:'codex_all',n:'博物学家',d:'图鉴全部收集',prog:function(m,i){return [i.codexSeen,i.codexTotal]}},
+ /* DLC成就 */
+ {id:'dlc_unlock',n:'深渊的呼唤',d:'收集 100 枚信标碎片，解锁 DLC「未竟之梦」',prog:function(m){return [m.dlcUnlocked?1:0,1]}},
+ {id:'blue_shard_1',n:'第一个质疑',d:'捡到第一枚蓝色碎片',prog:function(m){return [Math.min(1,blueCount(m)),1]}},
+ {id:'blue_shard_30',n:'质疑的火花',d:'累计收集 30 枚蓝色碎片',prog:function(m){return [Math.min(30,blueCount(m)),30]}},
+ {id:'blue_shard_all',n:'所有问题都值得被问',d:'收集 DLC 全部蓝色碎片',prog:function(m,i){if(!i.blueTotal)return null;return [i.blueHave||0,i.blueTotal]}},
+ {id:'dlc_ch1',n:'冰洞求生',d:'完成 DLC 第一部分：冰洞坠落',prog:function(m){return [m.dlcProgress&&m.dlcProgress.ch1?1:0,1]}},
+ {id:'dlc_ch2',n:'系统突破者',d:'完成 DLC 第二部分：实验室迷宫',prog:function(m){return [m.dlcProgress&&m.dlcProgress.ch2?1:0,1]}},
+ {id:'dlc_ch3',n:'混沌行者',d:'完成 DLC 第三部分：混沌领域',prog:function(m){return [m.dlcProgress&&m.dlcProgress.ch3?1:0,1]}},
+ {id:'boss_paradox',n:'悖论终结者',d:'击败最终 Boss：悖论',prog:function(m){return [m.boss.paradox?1:0,1]}},
+ {id:'paradox_perfect',n:'物理大师',d:'不受伤击败悖论',prog:function(m){return [m.paradoxPerfect?1:0,1]}},
+ {id:'dlc_complete',n:'大梦初醒',d:'通关 DLC 全部部分',prog:function(m){return [(m.dlcClears||0)>=1?1:0,1]}},
+ {id:'quiz_1',n:'初试牛刀',d:'答对第一道物理题',prog:function(m){return [Math.min(1,N('quizOk')(m)),1]}},
+ {id:'quiz_6',n:'物理课代表',d:'累计答对 6 道物理题',prog:function(m){return [Math.min(6,N('quizOk')(m)),6]}},
+ {id:'quiz_14',n:'满分答卷',d:'答对 DLC 里的全部 14 道物理题',prog:function(m){return [Math.min(14,N('quizOk')(m)),14]}},
+ {id:'orb_return',n:'反向冲量',d:'在悖论战里把动量球打回去 8 次（Ft=Δp）',prog:function(m){return [Math.min(8,N('orbReturn')(m)),8]}},
+ {id:'lab_explorer',n:'实验室访客',d:'与实验室里的科学家、AI 助手、维修机器人都聊过',prog:function(m){return [(m.cnt.scientist?1:0)+(m.cnt.ai?1:0)+(m.cnt.robot?1:0),3]}},
+ {id:'chaos_survivor',n:'矛盾共存',d:'在混沌领域里累计停留 10 分钟',prog:function(m){return [Math.min(600,Math.floor(m.cnt.chaosTime||0)),600]}}];
 return {CODEX:CODEX,CATS:CATS,ACH:ACH};
 })();

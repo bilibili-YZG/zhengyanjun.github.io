@@ -20,6 +20,7 @@ function renderSaves(mode){saveMode=mode;var slots=Meta.slots(),camp=api.campaig
   else{body='<div class="slot-main muted">空存档</div><div class="slot-sub">还没有记录</div>';
    if(mode==='new')btns='<button class="btn primary" data-sact="start" data-i="'+i+'">在此开始新旅程</button>';
    else if(mode==='pause')btns='<button class="btn primary" data-sact="save" data-i="'+i+'">保存到此处</button>'}
+  if(mode!=='new')btns+=(s?'<button class="btn" data-sact="exp" data-i="'+i+'">导出</button>':'')+'<button class="btn" data-sact="imp" data-i="'+i+'">导入覆盖</button>';
   html+='<div class="slot'+(s?'':' empty')+(cur?' current':'')+'"><div class="slot-h"><b>存档 '+(i+1)+'</b>'+(cur?'<span class="tag">使用中</span>':'')+'</div>'+body+'<div class="slot-btns">'+btns+'</div></div>'});
  $('saveList').innerHTML=html}
 /* ---------- 成就 · 晶体 ---------- */
@@ -29,7 +30,12 @@ function renderAchv(){var camp=api.campaign(),info=Meta.summary(camp),m=Meta.dat
   h+='<div class="cc" style="--tint:'+bi.accent+'"><div class="cc-h"><b>第'+'一二三四五六七八九十'.charAt(ci)+'章 · '+esc(ch.name)+'</b><span>'+c.have+' / '+c.total+(c.have>=c.total&&c.total?' ✓':'')+'</span></div><div class="bar"><i style="width:'+pct+'%"></i></div><div class="rooms-chips">';
   c.rooms.forEach(function(r){h+='<span class="chip'+(r.total&&r.have>=r.total?' full':'')+'" title="'+esc(r.name)+'">'+esc(r.name.replace(/^(\d+)\s*·.*/,'$1'))+'<em>'+r.have+'/'+r.total+'</em></span>'});
   h+='</div></div>'});
- h+='</div><h3 class="sec">成就 <small>'+D.ACH.filter(function(a){return m.ach[a.id]}).length+' / '+D.ACH.length+'</small></h3><div class="ach-grid">';
+  var blueBlock='';(window.DLC_REGISTRY||[]).forEach(function(dl){var dc=window.getDLCCampaign&&window.getDLCCampaign(dl);if(!dc||!dc.chapters)return;var bi=Meta.blueShardInfo(dc);if(!bi.total)return;
+  blueBlock+='<div class="crystal-top"><div class="big" style="color:#6db8ff">◆ '+bi.have+' <small>/ '+bi.total+'</small></div><div class="muted">'+esc(dl.name)+' · 蓝色碎片（DLC 专属）</div></div><div class="crystal-ch">';
+  dc.chapters.forEach(function(ch,ci){var c=bi.ch[ci]||{have:0,total:0,rooms:[]},pct=c.total?Math.round(c.have/c.total*100):0,bi2=GFX.B(ch.biome);
+   blueBlock+='<div class="cc" style="--tint:'+bi2.accent+'"><div class="cc-h"><b>'+esc(ch.name)+'</b><span>'+c.have+' / '+c.total+(c.have>=c.total&&c.total?' ✓':'')+'</span></div><div class="bar"><i style="width:'+pct+'%"></i></div></div>'});
+  blueBlock+='</div>'});
+ h+='</div>'+blueBlock+'<h3 class="sec">成就 <small>'+D.ACH.filter(function(a){return m.ach[a.id]}).length+' / '+D.ACH.length+'</small></h3><div class="ach-grid">';
  D.ACH.forEach(function(a){var got=m.ach[a.id],p=a.prog(m,info),pc=p&&p[1]?Math.min(100,Math.round(p[0]/p[1]*100)):0;
   h+='<div class="ach'+(got?' got':'')+'"><div class="ach-i">'+(got?'★':'☆')+'</div><div class="ach-b"><b>'+esc(a.n)+'</b><span>'+esc(a.d)+'</span>'+(got?'<em>'+fmtDate(got)+' 解锁</em>':(p?'<div class="bar sm"><i style="width:'+pc+'%"></i></div><em>'+p[0]+' / '+p[1]+'</em>':''))+'</div></div>'});
  h+='</div>';$('achvBody').innerHTML=h}

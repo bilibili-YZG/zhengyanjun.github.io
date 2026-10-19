@@ -23,7 +23,7 @@ function noise(t,dur,g,ftype,f0,f1,q,dest){var s=ctx.createBufferSource(),f=ctx.
  a.gain.setValueAtTime(g,t);a.gain.exponentialRampToValueAtTime(.0001,t+dur);s.connect(f);f.connect(a);a.connect(dest||sfxBus);s.start(t);s.stop(t+dur+.05)}
 var last={};
 function sfx(n,arg){
- if(muted||!init())return;var t=ctx.currentTime;if(last[n]&&t-last[n]<.035)return;last[n]=t;
+ if(muted||!init())return;var t=ctx.currentTime;if(last[n]&&t-last[n]<.035)return;last[n]=t;if(window.Assets&&Assets.sfx(n)&&Assets.playSfx(n,vol.sfx*.9))return;
  switch(n){
  case'jump':osc('triangle',330,640,t,.16,.16);noise(t,.07,.05,'highpass',2500,5000);break;
  case'djump':osc('sine',520,980,t,.18,.15);osc('triangle',780,1400,t+.03,.14,.07);break;
@@ -79,7 +79,7 @@ function fadeEl(a,to,ms,done){if(a._ft){clearInterval(a._ft);a._ft=null}var from
  a._ft=setInterval(function(){var k=Math.min(1,(Date.now()-t0)/ms);try{a.volume=Math.max(0,Math.min(1,from+(to-from)*k))}catch(e){}if(k>=1){clearInterval(a._ft);a._ft=null;if(done)done()}},40)}
 function getEl(name){var a=pool[name];if(a)return a;a=new Audio();a.loop=true;a.preload='auto';a._bad=false;
  a.addEventListener('error',function(){a._bad=true;if(curEl===a){curEl=null;if(a._tk)synth(a._tk)}});
- a.src=encodeURI('assets/audio/'+name+'.wav');return pool[name]=a}
+ a.src=/^assets\//.test(name)?encodeURI(name):encodeURI('assets/audio/'+name+'.wav');return pool[name]=a}
 function synth(t){if(!init())return;tr=t;stepN=0;nextT=ctx.currentTime+.08;if(timer)clearInterval(timer);timer=setInterval(sched,50)}
 function stopCur(){if(timer){clearInterval(timer);timer=null}tr=null;
  if(curEl){var a=curEl;curEl=null;if(pending===a)pending=null;fadeEl(a,0,450,function(){try{a.pause()}catch(e){}})}}
@@ -95,10 +95,10 @@ function startFile(name,tk,restart){var n=++reqN,a=getEl(name);a._tk=tk;
  setTimeout(function(){if(n===reqN&&curEl===a&&a.readyState<2&&!pending){curEl=null;a._bad=true;synth(tk)}},4000)}
 /* key：生物群系名（snow/forest/underground/lava/station/night）或 'boss'。同一首曲子重复请求 = 什么都不做。 */
 function play(key){
- wantKey=key;var name=key==='boss'?L15.BOSS_MUSIC:(L15.BIOMES[key]||{}).music,tk=TRACKS[key]||TRACKS.snow,id=name?('f:'+name):('s:'+trackId(tk));
+ wantKey=key;var isF=key.indexOf('file:')===0,cu=!isF&&window.Assets&&Assets.music?Assets.music(key):null,name=isF?key.slice(5):(cu||(key==='boss'?((L15.BIOMES[L15.curBiome]||{}).bossMusic||L15.BOSS_MUSIC):(L15.BIOMES[key]||{}).music)),tk=isF?TRACKS.boss:(TRACKS[key]||TRACKS.snow),id=name?('f:'+name):('s:'+trackId(tk));
  if(id===curId&&(curEl||tr))return;
  stopCur();curId=id;if(muted)return;
- if(name)startFile(name,tk,key==='boss');else synth(tk)}
+ if(name)startFile(name,tk,key==='boss'||isF);else synth(tk)}
 function setMuted(m){muted=!!m;if(master)master.gain.value=muted?0:.8;Object.keys(pool).forEach(function(k){pool[k].muted=muted});
  if(muted){stopCur()}else if(wantKey&&!curEl&&!tr){var k=wantKey;curId='';play(k)}}
 function duck(on){duckOn=!!on;if(musicBus&&ctx)musicBus.gain.setTargetAtTime(on?vol.music*.35:vol.music,ctx.currentTime,.1);if(curEl)fadeEl(curEl,vt(),250)}
