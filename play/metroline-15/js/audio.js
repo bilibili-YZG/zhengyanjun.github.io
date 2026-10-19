@@ -1,4 +1,4 @@
-/* 音频：优先播放 assets/audio/<名字>.wav（文件名里的数字=BPM）；缺失时用同 BPM 的程序合成曲目兜底。音效全部程序合成。
+/* 音频：优先播放 assets/audio/<名字>.mp3（文件名里的数字=BPM）；缺失时用同 BPM 的程序合成曲目兜底。音效全部程序合成。
    连贯规则：音乐以「文件名」为身份。同一首曲子无论经过多少关卡、剧情、标题页都不会重新开始；
    切到别的曲子（如 Boss 战）时旧曲淡出并记住进度，回来时接着放，而不是从头重播。 */
 window.AudioFX=(function(){
@@ -79,7 +79,7 @@ function fadeEl(a,to,ms,done){if(a._ft){clearInterval(a._ft);a._ft=null}var from
  a._ft=setInterval(function(){var k=Math.min(1,(Date.now()-t0)/ms);try{a.volume=Math.max(0,Math.min(1,from+(to-from)*k))}catch(e){}if(k>=1){clearInterval(a._ft);a._ft=null;if(done)done()}},40)}
 function getEl(name){var a=pool[name];if(a)return a;a=new Audio();a.loop=true;a.preload='auto';a._bad=false;
  a.addEventListener('error',function(){a._bad=true;if(curEl===a){curEl=null;if(a._tk)synth(a._tk)}});
- a.src=/^assets\//.test(name)?encodeURI(name):encodeURI('assets/audio/'+name+'.wav');return pool[name]=a}
+ a.src=/^assets\//.test(name)?encodeURI(name):encodeURI('assets/audio/'+name+'.mp3');return pool[name]=a}
 function synth(t){if(!init())return;tr=t;stepN=0;nextT=ctx.currentTime+.08;if(timer)clearInterval(timer);timer=setInterval(sched,50)}
 function stopCur(){if(timer){clearInterval(timer);timer=null}tr=null;
  if(curEl){var a=curEl;curEl=null;if(pending===a)pending=null;fadeEl(a,0,450,function(){try{a.pause()}catch(e){}})}}
@@ -92,7 +92,7 @@ function startFile(name,tk,restart){var n=++reqN,a=getEl(name);a._tk=tk;
  var p=a.play();
  if(p&&p.then)p.then(function(){if(n===reqN&&curEl===a)fadeEl(a,vt(),700)},function(){if(n===reqN&&curEl===a&&!a._bad)pending=a});
  else fadeEl(a,vt(),700);
- setTimeout(function(){if(n===reqN&&curEl===a&&a.readyState<2&&!pending){curEl=null;a._bad=true;synth(tk)}},4000)}
+ setTimeout(function(){if(n===reqN&&curEl===a&&a.readyState<2&&!pending){curEl=null;a._bad=true;synth(tk)}},8000)}
 /* key：生物群系名（snow/forest/underground/lava/station/night）或 'boss'。同一首曲子重复请求 = 什么都不做。 */
 function play(key){
  wantKey=key;var isF=key.indexOf('file:')===0,cu=!isF&&window.Assets&&Assets.music?Assets.music(key):null,name=isF?key.slice(5):(cu||(key==='boss'?((L15.BIOMES[L15.curBiome]||{}).bossMusic||L15.BOSS_MUSIC):(L15.BIOMES[key]||{}).music)),tk=isF?TRACKS.boss:(TRACKS[key]||TRACKS.snow),id=name?('f:'+name):('s:'+trackId(tk));

@@ -22,7 +22,7 @@
    【音频】放在 assets/audio/：
      bgm_<主题>.mp3|ogg|wav（snow / forest / underground / lava / station / night / boss）替换该主题音乐
      sfx_<名字>.mp3|ogg|wav 替换音效：jump djump land dash slash hit hurt kill shard heal switch plate door bounce check shoot laser boom roar win talk select rumble
-     （原有的 assets/audio/<曲名 BPM>.wav 命名仍然有效，优先级低于 bgm_*） */
+     （原有的 assets/audio/<曲名 BPM>.mp3 命名仍然有效，优先级低于 bgm_*） */
 window.Assets=(function(){
 var BASE='assets/',TEX=BASE+'textures/',AUD=BASE+'audio/',IEXT=/\.(png|webp|jpe?g|gif|svg)$/i,AEXT=/\.(mp3|ogg|wav|m4a)$/i;
 var G=window.GFX,B=L15.BIOMES,INFO=L15.INFO;

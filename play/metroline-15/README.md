@@ -37,7 +37,7 @@ assets/audio/                ← 放回 5 首音乐
 ```
 
 ## 音乐（文件名里的数字 = BPM）
-`Foothills 105.wav` 雪原 · `Canopy 98.wav` 森林 · `Forest Floor 115.wav` 地下洞窟 · `Red Cave 152.wav` 熔岩 · `Troth Boss 150.wav` 所有 Boss 房。
+`Foothills 105.mp3` 雪原 · `Canopy 98.mp3` 森林 · `Forest Floor 115.mp3` 地下洞窟 · `Red Cave 152.mp3` 熔岩 · `Troth Boss 150.mp3` 所有 Boss 房。
 
 ## 操作
 | | 键盘 | 手柄 | 触屏 |
