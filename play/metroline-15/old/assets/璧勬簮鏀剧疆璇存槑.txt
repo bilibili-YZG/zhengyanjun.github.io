@@ -1,0 +1,8 @@
+请将主角头像图片 zyj.png 放在本目录：assets/zyj.png
+请将以下音乐文件放入 assets/audio/，文件名保持一致：
+Foothills 105.wav
+Canopy 98.wav
+Forest Floor 115.wav
+Red Cave 152.wav
+Troth Boss 150.wav
+程序会用 Web Audio 合成跳跃、拾取、冲刺、受伤、机关、Boss 命中和胜利音效。
