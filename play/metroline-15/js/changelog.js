@@ -22,8 +22,9 @@ var loaded=false;
 function open(){
  var box=document.getElementById('changelogBody');document.getElementById('changelog').classList.remove('hidden');
  if(loaded)return;box.textContent='加载中…';
- fetch('changelog.txt?'+Date.now()).then(function(r){if(!r.ok)throw 0;return r.text()}).then(function(t){box.innerHTML=render(t);loaded=true})
-  .catch(function(){box.textContent='更新日志加载失败（直接双击打开本地文件时浏览器不允许读取，请通过网址访问）'})}
+ function fallback(){if(window.CHANGELOG_TEXT){box.innerHTML=render(window.CHANGELOG_TEXT);return}box.textContent='更新日志加载失败'}
+ if(location.protocol==='file:'){fallback();return} /* 本地文件打开时浏览器禁止 fetch，用预生成的 changelog-data.js */
+ fetch('changelog.txt?'+Date.now()).then(function(r){if(!r.ok)throw 0;return r.text()}).then(function(t){box.innerHTML=render(t);loaded=true}).catch(fallback)}
 function init(){
  var b=document.getElementById('changelogBtn'),c=document.getElementById('closeChangelog');
  if(b)b.onclick=open;if(c)c.onclick=function(){document.getElementById('changelog').classList.add('hidden')}}
