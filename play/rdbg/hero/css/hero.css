@@ -1,0 +1,45 @@
+/* 角色本体样式：viewer 与 world 共用。只管 <svg class="hero"> 这个元素本身。 */
+.hero {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: block;
+  overflow: visible;
+  pointer-events: none;
+  will-change: transform;
+}
+.hero image { image-rendering: auto; }
+
+/* 受击/命中时可以给 .hero 加上这个类做一下闪白 */
+.hero.flash { filter: brightness(1.8) saturate(.6); }
+
+/* 粉笔投射物（world 与 viewer 共用） */
+.chalk {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 24px;
+  height: 10px;
+  pointer-events: none;
+  will-change: transform;
+}
+
+/* 载具、子弹、烟尘（world 与 viewer 共用） */
+.veh { width: 240px; height: 130px; }
+.veh .v-flip, .veh .v-hull { position: absolute; left: 0; top: 0; width: 240px; height: 130px; }
+.veh .v-shadow { position: absolute; left: 14px; top: 106px; width: 212px; height: 16px; border-radius: 50%; background: radial-gradient(closest-side, rgba(10, 16, 40, .45), rgba(10, 16, 40, 0)); }
+.vprompt { transform: translateX(-50%); font-size: 14px; font-weight: 700; color: #fff; background: rgba(14, 22, 48, .75); padding: 3px 12px; border-radius: 10px; white-space: nowrap; animation: vbob 1s ease-in-out infinite; }
+@keyframes vbob { 0%, 100% { margin-top: 0; } 50% { margin-top: -5px; } }
+.bullet { left: 0; top: 0; width: 28px; height: 3px; border-radius: 2px; background: linear-gradient(90deg, rgba(255, 220, 120, 0), #fff3a8); box-shadow: 0 0 6px #ffb53a; pointer-events: none; }
+.puff { border-radius: 50%; background: rgba(225, 230, 240, .65); pointer-events: none; animation: puff .6s ease-out forwards; }
+@keyframes puff { to { transform: translate(var(--dx, -20px), -26px) scale(2.2); opacity: 0; } }
+.shock { width: 60px; height: 20px; margin: -10px 0 0 -30px; border: 4px solid rgba(255, 240, 180, .9); border-radius: 50%; pointer-events: none; animation: shock .45s ease-out forwards; }
+@keyframes shock { to { transform: scale(7, 2.2); opacity: 0; } }
+.shock, .puff, .bullet, .vprompt { position: absolute; }
+.veh { position: absolute; }
+
+/* 冲刺：残影与速度线 */
+.hero.ghost { animation: ghost .32s ease-out forwards; filter: brightness(1.9) saturate(.3) drop-shadow(0 0 6px #8fd8ff); will-change: auto; }
+@keyframes ghost { from { opacity: .55; } to { opacity: 0; } }
+.streak { position: absolute; width: 90px; height: 3px; border-radius: 2px; pointer-events: none; background: linear-gradient(90deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, .85)); animation: streak .3s ease-out forwards; }
+@keyframes streak { from { opacity: .9; transform: translateX(0) scaleX(1); } to { opacity: 0; transform: translateX(var(--dx, -60px)) scaleX(.4); } }

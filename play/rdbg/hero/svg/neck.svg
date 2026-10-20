@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" stroke-linejoin="round" stroke-linecap="round" viewBox="215 175 50 60" width="50" height="60">
+<defs><linearGradient id="gNeck" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c98d6c"/><stop offset=".5" stop-color="#e3ae8a"/><stop offset="1" stop-color="#eebd9a"/></linearGradient></defs>
+<path d="M221 182 L221 222 Q240 232 259 222 L259 182Z" fill="url(#gNeck)" stroke="#9a5f45" stroke-width="1.4"/>
+<path d="M221 196 Q240 212 259 196 L259 188 Q240 204 221 188Z" fill="#b87a5c" opacity=".55"/>
+</svg>

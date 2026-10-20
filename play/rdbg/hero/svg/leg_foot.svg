@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" stroke-linejoin="round" stroke-linecap="round" viewBox="-36 120 78 62" width="78" height="62">
+<defs><linearGradient id="gShoe" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4a4f5c"/><stop offset="1" stop-color="#1c1f27"/></linearGradient></defs>
+<path d="M-19 132 L19 132 L22 152 Q38 158 38 170 L38 176 L-34 176 Q-32 160 -19 150Z" fill="url(#gShoe)" stroke="#0b0d12" stroke-width="1.8"/>
+<path d="M-34 168 L38 168 L38 176 L-34 176Z" fill="#e8eaf0" stroke="#0b0d12" stroke-width="1.4"/>
+<path d="M-14 146 Q-2 140 12 148" fill="none" stroke="#8d93a3" stroke-width="2"/>
+</svg>

@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" stroke-linejoin="round" stroke-linecap="round" viewBox="0 0 90 130" width="90" height="130">
+<!-- 训练木桩人：可以用教鞭 / 粉笔打 -->
+<defs><linearGradient id="w" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#9a6e44"/><stop offset=".5" stop-color="#7d5430"/><stop offset="1" stop-color="#5e3c20"/></linearGradient></defs>
+<rect x="38" y="48" width="14" height="82" rx="2" fill="url(#w)" stroke="#3e2512" stroke-width="1.6"/>
+<rect x="30" y="122" width="30" height="8" rx="2" fill="#5e3c20" stroke="#3e2512" stroke-width="1.4"/>
+<rect x="8" y="58" width="74" height="12" rx="4" fill="url(#w)" stroke="#3e2512" stroke-width="1.6"/>
+<rect x="28" y="62" width="34" height="44" rx="8" fill="#d8bf8a" stroke="#8a7140" stroke-width="1.6"/>
+<path d="M34 70 L56 70 M34 80 L56 80 M34 90 L56 90" stroke="#a88f56" stroke-width="1.6"/>
+<circle cx="45" cy="30" r="22" fill="#f1e6c8" stroke="#8a7140" stroke-width="1.8"/>
+<circle cx="45" cy="30" r="15" fill="#d6453a"/><circle cx="45" cy="30" r="9" fill="#f1e6c8"/><circle cx="45" cy="30" r="4" fill="#d6453a"/>
+<path d="M20 12 L26 4 M64 10 L70 3 M45 7 L45 0" stroke="#d8bf8a" stroke-width="3"/>
+</svg>

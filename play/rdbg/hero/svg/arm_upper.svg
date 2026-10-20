@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" stroke-linejoin="round" stroke-linecap="round" viewBox="-22 -22 44 118" width="44" height="118">
+<defs><linearGradient id="gSleeve" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#7b3180"/><stop offset=".5" stop-color="#5f2268"/><stop offset="1" stop-color="#43164f"/></linearGradient></defs>
+<path d="M-18 -2 Q-20 44 -15 90 L15 90 Q20 44 18 -2Z" fill="url(#gSleeve)" stroke="#2c0d38" stroke-width="1.8"/>
+<circle r="19" fill="url(#gSleeve)" stroke="#2c0d38" stroke-width="1.8"/>
+<path d="M-6 20 Q-9 50 -4 80" fill="none" stroke="#2c0d38" stroke-width="2" opacity=".45"/>
+</svg>

@@ -1,0 +1,59 @@
+/* 触屏按键、设置面板、浮动小按钮。按键以屏幕像素为单位（不随游戏画面缩放），位置/大小由 controls.js 设置。 */
+html, body { touch-action: none; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+
+#tc { position: fixed; inset: 0; z-index: 20; pointer-events: none; }
+.tb {
+  position: absolute; display: flex; align-items: center; justify-content: center;
+  border-radius: 50%; background: rgba(14, 22, 48, .55); border: 2px solid rgba(255, 255, 255, .55);
+  color: #fff; font-weight: 900; text-shadow: 0 1px 3px rgba(0, 0, 0, .6);
+  pointer-events: auto; touch-action: none; cursor: pointer;
+}
+.tb.on { background: rgba(255, 226, 122, .75); color: #3a2a00; border-color: #fff; text-shadow: none; }
+.tb-left, .tb-right, .tb-down { border-radius: 22%; }
+#tc.editing .tb { outline: 2px dashed #ffe27a; outline-offset: 3px; cursor: move; background: rgba(60, 40, 120, .75); }
+
+#ctl-pill { position: fixed; left: 50%; margin-left: -66px; bottom: 10px; z-index: 30; display: flex; gap: 6px; }
+#ctl-pill button {
+  width: 40px; height: 40px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, .5);
+  background: rgba(14, 22, 48, .6); color: #fff; font-size: 20px; line-height: 1; padding: 0; cursor: pointer; opacity: .9;
+}
+#ctl-pill button:hover { opacity: 1; }
+
+#ctl-toast {
+  position: fixed; left: 50%; top: 56px; transform: translateX(-50%); z-index: 40; padding: 7px 16px; border-radius: 16px;
+  background: rgba(14, 22, 48, .8); color: #fff; font-size: 14px; opacity: 0; pointer-events: none; transition: opacity .3s;
+}
+#ctl-toast.show { opacity: 1; }
+
+#ctl-editbar {
+  position: fixed; left: 50%; top: 12px; transform: translateX(-50%); z-index: 50; display: none; align-items: center; gap: 10px;
+  padding: 8px 14px; border-radius: 14px; background: rgba(14, 22, 48, .9); color: #fff; font-size: 14px;
+}
+#ctl-editbar button, #ctl-panel button {
+  font: inherit; color: #fff; background: #3a4670; border: 1px solid #6a78b0; border-radius: 8px; padding: 7px 14px; cursor: pointer;
+}
+#ctl-editbar button.pri { background: #5a4a9a; }
+
+#ctl-panel {
+  position: fixed; inset: 0; z-index: 60; align-items: center; justify-content: center; background: rgba(8, 12, 28, .55);
+  font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif; touch-action: auto;
+}
+.ctl-card { width: min(560px, 94vw); max-height: 90vh; display: flex; flex-direction: column; border-radius: 16px; background: #1b2240; color: #e6ebff; box-shadow: 0 12px 40px rgba(0, 0, 0, .5); }
+.ctl-head { display: flex; align-items: center; justify-content: space-between; padding: 12px 18px; border-bottom: 1px solid #343e68; }
+.ctl-head h2 { margin: 0; font-size: 18px; }
+#ctl-panel .x { padding: 4px 11px; font-size: 16px; }
+.ctl-body { padding: 4px 18px 16px; overflow-y: auto; -webkit-overflow-scrolling: touch; touch-action: pan-y; font-size: 14px; }
+.ctl-body h3 { margin: 16px 0 8px; font-size: 14px; color: #ffe27a; }
+.ctl-body h3 small { color: #8a96c4; font-weight: 400; margin-left: 6px; }
+.ctl-body .row { display: flex; align-items: center; gap: 10px; margin: 8px 0; flex-wrap: wrap; }
+.ctl-body .row input[type=range] { flex: 1; min-width: 120px; }
+.ctl-body .seg button { flex: 1; }
+#ctl-panel button.on { background: #5a4a9a; border-color: #ffe27a; }
+.ctl-body .note { margin: 6px 0; font-size: 12px; color: #8a96c4; line-height: 1.6; }
+table.keys { width: 100%; border-collapse: collapse; }
+table.keys th { text-align: left; font-size: 12px; color: #8a96c4; font-weight: 400; padding: 2px 4px; }
+table.keys td { padding: 4px; border-top: 1px solid #2a3258; vertical-align: middle; }
+table.keys td:first-child { white-space: nowrap; }
+.chip { padding: 3px 9px !important; margin: 2px 4px 2px 0; font-size: 12px; border-radius: 6px !important; min-width: 30px; }
+.chip.add { background: transparent !important; border-style: dashed !important; color: #8a96c4 !important; }
+.chip.wait { background: #b5832a !important; border-color: #ffe27a !important; color: #fff !important; }

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 120" width="64" height="120">
+<!-- 地面贴图：雪地草皮 + 泥土，可横向无缝平铺 -->
+<defs><linearGradient id="s" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7a6a58"/><stop offset="1" stop-color="#4d4234"/></linearGradient></defs>
+<rect y="12" width="64" height="108" fill="url(#s)"/>
+<rect width="64" height="14" fill="#eaf3fa"/>
+<path d="M0 14 Q8 22 16 14 T32 14 T48 14 T64 14 L64 10 L0 10Z" fill="#cfe2ee"/>
+<rect y="0" width="64" height="4" fill="#fff"/>
+<g fill="#3a3024" opacity=".55"><circle cx="12" cy="44" r="4"/><circle cx="44" cy="70" r="5"/><circle cx="26" cy="96" r="3.5"/><circle cx="56" cy="30" r="3"/></g>
+<g fill="#8f7d68" opacity=".5"><circle cx="30" cy="38" r="2.4"/><circle cx="8" cy="80" r="2.8"/><circle cx="52" cy="104" r="2.6"/></g>
+</svg>

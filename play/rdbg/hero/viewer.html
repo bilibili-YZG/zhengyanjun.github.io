@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>角色动画浏览器</title>
+<link rel="stylesheet" href="css/hero.css">
+<link rel="stylesheet" href="css/viewer.css">
+</head>
+<body>
+<header>
+  <h1>物理老师 · 角色动画浏览器</h1>
+  <p>浏览所有动画 · 查看教鞭判定框 · <a href="world.html">去大地图里走走 →</a> · <a href="../index.html">首页</a></p>
+</header>
+<main>
+  <div id="stage">
+    <div id="hint">← → 切换朝向 · J 教鞭 · L 粉笔<br>1–9 切换动画</div>
+    <div id="floor"></div>
+    <div id="hitbox"></div>
+  </div>
+  <aside>
+    <div class="card">
+      <h2>动画</h2>
+      <div class="grid" id="anims">
+        <button data-a="idle" class="on">待机<kbd>1</kbd></button>
+        <button data-a="walk">行走<kbd>2</kbd></button>
+        <button data-a="run">奔跑<kbd>3</kbd></button>
+        <button data-a="jump">跳跃<kbd>4</kbd></button>
+        <button data-a="djump">二段跳<kbd>5</kbd></button>
+        <button data-a="melee">教鞭攻击<kbd>6</kbd></button>
+        <button data-a="chalk">扔粉笔<kbd>7</kbd></button>
+        <button data-a="slam">俯冲重击<kbd>8</kbd></button>
+        <button data-a="dash">冲刺<kbd>9</kbd></button>
+      </div>
+    </div>
+    <div class="card">
+      <h2>载具（装甲车）</h2>
+      <div class="grid" id="vanims">
+        <button data-a="v_park">停放</button>
+        <button data-a="v_idle">怠速</button>
+        <button data-a="v_drive">行驶</button>
+        <button data-a="v_boost">冲刺</button>
+        <button data-a="v_gun">机枪扫射</button>
+        <button data-a="v_board">上/下车</button>
+      </div>
+    </div>
+    <div class="card">
+      <h2>选项</h2>
+      <div class="grid" style="margin-bottom:6px">
+        <button id="faceL">朝左</button>
+        <button id="faceR" class="on">朝右</button>
+      </div>
+      <label>播放速度 <input id="rate" type="range" min="0.1" max="1.5" step="0.05" value="1"></label>
+      <label>角色大小 <input id="size" type="range" min="0.2" max="0.6" step="0.01" value="0.4"></label>
+      <label>攻击自动循环 <input id="loop" type="checkbox" checked></label>
+      <label>显示判定框 <input id="box" type="checkbox" checked></label>
+    </div>
+    <div class="card">
+      <h2>状态</h2>
+      <div id="readout"></div>
+      <div id="tl"><div id="tlHit"></div><div id="tlBar"></div></div>
+    </div>
+  </aside>
+</main>
+
+<script src="js/audio.js"></script>
+<script src="js/hero.js"></script>
+<script src="js/vehicle.js"></script>
+<script src="js/viewer.js"></script>
+</body>
+</html>

@@ -1,0 +1,84 @@
+/* 动画浏览器页面样式 */
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body {
+  font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif;
+  color: #2b3350;
+  background: radial-gradient(120% 90% at 50% 15%, #f4f7fc 0%, #d5deee 55%, #b9c6de 100%);
+  display: flex;
+  flex-direction: column;
+}
+header { padding: 12px 20px 6px; text-align: center; }
+header h1 { margin: 0; font-size: 18px; letter-spacing: 2px; }
+header p { margin: 2px 0 0; font-size: 12px; color: #5b6684; }
+
+main { flex: 1; min-height: 0; display: flex; gap: 14px; padding: 8px 16px 16px; }
+
+#stage {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  border-radius: 14px;
+  border: 1px solid #aab6d4;
+  background: linear-gradient(#e9eff9 0%, #cfd9ee 70%, #bfcbe4 100%);
+}
+#floor {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 16%;
+  background:
+    repeating-linear-gradient(90deg, rgba(60, 70, 110, .16) 0 2px, transparent 2px 60px),
+    linear-gradient(#9fb0d2, #8497c0);
+  border-top: 2px solid #6f81ad;
+}
+#hitbox {
+  position: absolute;
+  border: 2px dashed rgba(220, 60, 60, .55);
+  background: rgba(220, 60, 60, .08);
+  pointer-events: none;
+  display: none;
+}
+#hitbox.active { border-style: solid; background: rgba(255, 70, 70, .28); }
+#hint { position: absolute; left: 12px; top: 10px; font-size: 12px; color: #4b5678; line-height: 1.7; }
+
+aside {
+  width: 250px;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+}
+.card { background: rgba(255, 255, 255, .72); border: 1px solid #b6c0dc; border-radius: 12px; padding: 12px; }
+.card h2 { margin: 0 0 8px; font-size: 13px; color: #4a3f87; letter-spacing: 1px; }
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+
+button {
+  font: inherit;
+  font-size: 13px;
+  padding: 7px 8px;
+  border-radius: 10px;
+  border: 1px solid #8c9ac0;
+  background: #fff;
+  color: #2b3350;
+  cursor: pointer;
+  transition: .12s;
+}
+button:hover { background: #eef2ff; }
+button.on { background: #5a4a9a; border-color: #5a4a9a; color: #fff; }
+button kbd { opacity: .6; font-size: 11px; margin-left: 4px; }
+
+label { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 13px; margin: 6px 0; }
+label input[type=range] { width: 120px; }
+
+#readout { font: 12px/1.7 Consolas, monospace; color: #3a4466; white-space: pre; }
+#tl { position: relative; height: 12px; border-radius: 6px; background: #d9e0f2; margin-top: 6px; overflow: hidden; }
+#tlHit { position: absolute; top: 0; bottom: 0; background: rgba(230, 70, 70, .45); }
+#tlBar { position: absolute; left: 0; top: 0; bottom: 0; width: 0; background: #5a4a9a; opacity: .75; }
+
+@media (max-width: 760px) {
+  main { flex-direction: column; }
+  aside { width: auto; flex-direction: row; flex-wrap: wrap; }
+  .card { flex: 1 1 220px; }
+}

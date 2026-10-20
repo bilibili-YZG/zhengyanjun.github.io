@@ -1,0 +1,98 @@
+/* 大地图页面样式。游戏画面固定为 1280×720 的逻辑尺寸，由 world.js 整体缩放以适应窗口。 */
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; overflow: hidden; background: #0e1424; }
+body { font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif; user-select: none; }
+
+#viewport { position: fixed; inset: 0; }
+#game {
+  position: absolute;
+  left: 0; top: 0;
+  width: 1280px; height: 720px;
+  overflow: hidden;
+  transform-origin: 0 0;
+  background: #cfdcf2;
+}
+
+/* 天空与视差背景（background-position 由 JS 随镜头移动） */
+#sky { position: absolute; inset: 0; background: linear-gradient(#4f6fae 0%, #9db6e0 45%, #e6eefb 75%, #f6f9ff 100%); }
+.par { position: absolute; left: 0; right: 0; background-repeat: repeat-x; }
+#far  { bottom: 100px; height: 360px; background-image: url(../svg/world/bg_far.svg); background-size: 800px 360px; }
+#near { bottom: 100px; height: 300px; background-image: url(../svg/world/bg_near.svg); background-size: 600px 300px; }
+
+/* 世界层：整体随镜头平移 */
+#world { position: absolute; left: 0; top: 0; width: 100%; height: 100%; will-change: transform; }
+#world > * { position: absolute; }
+
+.ground { background: url(../svg/world/ground.svg) repeat-x 0 0 / 64px 120px; }
+.platform { height: 28px; background: url(../svg/world/platform.svg) repeat-x 0 0 / 64px 28px; filter: drop-shadow(0 4px 3px rgba(20, 30, 60, .35)); }
+
+.dummy { width: 90px; height: 130px; background: url(../svg/world/dummy.svg) no-repeat 0 0 / 90px 130px; transform-origin: 50% 100%; }
+.dummy.hit { animation: dhit .28s ease-out; }
+.dummy.down { transform: rotate(82deg) translateY(10px); opacity: .35; transition: transform .35s ease-in, opacity .5s; }
+@keyframes dhit { 0% { transform: rotate(0); filter: brightness(1.8); } 30% { transform: rotate(-9deg); } 65% { transform: rotate(5deg); } 100% { transform: rotate(0); filter: none; } }
+.dummy .pips, .mob .pips { position: absolute; left: 0; right: 0; top: -12px; display: flex; justify-content: center; gap: 4px; }
+.dummy .pips i, .mob .pips i { width: 9px; height: 9px; border-radius: 50%; background: #e0524a; border: 1.5px solid #6a1a16; }
+.dummy .pips i.off, .mob .pips i.off { background: #4a4a58; border-color: #26262e; }
+
+.sign { width: 96px; height: 120px; background: url(../svg/world/signpost.svg) no-repeat 0 0 / 96px 120px; }
+.sign span { position: absolute; left: 9px; top: 11px; width: 78px; height: 36px; display: flex; align-items: center; justify-content: center; text-align: center; font-size: 12px; line-height: 1.15; color: #e9f6fb; font-weight: 700; }
+.flag { width: 100px; height: 220px; background: url(../svg/world/flag.svg) no-repeat 0 0 / 100px 220px; }
+
+.pop { position: absolute; font-weight: 900; font-size: 22px; color: #fff3a8; text-shadow: 0 2px 0 #7a4a10, 0 0 6px #ff9b30; pointer-events: none; animation: pop .7s ease-out forwards; }
+@keyframes pop { from { transform: translateY(0); opacity: 1; } to { transform: translateY(-46px); opacity: 0; } }
+
+/* HUD */
+#hud { position: absolute; inset: 0; pointer-events: none; color: #fff; text-shadow: 0 1px 3px rgba(10, 20, 50, .7); }
+#help { position: absolute; left: 16px; top: 12px; font-size: 13px; line-height: 1.8; background: rgba(14, 22, 48, .45); padding: 8px 12px; border-radius: 10px; }
+#help b { color: #ffe27a; }
+#stats { position: absolute; right: 16px; top: 12px; font-size: 15px; text-align: right; background: rgba(14, 22, 48, .45); padding: 8px 14px; border-radius: 10px; line-height: 1.7; }
+#mini { position: absolute; left: 50%; top: 14px; width: 420px; height: 10px; margin-left: -210px; border-radius: 5px; background: rgba(14, 22, 48, .5); border: 1px solid rgba(255, 255, 255, .35); }
+#mini i { position: absolute; top: 1px; width: 4px; height: 6px; margin-left: -2px; border-radius: 1px; background: #e0524a; }
+#mini i.dead { background: #55556a; }
+#mini b { position: absolute; top: -3px; width: 10px; height: 14px; margin-left: -5px; border-radius: 3px; background: #ffe27a; border: 1px solid #7a5a10; }
+#mini em { position: absolute; top: -4px; right: -4px; width: 4px; height: 16px; background: #fff; border-radius: 2px; }
+#toast { position: absolute; left: 50%; top: 40%; transform: translate(-50%, -50%) scale(.9); font-size: 40px; font-weight: 900; letter-spacing: 6px; color: #fff3a8; text-shadow: 0 3px 0 #7a4a10, 0 0 18px #ff9b30; opacity: 0; transition: .4s; }
+#toast.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+#back { position: fixed; left: calc(50% + 66px); bottom: 10px; z-index: 10; font-size: 12px; color: #dfe7ff; background: rgba(14, 22, 48, .55); padding: 5px 10px; border-radius: 8px; }
+#back a { color: inherit; text-decoration: none; }
+
+/* 冲刺条（两段，按时间恢复）/ 载具提示 */
+#stam { position: absolute; left: 50%; top: 34px; width: 220px; margin-left: -110px; display: flex; gap: 6px; }
+#stam b { flex: 1; height: 10px; border-radius: 5px; background: rgba(14, 22, 48, .5); border: 1px solid rgba(255, 255, 255, .35); overflow: hidden; display: block; }
+#stam b i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #5bb8ff, #b8f0ff); }
+#stam b.full i { box-shadow: 0 0 8px #9fe4ff; }
+#stam b.ping { animation: ping .5s ease-out; }
+@keyframes ping { 0% { transform: scale(1.12, 1.9); filter: brightness(2); } 100% { transform: none; filter: none; } }
+#vhud { position: absolute; left: 50%; top: 52px; transform: translateX(-50%); display: none; font-size: 13px; background: rgba(14, 22, 48, .55); padding: 3px 14px; border-radius: 10px; white-space: nowrap; }
+
+
+/* 血条 / 盾条 */
+#vitals { position: absolute; right: 16px; top: 96px; width: 200px; }
+.vbar { position: relative; height: 16px; margin-bottom: 5px; border-radius: 8px; background: rgba(14, 22, 48, .55); border: 1px solid rgba(255, 255, 255, .35); overflow: hidden; }
+.vbar i { display: block; height: 100%; width: 100%; }
+.vbar.hp i { background: linear-gradient(90deg, #e0524a, #ff8a6a); }
+.vbar.sh i { background: linear-gradient(90deg, #3f8ff0, #8fd8ff); }
+.vbar span { position: absolute; left: 0; right: 0; top: 0; text-align: center; font-size: 11px; line-height: 14px; font-weight: 700; }
+.vbar.hit { animation: vhit .3s; }
+@keyframes vhit { 0% { transform: scale(1.06, 1.5); filter: brightness(1.8); } 100% { transform: none; filter: none; } }
+
+/* 小怪 */
+.mob .mb { position: absolute; left: 0; top: 0; right: 0; bottom: 0; background-repeat: no-repeat; background-position: center bottom; background-size: contain; transform-origin: 50% 100%; }
+.mob-slime .mb { background-image: url(../svg/world/slime.svg); animation: squish .6s ease-in-out infinite alternate; }
+.mob-bat .mb { background-image: url(../svg/world/bat.svg); animation: flap .22s ease-in-out infinite alternate; transform-origin: 50% 50%; }
+.mob-shooter .mb { background-image: url(../svg/world/shooter.svg); }
+.mob-shooter.fire .mb { animation: recoil .25s; }
+@keyframes squish { from { transform: scale(1.06, .9); } to { transform: scale(.94, 1.08); } }
+@keyframes flap { from { transform: scale(1, .88); } to { transform: scale(1, 1.1); } }
+@keyframes recoil { 0% { transform: scale(1.22, .82); } 100% { transform: none; } }
+.mob.hit { animation: dhit .28s ease-out; }
+.mob.down { transform: translateY(14px) rotate(80deg); opacity: .35; transform-origin: 50% 100%; transition: transform .35s ease-in, opacity .5s; }
+.orb { left: 0; top: 0; width: 18px; height: 18px; margin: -9px 0 0 -9px; border-radius: 50%; background: radial-gradient(#fff3c0, #ff5a4a 60%, #a01a2a); box-shadow: 0 0 10px #ff5a4a; pointer-events: none; }
+
+/* 道具 */
+.pickup { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 18px; color: #fff; border: 2px solid #fff; text-shadow: 0 1px 2px rgba(0, 0, 0, .5); animation: pbob 1s ease-in-out infinite; box-shadow: 0 0 12px rgba(255, 255, 255, .7); }
+.pickup.heal { background: radial-gradient(#ff9a9a, #d63a3a); }
+.pickup.shield { background: radial-gradient(#9ad8ff, #2f7fd6); font-size: 15px; }
+@keyframes pbob { 0%, 100% { margin-top: 0; } 50% { margin-top: -7px; } }
+.pop.red { color: #ffb0b0; text-shadow: 0 2px 0 #5a0f0f, 0 0 6px #ff3030; }
+.pop.green { color: #c8ffc8; text-shadow: 0 2px 0 #0f4a1a, 0 0 6px #30ff60; }

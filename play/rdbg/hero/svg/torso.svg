@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" stroke-linejoin="round" stroke-linecap="round" viewBox="150 200 180 260" width="180" height="260">
+<defs><linearGradient id="gShirt" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8a3a8c"/><stop offset=".55" stop-color="#65246f"/><stop offset="1" stop-color="#43164f"/></linearGradient></defs>
+<path d="M180 410 L300 410 L304 444 Q240 452 176 444Z" fill="#aab4d4" stroke="#6f7aa0" stroke-width="1.4"/>
+<path d="M180 436 L300 436 L300 452 L180 452Z" fill="#232338" stroke="#0d0d18" stroke-width="1.4"/>
+<rect x="228" y="437" width="24" height="14" rx="2" fill="#b8bcc8" stroke="#555a68" stroke-width="1.2"/>
+<path d="M174 226 Q240 206 306 226 L316 300 Q324 360 306 428 Q240 440 174 428 Q156 360 164 300Z" fill="url(#gShirt)" stroke="#2c0d38" stroke-width="2"/>
+<path d="M196 262 Q214 290 208 330 M262 252 Q280 290 270 340 M220 360 Q240 372 262 366 M188 330 Q204 346 200 380" fill="none" stroke="#2c0d38" stroke-width="2.4" opacity=".5"/>
+<path d="M200 250 Q216 270 214 306 M254 300 Q270 316 268 350 M196 366 Q212 380 214 400" fill="none" stroke="#b86ac0" stroke-width="2.2" opacity=".45"/>
+<path d="M240 240 L240 430" stroke="#2c0d38" stroke-width="1.6" opacity=".7"/>
+<g fill="#d9c9e6" stroke="#2c0d38" stroke-width="1"><circle cx="240" cy="270" r="3"/><circle cx="240" cy="310" r="3"/><circle cx="240" cy="350" r="3"/><circle cx="240" cy="390" r="3"/></g>
+<path d="M214 212 L240 246 L266 212 L258 206 L240 226 L222 206Z" fill="#cfa07f"/>
+<path d="M208 208 L240 252 L232 258 L202 218Z" fill="#7d86b8" stroke="#3a4274" stroke-width="1.4"/>
+<path d="M272 208 L240 252 L248 258 L278 218Z" fill="#8f98c8" stroke="#3a4274" stroke-width="1.4"/>
+</svg>

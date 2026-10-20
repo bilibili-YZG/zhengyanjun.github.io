@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>角色动画 · 偏写实动漫风</title>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font-family:"Noto Sans SC","Microsoft YaHei",sans-serif;background:radial-gradient(120% 90% at 50% 20%,#f4f7fc 0%,#d5deee 55%,#b9c6de 100%);color:#2b3350;display:flex;flex-direction:column;align-items:center}
+h1{font-size:18px;margin:14px 0 2px;letter-spacing:2px}
+p.sub{margin:0 0 8px;font-size:12px;color:#5b6684}
+#stage{flex:1;min-height:0;width:min(96vw,640px);display:flex;justify-content:center}
+svg{height:100%;max-height:86vh;width:auto;overflow:visible}
+.bar{display:flex;gap:8px;margin:6px 0 16px;flex-wrap:wrap;justify-content:center}
+button{font:inherit;font-size:14px;padding:7px 18px;border-radius:20px;border:1px solid #8c9ac0;background:#fff;color:#2b3350;cursor:pointer;transition:.15s}
+button:hover{background:#eef2ff}
+button.on{background:#5a4a9a;border-color:#5a4a9a;color:#fff}
+</style>
+</head>
+<body>
+<h1>物理老师 · 角色动画</h1>
+<p class="sub">眼睛会跟随鼠标 · 点按钮切换动作</p>
+<div id="stage">
+<svg id="svg" viewBox="-50 0 580 820" xmlns="http://www.w3.org/2000/svg">
+<defs>
+ <linearGradient id="gShirt" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8a3a8c"/><stop offset=".55" stop-color="#65246f"/><stop offset="1" stop-color="#43164f"/></linearGradient>
+ <linearGradient id="gSleeve" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#7b3180"/><stop offset=".5" stop-color="#5f2268"/><stop offset="1" stop-color="#43164f"/></linearGradient>
+ <linearGradient id="gPants" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#34406a"/><stop offset=".5" stop-color="#202a4c"/><stop offset="1" stop-color="#121830"/></linearGradient>
+ <radialGradient id="gSkin" cx=".42" cy=".38" r=".75"><stop offset="0" stop-color="#fbdcc2"/><stop offset=".7" stop-color="#efc09f"/><stop offset="1" stop-color="#dba27f"/></radialGradient>
+ <linearGradient id="gNeck" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c98d6c"/><stop offset=".5" stop-color="#e3ae8a"/><stop offset="1" stop-color="#eebd9a"/></linearGradient>
+ <linearGradient id="gHair" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3a3050"/><stop offset=".5" stop-color="#1b1428"/><stop offset="1" stop-color="#0b0812"/></linearGradient>
+ <linearGradient id="gShoe" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4a4f5c"/><stop offset="1" stop-color="#1c1f27"/></linearGradient>
+ <radialGradient id="gIris" cx=".4" cy=".35" r=".8"><stop offset="0" stop-color="#8a5a3a"/><stop offset=".55" stop-color="#3a2216"/><stop offset="1" stop-color="#150b06"/></radialGradient>
+ <radialGradient id="gShadow"><stop offset="0" stop-color="#1b2140" stop-opacity=".45"/><stop offset="1" stop-color="#1b2140" stop-opacity="0"/></radialGradient>
+ <clipPath id="clipEL"><path d="M194 134 Q212 119 230 134 Q212 144 194 134Z"/></clipPath>
+ <clipPath id="clipER"><path d="M250 134 Q268 119 286 134 Q268 144 250 134Z"/></clipPath>
+</defs>
+
+<ellipse id="shadow" cx="240" cy="792" rx="90" ry="14" fill="url(#gShadow)"/>
+
+<g id="figure" stroke-linejoin="round" stroke-linecap="round">
+
+ <!-- ===== 腿 ===== -->
+ <g id="legL" transform="translate(214 446)">
+  <path d="M-27 -6 Q-30 70 -23 150 L23 150 Q27 70 27 -6Z" fill="url(#gPants)" stroke="#0b1022" stroke-width="1.6"/>
+  <path d="M-8 20 Q-14 80 -10 140 M10 10 Q14 70 12 130" fill="none" stroke="#0e1430" stroke-width="2" opacity=".55"/>
+  <path d="M-18 40 Q-10 44 -4 58" fill="none" stroke="#5a6794" stroke-width="1.6" opacity=".6"/>
+  <g id="shinL" transform="translate(0 150)">
+   <circle r="23" cy="0" fill="url(#gPants)"/>
+   <path d="M-23 0 Q-20 70 -17 138 L17 138 Q20 70 23 0Z" fill="url(#gPants)" stroke="#0b1022" stroke-width="1.6"/>
+   <path d="M-17 138 Q-20 132 -17 128 L17 128 L18 138Z" fill="#2c3454"/>
+   <path d="M-19 132 L19 132 L22 152 Q38 158 38 170 L38 176 L-34 176 Q-32 160 -19 150Z" fill="url(#gShoe)" stroke="#0b0d12" stroke-width="1.8"/>
+   <path d="M-34 168 L38 168 L38 176 L-34 176Z" fill="#e8eaf0" stroke="#0b0d12" stroke-width="1.4"/>
+   <path d="M-14 146 Q-2 140 12 148" fill="none" stroke="#8d93a3" stroke-width="2"/>
+  </g>
+ </g>
+ <g id="legR" transform="translate(266 446)">
+  <path d="M-27 -6 Q-27 70 -23 150 L23 150 Q30 70 27 -6Z" fill="url(#gPants)" stroke="#0b1022" stroke-width="1.6"/>
+  <path d="M-10 14 Q-14 80 -10 140 M8 20 Q12 70 10 130" fill="none" stroke="#0e1430" stroke-width="2" opacity=".55"/>
+  <g id="shinR" transform="translate(0 150)">
+   <circle r="23" fill="url(#gPants)"/>
+   <path d="M-23 0 Q-20 70 -17 138 L17 138 Q20 70 23 0Z" fill="url(#gPants)" stroke="#0b1022" stroke-width="1.6"/>
+   <path d="M-17 138 Q-20 132 -17 128 L17 128 L18 138Z" fill="#2c3454"/>
+   <path d="M-19 132 L19 132 L22 152 Q38 158 38 170 L38 176 L-34 176 Q-32 160 -19 150Z" fill="url(#gShoe)" stroke="#0b0d12" stroke-width="1.8"/>
+   <path d="M-34 168 L38 168 L38 176 L-34 176Z" fill="#e8eaf0" stroke="#0b0d12" stroke-width="1.4"/>
+   <path d="M-14 146 Q-2 140 12 148" fill="none" stroke="#8d93a3" stroke-width="2"/>
+  </g>
+ </g>
+
+ <!-- ===== 躯干（含手臂、头）===== -->
+ <g id="torso">
+  <!-- 衬衫下摆里的浅蓝内搭 -->
+  <path d="M180 410 L300 410 L304 444 Q240 452 176 444Z" fill="#aab4d4" stroke="#6f7aa0" stroke-width="1.4"/>
+  <!-- 皮带 -->
+  <path d="M180 436 L300 436 L300 452 L180 452Z" fill="#232338" stroke="#0d0d18" stroke-width="1.4"/>
+  <rect x="228" y="437" width="24" height="14" rx="2" fill="#b8bcc8" stroke="#555a68" stroke-width="1.2"/>
+  <!-- 衬衫 -->
+  <path d="M174 226 Q240 206 306 226 L316 300 Q324 360 306 428 Q240 440 174 428 Q156 360 164 300Z" fill="url(#gShirt)" stroke="#2c0d38" stroke-width="2"/>
+  <!-- 衬衫褶皱 / 受光 -->
+  <path d="M196 262 Q214 290 208 330 M262 252 Q280 290 270 340 M220 360 Q240 372 262 366 M188 330 Q204 346 200 380" fill="none" stroke="#2c0d38" stroke-width="2.4" opacity=".5"/>
+  <path d="M200 250 Q216 270 214 306 M254 300 Q270 316 268 350 M196 366 Q212 380 214 400" fill="none" stroke="#b86ac0" stroke-width="2.2" opacity=".45"/>
+  <!-- 门襟与纽扣 -->
+  <path d="M240 240 L240 430" stroke="#2c0d38" stroke-width="1.6" opacity=".7"/>
+  <g fill="#d9c9e6" stroke="#2c0d38" stroke-width="1"><circle cx="240" cy="270" r="3"/><circle cx="240" cy="310" r="3"/><circle cx="240" cy="350" r="3"/><circle cx="240" cy="390" r="3"/></g>
+  <!-- 领口 -->
+  <path d="M214 212 L240 246 L266 212 L258 206 L240 226 L222 206Z" fill="#cfa07f"/>
+  <path d="M208 208 L240 252 L232 258 L202 218Z" fill="#7d86b8" stroke="#3a4274" stroke-width="1.4"/>
+  <path d="M272 208 L240 252 L248 258 L278 218Z" fill="#8f98c8" stroke="#3a4274" stroke-width="1.4"/>
+
+  <!-- 手臂（视角左：举起比 V） -->
+  <g id="armL" transform="translate(176 236)">
+   <circle r="19" fill="url(#gSleeve)" stroke="#2c0d38" stroke-width="1.8"/>
+   <path d="M-18 -2 Q-20 44 -15 90 L15 90 Q20 44 18 -2Z" fill="url(#gSleeve)" stroke="#2c0d38" stroke-width="1.8"/>
+   <path d="M-6 20 Q-9 50 -4 80" fill="none" stroke="#2c0d38" stroke-width="2" opacity=".45"/>
+   <g id="foreL" transform="translate(0 88)">
+    <circle r="15" fill="url(#gSleeve)" stroke="#2c0d38" stroke-width="1.8"/>
+    <path d="M-15 0 Q-15 34 -12 66 L12 66 Q15 34 15 0Z" fill="url(#gSleeve)" stroke="#2c0d38" stroke-width="1.8"/>
+    <rect x="-13" y="62" width="26" height="8" rx="2" fill="#9a5aa6" stroke="#2c0d38" stroke-width="1.4"/>
+    <path d="M-8 70 L8 70 L7 82 L-7 82Z" fill="#e8b895" stroke="#7a4a36" stroke-width="1.4"/>
+    <g id="handL" transform="translate(0 80)"></g>
+   </g>
+  </g>
+  <!-- 手臂（视角右：伸展，戴表） -->
+  <g id="armR" transform="translate(304 236)">
+   <circle r="19" fill="url(#gSleeve)" stroke="#2c0d38" stroke-width="1.8"/>
+   <path d="M-18 -2 Q-20 44 -15 90 L15 90 Q20 44 18 -2Z" fill="url(#gSleeve)" stroke="#2c0d38" stroke-width="1.8"/>
+   <path d="M6 20 Q9 50 4 80" fill="none" stroke="#2c0d38" stroke-width="2" opacity=".45"/>
+   <g id="foreR" transform="translate(0 88)">
+    <circle r="15" fill="url(#gSleeve)" stroke="#2c0d38" stroke-width="1.8"/>
+    <path d="M-15 0 Q-15 34 -12 66 L12 66 Q15 34 15 0Z" fill="url(#gSleeve)" stroke="#2c0d38" stroke-width="1.8"/>
+    <rect x="-13" y="62" width="26" height="8" rx="2" fill="#9a5aa6" stroke="#2c0d38" stroke-width="1.4"/>
+    <path d="M-8 70 L8 70 L7 82 L-7 82Z" fill="#e8b895" stroke="#7a4a36" stroke-width="1.4"/>
+    <!-- 手表 -->
+    <rect x="-9" y="71" width="18" height="6" rx="1.5" fill="#3b3b44" stroke="#15151a" stroke-width="1"/>
+    <circle cx="0" cy="74" r="4.4" fill="#d5d9e0" stroke="#4a4f5c" stroke-width="1.2"/>
+    <path d="M0 74 L0 71.5 M0 74 L2 75" stroke="#333" stroke-width=".8"/>
+    <g id="handR" transform="translate(0 80)"></g>
+   </g>
+  </g>
+
+  <!-- ===== 头 ===== -->
+  <g id="head" transform="translate(240 205)">
+   <g transform="translate(-240 -205)">
+    <!-- 脖子 -->
+    <path d="M221 182 L221 222 Q240 232 259 222 L259 182Z" fill="url(#gNeck)" stroke="#9a5f45" stroke-width="1.4"/>
+    <path d="M221 196 Q240 212 259 196 L259 188 Q240 204 221 188Z" fill="#b87a5c" opacity=".55"/>
+    <!-- 耳朵 -->
+    <path d="M171 126 Q158 128 160 146 Q162 160 174 158Z" fill="#eebb98" stroke="#9a5f45" stroke-width="1.6"/>
+    <path d="M309 126 Q322 128 320 146 Q318 160 306 158Z" fill="#eebb98" stroke="#9a5f45" stroke-width="1.6"/>
+    <path d="M166 136 Q168 148 172 150 M314 136 Q312 148 308 150" fill="none" stroke="#c98d6c" stroke-width="1.6"/>
+    <!-- 脸 -->
+    <path d="M170 128 C170 82 200 58 240 58 C280 58 310 82 310 128 C310 168 284 198 240 202 C196 198 170 168 170 128Z" fill="url(#gSkin)" stroke="#9a5f45" stroke-width="1.8"/>
+    <!-- 下颌阴影与脸颊 -->
+    <path d="M182 160 Q200 192 240 198 Q280 192 298 160 Q284 186 240 190 Q196 186 182 160Z" fill="#c98d6c" opacity=".4"/>
+    <ellipse cx="196" cy="162" rx="14" ry="9" fill="#ff8f7a" opacity=".22"/>
+    <ellipse cx="284" cy="162" rx="14" ry="9" fill="#ff8f7a" opacity=".22"/>
+
+    <!-- 眉毛 -->
+    <path d="M194 113 Q210 103 230 111" fill="none" stroke="#1a1220" stroke-width="4.6"/>
+    <path d="M250 111 Q270 103 286 113" fill="none" stroke="#1a1220" stroke-width="4.6"/>
+
+    <!-- 眼睛 -->
+    <g id="eyeL"><g class="eyeInner">
+     <path d="M194 134 Q212 119 230 134 Q212 144 194 134Z" fill="#fff"/>
+     <g clip-path="url(#clipEL)"><g id="irisL"><circle cx="212" cy="133.5" r="7.2" fill="url(#gIris)"/><circle cx="212" cy="133.5" r="3.2" fill="#0a0504"/><circle cx="214.6" cy="130.6" r="2" fill="#fff"/><circle cx="209.8" cy="136" r="1" fill="#fff" opacity=".7"/></g>
+     <path d="M194 134 Q212 119 230 134 L230 126 L194 126Z" fill="#000" opacity=".18"/></g>
+     <path d="M192 135 Q212 117 232 135" fill="none" stroke="#150c14" stroke-width="3.4"/>
+     <path d="M196 138 Q212 146 228 137" fill="none" stroke="#b97a60" stroke-width="1.2" opacity=".8"/>
+    </g></g>
+    <g id="eyeR"><g class="eyeInner">
+     <path d="M250 134 Q268 119 286 134 Q268 144 250 134Z" fill="#fff"/>
+     <g clip-path="url(#clipER)"><g id="irisR"><circle cx="268" cy="133.5" r="7.2" fill="url(#gIris)"/><circle cx="268" cy="133.5" r="3.2" fill="#0a0504"/><circle cx="270.6" cy="130.6" r="2" fill="#fff"/><circle cx="265.8" cy="136" r="1" fill="#fff" opacity=".7"/></g>
+     <path d="M250 134 Q268 119 286 134 L286 126 L250 126Z" fill="#000" opacity=".18"/></g>
+     <path d="M248 135 Q268 117 288 135" fill="none" stroke="#150c14" stroke-width="3.4"/>
+     <path d="M252 137 Q268 146 284 138" fill="none" stroke="#b97a60" stroke-width="1.2" opacity=".8"/>
+    </g></g>
+
+    <!-- 眼镜（细金属框） -->
+    <g fill="#cfe8ff" fill-opacity=".1" stroke="#b7a780" stroke-width="1.8">
+     <rect x="188" y="116" width="48" height="36" rx="13"/>
+     <rect x="244" y="116" width="48" height="36" rx="13"/>
+    </g>
+    <path d="M236 126 Q240 122 244 126" fill="none" stroke="#b7a780" stroke-width="1.8"/>
+    <path d="M188 128 L170 128 M292 128 L310 128" stroke="#b7a780" stroke-width="1.6"/>
+    <path d="M196 122 L206 122 M252 122 L262 122" stroke="#fff" stroke-width="2.4" opacity=".55"/>
+    <path d="M200 148 L214 134 M256 148 L270 134" stroke="#fff" stroke-width="1" opacity=".3"/>
+
+    <!-- 鼻子 -->
+    <path d="M241 138 Q244 156 250 160 Q240 166 230 160 Q236 156 238 142" fill="#e7b392" opacity=".55"/>
+    <path d="M232 160 Q240 165 248 160" fill="none" stroke="#a8644a" stroke-width="1.8"/>
+    <path d="M236 150 Q238 156 235 159" fill="none" stroke="#c98d6c" stroke-width="1.4"/>
+
+    <!-- 嘴：自然微笑，露一点牙 -->
+    <path d="M222 172 Q240 186 258 172 Q240 196 222 172Z" fill="#7a2c32" stroke="#6a2a2c" stroke-width="1.6"/>
+    <path d="M227 174 Q240 181 253 174 Q240 180 227 174 L228 177 Q240 183 252 177Z" fill="#fff"/>
+    <path d="M222 172 Q216 170 214 166 M258 172 Q264 170 266 166" fill="none" stroke="#b97a60" stroke-width="1.6"/>
+
+    <!-- 头发（短发，侧分） -->
+    <g id="hair">
+     <path d="M166 136 C156 74 196 32 246 34 C298 36 330 80 314 136 C312 120 306 106 296 96 C270 104 216 104 188 94 C176 106 168 122 166 136Z" fill="url(#gHair)" stroke="#07040c" stroke-width="1.8"/>
+     <g id="bangs">
+      <path d="M184 98 C202 58 254 48 304 92 C272 78 234 84 206 108 C198 108 190 104 184 98Z" fill="#241a36" stroke="#07040c" stroke-width="1.4"/>
+      <path d="M196 90 C214 66 252 60 286 80" fill="none" stroke="#6b5a96" stroke-width="2.4" opacity=".75"/>
+      <path d="M204 84 C222 72 250 70 272 78" fill="none" stroke="#8b7ab8" stroke-width="1.6" opacity=".6"/>
+      <path d="M176 112 C178 98 184 90 192 86 M300 104 C306 96 310 90 312 84" fill="none" stroke="#6b5a96" stroke-width="1.6" opacity=".55"/>
+     </g>
+    </g>
+   </g>
+  </g>
+ </g>
+</g>
+</svg>
+</div>
+
+<div class="bar" id="bar">
+ <button data-m="peace" class="on">比耶</button>
+ <button data-m="wave">挥手</button>
+ <button data-m="walk">行走</button>
+ <button data-m="stand">站立</button>
+</div>
+
+<script>
+(function(){
+var $=function(id){return document.getElementById(id)};
+var SKIN='#f0c4a0',LINE='#7a4a36';
+
+/* ---------- 手：朝 +y 方向绘制；sx=-1 时水平镜像 ---------- */
+function stroke(x1,y1,x2,y2,w){
+ return '<line x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'" stroke="'+LINE+'" stroke-width="'+(w+2.6)+'"/>'+
+        '<line x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'" stroke="'+SKIN+'" stroke-width="'+w+'"/>'}
+var PALM='<ellipse cx="0" cy="12" rx="12.5" ry="13.5" fill="'+SKIN+'" stroke="'+LINE+'" stroke-width="1.6"/>';
+var HANDS={
+ v:PALM+stroke(-5,20,-16,52,7)+stroke(4,20,14,53,7)+
+   '<ellipse cx="9" cy="25" rx="6" ry="7.5" fill="'+SKIN+'" stroke="'+LINE+'" stroke-width="1.4"/>'+
+   stroke(-10,14,2,31,6.5)+'<path d="M-13 50 L-17 54 M12 51 L15 56" stroke="#fff" stroke-width="0"/>',
+ open:PALM+stroke(-9,20,-15,46,6.5)+stroke(-3,22,-3,50,6.5)+stroke(4,21,9,48,6.5)+stroke(9,17,18,38,6)+stroke(-10,8,-24,26,7),
+ relaxed:PALM+'<ellipse cx="0" cy="26" rx="11" ry="8.5" fill="'+SKIN+'" stroke="'+LINE+'" stroke-width="1.5"/>'+
+   '<path d="M-4 20 L-4 31 M3 20 L3 31" stroke="'+LINE+'" stroke-width="1.1" opacity=".7"/>'+
+   '<ellipse cx="-9" cy="21" rx="4.4" ry="7" fill="'+SKIN+'" stroke="'+LINE+'" stroke-width="1.4"/>'};
+function setHand(el,type,sx){el.setAttribute('transform','translate(0 80) scale('+sx+' 1)');el.innerHTML=HANDS[type]}
+var handType={L:'v',R:'v'};
+function applyHands(L,R){if(handType.L!==L){handType.L=L;setHand($('handL'),L,1)}if(handType.R!==R){handType.R=R;setHand($('handR'),R,-1)}}
+setHand($('handL'),'v',1);setHand($('handR'),'v',-1);
+
+/* ---------- 动作：返回各关节目标角度（度） ---------- */
+var mode='peace';
+function pose(t){
+ var s=Math.sin,p={};
+ if(mode==='peace'){ // 参考图：一手举起比耶，一手伸出比耶，身体微悬空
+  p.lUp=125+s(t*2.2)*3;p.lFore=45+s(t*3.1)*6;p.rUp=-66+s(t*2+1)*3;p.rFore=-9+s(t*2.7)*6;
+  p.lT=5+s(t*2)*2;p.lS=-6+s(t*2.4)*3;p.rT=-7+s(t*2+1)*2;p.rS=16+s(t*2.2)*4;
+  p.bob=-12+s(t*2)*-5;p.lean=s(t*1.5)*1.2;p.tilt=-6+s(t*1.3)*2;p.hl='v';p.hr='v'}
+ else if(mode==='wave'){
+  p.lUp=142;p.lFore=18+s(t*8)*24;p.rUp=-7;p.rFore=12;
+  p.lT=2;p.lS=-2;p.rT=-2;p.rS=3;p.bob=s(t*1.8)*-2;p.lean=s(t*1.6)*1;p.tilt=4+s(t*1.3)*2;p.hl='open';p.hr='relaxed'}
+ else if(mode==='walk'){
+  var ph=t*5.2,a=s(ph),b=s(ph+Math.PI);
+  p.lUp=7-a*28;p.lFore=-14-Math.max(0,a)*22;p.rUp=-7-b*28;p.rFore=14+Math.max(0,b)*22;
+  p.lT=a*30;p.lS=Math.max(0,-s(ph+1.2))*38;p.rT=b*30;p.rS=Math.max(0,-s(ph+Math.PI+1.2))*38;
+  p.bob=-Math.abs(s(ph))*7;p.lean=a*2;p.tilt=s(ph*.5)*2;p.hl='relaxed';p.hr='relaxed'}
+ else{ // stand
+  p.lUp=8+s(t*1.6)*1.5;p.lFore=-14;p.rUp=-8-s(t*1.6)*1.5;p.rFore=14;
+  p.lT=1;p.lS=0;p.rT=-1;p.rS=0;p.bob=s(t*1.6)*-1.5;p.lean=s(t*.9)*.8;p.tilt=s(t*.8)*1.5;p.hl='relaxed';p.hr='relaxed'}
+ return p}
+
+var K=['lUp','lFore','rUp','rFore','lT','lS','rT','rS','bob','lean','tilt'];
+var cur={};K.forEach(function(n){cur[n]=pose(0)[n]});
+
+/* ---------- 眨眼 + 眼神跟随 ---------- */
+var blink=0,nextBlink=1.5,mx=0,my=0;
+window.addEventListener('pointermove',function(e){
+ var r=$('head').getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height*.1;
+ var dx=e.clientX-cx,dy=e.clientY-cy,d=Math.hypot(dx,dy)||1,k=Math.min(1,d/300);
+ mx=dx/d*k*3;my=dy/d*k*2});
+function eyes(t,dt){
+ nextBlink-=dt;if(nextBlink<=0){blink=.16;nextBlink=2+Math.random()*3.5}
+ var sy=1;if(blink>0){blink-=dt;var u=blink/.16;sy=Math.max(.08,Math.abs(u*2-1))}
+ ['eyeL','eyeR'].forEach(function(id){$(id).firstElementChild.setAttribute('transform','translate(0 134) scale(1 '+sy+') translate(0 -134)')});
+ $('irisL').setAttribute('transform','translate('+mx+' '+my+')');$('irisR').setAttribute('transform','translate('+mx+' '+my+')')}
+
+/* ---------- 主循环 ---------- */
+var last=performance.now(),T=0;
+function frame(now){
+ var dt=Math.min(.05,(now-last)/1000);last=now;T+=dt;
+ var tg=pose(T),k=1-Math.exp(-dt*9);
+ K.forEach(function(n){cur[n]+=(tg[n]-cur[n])*k});
+ applyHands(tg.hl,tg.hr);
+ $('armL').setAttribute('transform','translate(176 236) rotate('+cur.lUp+')');
+ $('foreL').setAttribute('transform','translate(0 88) rotate('+cur.lFore+')');
+ $('armR').setAttribute('transform','translate(304 236) rotate('+cur.rUp+')');
+ $('foreR').setAttribute('transform','translate(0 88) rotate('+cur.rFore+')');
+ $('legL').setAttribute('transform','translate(214 446) rotate('+cur.lT+')');
+ $('shinL').setAttribute('transform','translate(0 150) rotate('+cur.lS+')');
+ $('legR').setAttribute('transform','translate(266 446) rotate('+cur.rT+')');
+ $('shinR').setAttribute('transform','translate(0 150) rotate('+cur.rS+')');
+ $('torso').setAttribute('transform','rotate('+cur.lean+' 240 440)');
+ $('head').setAttribute('transform','translate(240 205) rotate('+cur.tilt+')');
+ $('figure').setAttribute('transform','translate(0 '+cur.bob+')');
+ $('bangs').setAttribute('transform','rotate('+(Math.sin(T*2.1)*1.1)+' 240 70)');
+ var h=Math.max(0,-cur.bob),sh=$('shadow');
+ sh.setAttribute('rx',92-h*1.1);sh.setAttribute('ry',14-h*.12);sh.setAttribute('opacity',Math.max(.35,1-h*.025));
+ eyes(T,dt);
+ requestAnimationFrame(frame)}
+requestAnimationFrame(frame);
+
+$('bar').addEventListener('click',function(e){
+ var b=e.target.closest('button');if(!b)return;mode=b.dataset.m;
+ Array.prototype.forEach.call($('bar').children,function(x){x.classList.toggle('on',x===b)})});
+})();
+</script>
+</body>
+</html>

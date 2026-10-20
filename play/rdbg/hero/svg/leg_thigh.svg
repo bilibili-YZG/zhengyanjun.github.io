@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" stroke-linejoin="round" stroke-linecap="round" viewBox="-31 -30 62 182" width="62" height="182">
+<defs><linearGradient id="gPants" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#34406a"/><stop offset=".5" stop-color="#202a4c"/><stop offset="1" stop-color="#121830"/></linearGradient></defs>
+<circle cx="0" cy="0" r="27" fill="url(#gPants)" stroke="#0b1022" stroke-width="1.6"/>
+<path d="M-27 -6 Q-30 70 -23 150 L23 150 Q27 70 27 -6Z" fill="url(#gPants)" stroke="#0b1022" stroke-width="1.6"/>
+<path d="M-8 20 Q-14 80 -10 140 M10 10 Q14 70 12 130" fill="none" stroke="#0e1430" stroke-width="2" opacity=".55"/>
+<path d="M-18 40 Q-10 44 -4 58" fill="none" stroke="#5a6794" stroke-width="1.6" opacity=".6"/>
+</svg>

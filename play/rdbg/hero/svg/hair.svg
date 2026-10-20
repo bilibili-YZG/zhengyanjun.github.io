@@ -1,0 +1,4 @@
+<svg xmlns="http://www.w3.org/2000/svg" stroke-linejoin="round" stroke-linecap="round" viewBox="150 28 180 125" width="180" height="125">
+<defs><linearGradient id="gHair" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3a3050"/><stop offset=".5" stop-color="#1b1428"/><stop offset="1" stop-color="#0b0812"/></linearGradient></defs>
+<path d="M166 136 C156 74 196 32 246 34 C298 36 330 80 314 136 C312 120 306 106 296 96 C270 104 216 104 188 94 C176 106 168 122 166 136Z" fill="url(#gHair)" stroke="#07040c" stroke-width="1.8"/>
+</svg>

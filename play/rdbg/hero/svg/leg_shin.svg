@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" stroke-linejoin="round" stroke-linecap="round" viewBox="-36 -26 78 206" width="78" height="206">
+<defs>
+<linearGradient id="gPants" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#34406a"/><stop offset=".5" stop-color="#202a4c"/><stop offset="1" stop-color="#121830"/></linearGradient>
+</defs>
+<path d="M-23 0 Q-20 70 -17 138 L17 138 Q20 70 23 0Z" fill="url(#gPants)" stroke="#0b1022" stroke-width="1.6"/>
+<circle r="23" fill="url(#gPants)"/>
+<path d="M-17 138 Q-20 132 -17 128 L17 128 L18 138Z" fill="#2c3454"/>
+</svg>

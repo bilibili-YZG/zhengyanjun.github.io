@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>大地图 · 物理老师</title>
+<link rel="stylesheet" href="css/hero.css">
+<link rel="stylesheet" href="css/world.css">
+<link rel="stylesheet" href="css/controls.css">
+</head>
+<body>
+<div id="viewport">
+  <div id="game">
+    <div id="sky"></div>
+    <div id="far" class="par"></div>
+    <div id="near" class="par"></div>
+    <div id="world"></div>
+    <div id="hud">
+      <div id="help">
+        <b>A / D</b> 或 <b>← →</b> 行走　<b>Shift</b> 奔跑<br>
+        <b>空格 / W</b> 跳跃（空中可再跳一次，松手=小跳）<br><b>↓ + 跳</b> 穿下平台<br>
+        <b>J</b> 教鞭挥击　<b>L</b> 扔粉笔　<b>E</b> 上/下车<br><b>K</b> 冲刺（2 段，按时间恢复）　<b>空中 ↓</b> 俯冲重击
+      </div>
+      <div id="mini"><em></em></div>
+      <div id="stam"><b><i></i></b><b><i></i></b></div>
+      <div id="vhud"></div>
+      <div id="vitals"><div class="vbar hp" id="hpwrap"><i id="hpbar"></i><span id="hptxt"></span></div><div class="vbar sh"><i id="shbar"></i><span id="shtxt"></span></div></div>
+      <div id="stats"><span id="dist">0 m</span><br>击倒 <span id="ko">0</span> / <span id="total">0</span></div>
+      <div id="toast"></div>
+    </div>
+  </div>
+</div>
+<div id="back"><a href="viewer.html">← 动画浏览器</a> · <a href="../index.html">首页</a></div>
+
+<script src="js/hero.js"></script>
+<script src="js/map.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/controls.js"></script>
+<script src="js/vehicle.js"></script>
+<script src="js/world.js"></script>
+</body>
+</html>

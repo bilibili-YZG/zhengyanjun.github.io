@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 300" width="600" height="300" preserveAspectRatio="none">
+<!-- 近景：松树与小丘剪影，可横向无缝平铺 -->
+<defs><linearGradient id="h" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5a6f9a"/><stop offset="1" stop-color="#46598a"/></linearGradient></defs>
+<path d="M0 300 L0 250 Q150 215 300 240 Q450 262 600 250 L600 300Z" fill="url(#h)"/>
+<g fill="#3d4f7e">
+<path d="M70 250 L96 170 L122 250Z M82 205 L96 150 L110 205Z"/>
+<path d="M210 244 L242 150 L274 244Z M224 190 L242 128 L260 190Z"/>
+<path d="M410 252 L434 184 L458 252Z M420 214 L434 166 L448 214Z"/>
+<path d="M520 252 L548 176 L576 252Z M532 210 L548 156 L564 210Z"/>
+</g>
+<g fill="#fff" opacity=".55"><path d="M96 150 L86 176 L96 170 L106 178Z M242 128 L230 158 L242 152 L254 160Z M548 156 L538 180 L548 176 L558 182Z"/></g>
+</svg>

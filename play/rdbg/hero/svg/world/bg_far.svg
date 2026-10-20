@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 360" width="800" height="360" preserveAspectRatio="none">
+<!-- 远景：连绵雪山剪影，左右边缘等高，可横向无缝平铺 -->
+<defs>
+<linearGradient id="m1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8a9cc6"/><stop offset="1" stop-color="#b9c6e2"/></linearGradient>
+<linearGradient id="m2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6f82b2"/><stop offset="1" stop-color="#9aaad0"/></linearGradient>
+</defs>
+<path d="M0 360 L0 250 L90 170 L150 215 L250 120 L340 210 L420 160 L520 230 L610 140 L700 205 L760 180 L800 250 L800 360Z" fill="url(#m1)"/>
+<path d="M250 120 L226 150 L250 142 L270 156 L286 138Z M610 140 L588 168 L612 160 L632 172 L646 154Z M90 170 L72 194 L92 188 L110 198Z" fill="#fff" opacity=".7"/>
+<path d="M0 360 L0 285 L120 235 L210 275 L330 215 L450 280 L560 240 L680 285 L800 285 L800 360Z" fill="url(#m2)"/>
+</svg>
