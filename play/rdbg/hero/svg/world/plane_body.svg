@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" stroke-linejoin="round" stroke-linecap="round" viewBox="0 0 200 90" width="200" height="90">
+<defs>
+<linearGradient id="gF" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6c88c6"/><stop offset=".55" stop-color="#3b4f86"/><stop offset="1" stop-color="#253258"/></linearGradient>
+<linearGradient id="gC" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#d8f0ff"/><stop offset="1" stop-color="#6fa6d8"/></linearGradient>
+</defs>
+<!-- 起落架 -->
+<path d="M104 58 L100 74 M122 58 L126 74" stroke="#12172a" stroke-width="3.4" fill="none"/>
+<circle cx="100" cy="74" r="6" fill="#0e1424" stroke="#12172a" stroke-width="2"/><circle cx="126" cy="74" r="6" fill="#0e1424" stroke="#12172a" stroke-width="2"/>
+<path d="M18 48 L14 60" stroke="#12172a" stroke-width="3" fill="none"/><circle cx="14" cy="62" r="3.4" fill="#0e1424" stroke="#12172a" stroke-width="1.6"/>
+<!-- 尾翼 -->
+<path d="M10 42 L4 12 L12 10 L36 36Z" fill="#f2c230" stroke="#12172a" stroke-width="2.2"/>
+<path d="M14 44 L2 52 L8 56 L40 48Z" fill="#3b4f86" stroke="#12172a" stroke-width="2"/>
+<!-- 机身 -->
+<path d="M8 44 Q10 36 30 34 L130 30 Q168 30 184 38 Q192 44 184 52 Q170 60 130 60 L40 58 Q10 56 8 44Z" fill="url(#gF)" stroke="#12172a" stroke-width="2.4"/>
+<path d="M30 48 L170 50" stroke="#f2c230" stroke-width="5" opacity=".9"/>
+<text x="46" y="45" font-size="11" font-weight="900" fill="#ffe27a" font-family="Arial,sans-serif" letter-spacing="2">PHYS-2</text>
+<!-- 座舱 -->
+<path d="M96 32 Q100 14 116 13 Q134 13 142 31Z" fill="url(#gC)" stroke="#12172a" stroke-width="2.2"/>
+<circle cx="116" cy="26" r="6.5" fill="#f4d3b0" stroke="#12172a" stroke-width="1.6"/><path d="M109 24 Q116 17 123 23 L123 25 L109 25Z" fill="#3a2a4a" stroke="#12172a" stroke-width="1.2"/>
+<path d="M118 14 L116 32" stroke="#12172a" stroke-width="1.6" opacity=".55"/>
+<!-- 机翼 -->
+<path d="M84 48 L126 48 L116 66 L72 66Z" fill="#4d66a4" stroke="#12172a" stroke-width="2.2"/>
+<path d="M92 52 L120 52" stroke="#f2c230" stroke-width="3" opacity=".9"/>
+<!-- 机头与整流罩 -->
+<path d="M172 34 Q196 40 196 46 Q196 52 172 58Z" fill="#c9d2e8" stroke="#12172a" stroke-width="2.2"/>
+<circle cx="178" cy="46" r="2.4" fill="#12172a" opacity=".55"/>
+<rect x="152" y="54" width="14" height="4" rx="2" fill="#12172a" opacity=".6"/>
+</svg>

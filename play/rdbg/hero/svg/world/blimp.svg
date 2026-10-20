@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" stroke-linejoin="round" stroke-linecap="round" viewBox="0 0 170 76" width="170" height="76">
+<defs><linearGradient id="gB" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#eef3ff"/><stop offset=".6" stop-color="#a9bbe0"/><stop offset="1" stop-color="#6f86bc"/></linearGradient></defs>
+<path d="M18 34 L2 18 L22 26Z M18 38 L2 54 L22 46Z" fill="#e0524a" stroke="#6a1a16" stroke-width="2.2"/>
+<path d="M22 26 L12 6 L30 24Z" fill="#e0524a" stroke="#6a1a16" stroke-width="2.2"/>
+<ellipse cx="88" cy="36" rx="76" ry="30" fill="url(#gB)" stroke="#2a3860" stroke-width="2.6"/>
+<path d="M30 28 Q88 14 146 28" stroke="#2a3860" stroke-width="1.6" fill="none" opacity=".35"/>
+<path d="M30 46 Q88 58 146 46" stroke="#2a3860" stroke-width="1.6" fill="none" opacity=".35"/>
+<text x="88" y="42" text-anchor="middle" font-size="16" font-weight="900" fill="#e0524a" font-family="Arial,sans-serif" letter-spacing="3">PHYS</text>
+<circle cx="132" cy="36" r="13" fill="#fff3e0" stroke="#2a3860" stroke-width="1.6" opacity=".9"/><circle cx="132" cy="36" r="8" fill="#e0524a"/><circle cx="132" cy="36" r="3.4" fill="#fff3e0"/>
+<path d="M74 62 L74 66 M102 62 L102 66" stroke="#2a3860" stroke-width="2.4"/>
+<rect x="68" y="66" width="40" height="9" rx="4" fill="#4a5578" stroke="#12172a" stroke-width="2"/>
+<g fill="#cfeaff"><rect x="75" y="68.5" width="6" height="4" rx="1"/><rect x="85" y="68.5" width="6" height="4" rx="1"/><rect x="95" y="68.5" width="6" height="4" rx="1"/></g>
+</svg>
