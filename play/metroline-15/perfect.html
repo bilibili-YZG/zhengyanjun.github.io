@@ -7,7 +7,9 @@
 ['data/defs','data/level-builder','data/dlc-kit'].forEach(function(s){document.write('<script src="js/'+s+'.js"><\/script>')});
 ['c1','c2','c3','c4'].forEach(function(c){for(var i=1;i<=6;i++)document.write('<script src="js/levels/'+c+'-0'+i+'.js"><\/script>')});
 [4,4,4].forEach(function(n,c){for(var i=1;i<=n;i++)document.write('<script src="js/levels/d'+(c+1)+'-0'+i+'.js"><\/script>')});
-['data/campaign','data/dlc-campaign','dlc-registry','data/codex'].forEach(function(s){document.write('<script src="js/'+s+'.js"><\/script>')});
+['data/metro-kit'].forEach(function(s){document.write('<script src="js/'+s+'.js"><\/script>')});
+for(var i=1;i<=4;i++)document.write('<script src="js/levels/metro1-0'+i+'.js"><\/script>');
+['data/campaign','data/dlc-campaign','data/dlc-subway','dlc-registry','data/codex'].forEach(function(s){document.write('<script src="js/'+s+'.js"><\/script>')});
 </script>
 <script>
 document.getElementById('dl').onclick=function(){
@@ -18,6 +20,8 @@ document.getElementById('dl').onclick=function(){
  scan(CAMPAIGN_DEFAULT,'','shard',m.shards);
  var dc=window.CAMPAIGN_DLC;
  if(dc){scan(dc,'dlc','blueshard',m.blueShards);dc.chapters.forEach(function(ch,i){m.dlcProgress['ch'+(i+1)]=1})}
+ var sw=window.CAMPAIGN_SUBWAY;
+ if(sw)scan(sw,'dlc','yellowshard',m.blueShards);
  D.CODEX.forEach(function(e){m.seen[e.k]=now});D.ACH.forEach(function(a){m.ach[a.id]=now});
  var got={},n=0;Object.keys(m.shards).forEach(function(k){got[k]=m.shards[k];n+=Object.keys(m.shards[k]).length});
  var s={ci:CAMPAIGN_DEFAULT.chapters.length-1,li:0,unlocked:CAMPAIGN_DEFAULT.chapters.length-1,shards:n,got:got,stats:{deaths:0,kills:0,time:0},sig:CAMPAIGN_DEFAULT.chapters.map(function(c){return c.levels.length}).join('-'),t:now,cleared:true};
