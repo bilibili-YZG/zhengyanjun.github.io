@@ -96,3 +96,22 @@ body { font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif; user-select: 
 @keyframes pbob { 0%, 100% { margin-top: 0; } 50% { margin-top: -7px; } }
 .pop.red { color: #ffb0b0; text-shadow: 0 2px 0 #5a0f0f, 0 0 6px #ff3030; }
 .pop.green { color: #c8ffc8; text-shadow: 0 2px 0 #0f4a1a, 0 0 6px #30ff60; }
+
+/* 战机 */
+.plane { width: 200px; height: 90px; }
+.p-flip, .p-tilt { position: absolute; left: 0; top: 0; width: 200px; height: 90px; }
+.p-flip { transition: transform .26s ease-in-out; }
+.p-tilt { transform-origin: 50% 50%; }
+.p-prop { transform-origin: 50% 50%; }
+.bomb { left: 0; top: 0; width: 32px; height: 16px; margin: -8px 0 0 -16px; background: url(../svg/world/plane_bomb.svg) center / contain no-repeat; pointer-events: none; }
+.boom { width: 150px; height: 150px; border-radius: 50%; pointer-events: none; background: radial-gradient(circle, #fff6c0 0%, #ffb030 32%, #e04a1a 60%, rgba(160, 40, 20, 0) 72%); animation: boom .55s ease-out forwards; }
+@keyframes boom { from { transform: scale(.2); opacity: 1; } 55% { opacity: .95; } to { transform: scale(1.6); opacity: 0; } }
+
+/* 空中目标 */
+.mob-balloon .mb { background-image: url(../svg/world/balloon.svg); animation: sway 1.6s ease-in-out infinite alternate; transform-origin: 50% 100%; }
+.mob-drone .mb { background-image: url(../svg/world/drone.svg); animation: flap .16s ease-in-out infinite alternate; transform-origin: 50% 50%; }
+.mob-blimp .mb { background-image: url(../svg/world/blimp.svg); animation: sway 3.2s ease-in-out infinite alternate; transform-origin: 50% 50%; }
+.mob-drone.fire .mb { filter: drop-shadow(0 0 6px #ff4a4a); }
+@keyframes sway { from { transform: rotate(-4deg); } to { transform: rotate(4deg); } }
+.mob.lock::after { content: ""; position: absolute; left: -10px; right: -10px; top: -10px; bottom: -10px; border: 2px dashed #ff4a4a; border-radius: 50%; animation: lock .5s linear infinite; pointer-events: none; }
+@keyframes lock { to { transform: rotate(360deg); } }

@@ -15,6 +15,8 @@
   var DASH_V = 900, DASH_T = .2, DASH_REGEN = 2.4, DASH_MAX = 2;
   /* 载具 */
   var SLAM_V = 1500, SLAM_R = 190;
+  /* 战机：巡航速度恒定向前，按住前进方向加速，反方向 = 掉头；升降直接控制高度 */
+  var PL_CRUISE = 250, PL_FAST = 540, PL_BOOST = 800, PL_CLIMB = 340, PL_DIVE = 400, PL_CEIL = -520, PL_GUN_R = 780, PL_GUN_RATE = .075, BOMB_CD = .5, BOMB_G = 1500, BOMB_R = 175;
   var V_MAX = 330, V_BOOST = 560, GUN_R = 620, GUN_RATE = .085, BOARD_R = 130;
 
   var q = {};
@@ -53,8 +55,11 @@
   /* 小怪：和木桩一样放进 dummies，这样教鞭/粉笔/机枪/撞击/俯冲全都能打到；mob 字段是它们的 AI 设定 */
   var MOBS = {
     slime:   { w: 64, h: 52, hp: 2, speed: 80, sight: 440, touch: 10 },
-    bat:     { w: 60, h: 44, hp: 1, speed: 130, sight: 560, touch: 8 },
-    shooter: { w: 60, h: 70, hp: 3, speed: 0, sight: 600, touch: 0 }
+    bat:     { w: 60, h: 44, hp: 1, speed: 130, sight: 560, touch: 8, air: true },
+    shooter: { w: 60, h: 70, hp: 3, speed: 0, sight: 600, touch: 0 },
+    balloon: { w: 56, h: 72, hp: 1, speed: 0, sight: 0, touch: 0, air: true },
+    drone:   { w: 72, h: 38, hp: 2, speed: 70, sight: 640, touch: 8, air: true },
+    blimp:   { w: 170, h: 76, hp: 6, speed: 0, sight: 0, touch: 0, air: true }
   };
   M.mobs.forEach(function (m) {
     var t = MOBS[m.type], y = m.y == null ? M.groundY : m.y, el = box('mob mob-' + m.type, m.x - t.w / 2, y - t.h, t.w, t.h);
@@ -73,6 +78,7 @@
   (M.pickups || []).forEach(function (p) { addPickup(p.x, p.y == null ? M.groundY : p.y, p.type, true); });
 
   var vehicles = (M.vehicles || []).map(function (v) { return new Vehicle(world, v.x, M.groundY, 'svg/world/'); });
+  var planes = (M.planes || []).map(function (p) { return new Plane(world, p.x, M.groundY - Plane.GEAR, 'svg/world/'); });
   var vprompt = box('vprompt', 0, 0); vprompt.style.display = 'none';
 
   /* ---------- 角色 ---------- */
@@ -86,7 +92,7 @@
   } });
 
   var P = { slam: false, x: +q.at || M.spawn.x, y: M.groundY, vx: 0, vy: 0, on: true, platform: null, dropT: 0, coyote: 0, jumpBuf: 0, air: 0, wasOn: true };
-  var keys = {}, dashCharge = 2, dashT = 0, dashDir = 1, ghostT = 0, driveBoost = 0, atkBuf = null, atkT = 0, driving = null, mount = null, gunT = 0, bullets = [], ko = 0, camX = 0, camY = 0, hitstop = 0, shake = 0, finished = false, slamId = 0, trailT = 0, engOn = false;
+  var keys = {}, dashCharge = 2, dashT = 0, dashDir = 1, ghostT = 0, driveBoost = 0, atkBuf = null, atkT = 0, driving = null, mount = null, piloting = null, bombs = [], bombT = 0, pgunT = 0, lockEl = null, gunT = 0, bullets = [], ko = 0, camX = 0, camY = 0, hitstop = 0, shake = 0, finished = false, slamId = 0, trailT = 0, engOn = false;
   var HP_MAX = 100, SH_MAX = 50, hp = HP_MAX, shield = 0, invuln = 0, hpShown = HP_MAX, shShown = 0;
 
   /* ---------- 输入 ----------
@@ -95,6 +101,7 @@
     keys[k] = true;
     if (k === 'use') { toggleVehicle(); return; }
     if (k === 'dash') { startDash(); return; }
+    if (piloting) { if (k === 'melee') dropBomb(); return; }
     if (driving || mount) return;
     if (k === 'jump') P.jumpBuf = .14;
     else if (k === 'down') { if (!P.on && !P.slam && P.dropT <= 0 && supportBelow() - P.y > 40) startSlam(); }
@@ -124,17 +131,18 @@
     var p = box('pop' + (cls ? ' ' + cls : ''), x - 10, y, 0, 0); p.textContent = text;
     p.addEventListener('animationend', function () { p.remove(); });
   }
-  /* fx：0 普通命中　1 机枪（轻，不顿帧）　2 撞击（重）　3 俯冲重击 */
+  /* fx：0 普通命中　1 机枪（轻，不顿帧）　2 撞击（重）　3 俯冲重击　4 炸弹 */
   function hurt(d, n, fx) {
     if (d.hp <= 0) return;
     n = n || 1; d.hp = Math.max(0, d.hp - n);
-    if (!fx) { hitstop = .05; shake = .12; } else if (fx === 2) { hitstop = .07; shake = .3; } else if (fx === 3) { hitstop = .05; shake = .2; }
+    if (!fx) { hitstop = .05; shake = .12; } else if (fx === 2) { hitstop = .07; shake = .3; } else if (fx === 3) { hitstop = .05; shake = .2; } else if (fx === 4) { hitstop = .06; shake = .35; }
     Sfx.play(fx === 2 ? 'ram' : 'hit');
-    pop(d.x, d.y - (d.h || 130) - 20, fx === 2 ? '撞!' : fx === 3 ? '砸!' : '-' + n);
+    pop(d.x, d.y - (d.h || 130) - 20, fx === 2 ? '撞!' : fx === 3 ? '砸!' : fx === 4 ? '炸!' : '-' + n);
     d.el.classList.remove('hit'); void d.el.offsetWidth; d.el.classList.add('hit');
     for (var i = 0; i < d.pips.length; i++) d.pips[i].className = i < d.hp ? '' : 'off';
     if (d.hp <= 0) {
       if (d.mob) dropLoot(d);
+      if (d.mob && d.mob.air) for (var k = 0; k < 6; k++) Vehicle.puff(world, d.x + (Math.random() - .5) * d.w * .7, d.y - d.h / 2 + (Math.random() - .5) * d.h * .6, 12 + Math.random() * 14, (Math.random() - .5) * 120);
       Sfx.play('ko');
       d.el.classList.add('down'); d.respawn = 4; ko++; d.mark.className = 'dead';
       $('ko').textContent = ko;
@@ -164,7 +172,7 @@
     if (dashCharge < 1) { Sfx.play('tired'); return; }
     var dir = (keys.right ? 1 : 0) - (keys.left ? 1 : 0);
     dashCharge -= 1; Sfx.play('dash');
-    if (driving) { driveBoost = .9; driving.kick(-.4); return; }       // 开车时：冲刺 = 短时间涡轮加速
+    if (driving || piloting) { driveBoost = .9; if (driving) driving.kick(-.4); return; }       // 开车 / 开飞机时：冲刺 = 短时间涡轮加速
     dashDir = dir || hero.facing; dashT = DASH_T; ghostT = 0;
     hero.setDash(true); hero.setFacing(dashDir); hero.kick(-.25);
   }
@@ -172,11 +180,23 @@
   /* ---------- 载具 ---------- */
   function nearVehicle() {
     var best = null, bd = BOARD_R;
-    vehicles.forEach(function (v) { var d = Math.abs(v.x - P.x); if (d < bd && P.y > M.groundY - 120) { bd = d; best = v; } });
+    vehicles.concat(planes).forEach(function (v) {
+      var d = Math.abs(v.x - P.x);
+      if (v.isPlane && (v === piloting || v.y < M.groundY - Plane.GEAR - 4)) return;     // 空中的飞机上不去
+      if (d < bd && P.y > M.groundY - 120) { bd = d; best = v; }
+    });
     return best;
   }
   function toggleVehicle() {
     if (mount) return;
+    if (piloting) {                                             // 离机：跳出座舱（在空中就是跳伞，落地不掉血）
+      var pl = piloting; piloting = null; pgunT = 0; setLock(null);
+      hero.el.style.display = '';
+      P.x = pl.x; P.y = pl.y - 20; P.vy = -260; P.vx = pl.facing * 160; P.on = false; P.air = 1; P.coyote = 0;
+      hero.setFacing(pl.facing); Sfx.play('exit'); Controls.relabel(null);
+      $('vhud').style.display = 'none';
+      return;
+    }
     if (driving) {                                              // 下车：从车顶跳出
       var v = driving; driving = null; gunT = 0;
       hero.el.style.display = '';
@@ -196,7 +216,13 @@
     P.y = m.sy + (M.groundY - 60 - m.sy) * u - Math.sin(u * Math.PI) * 70;
     hero.setLocomotion(0, true, u < .5 ? -300 : 300); hero.setAltitude(0);
     hero.update(dt); hero.place(P.x, P.y);
-    if (u >= 1) {
+    if (u >= 1 && m.v.isPlane) {
+      piloting = m.v; mount = null; hero.el.style.display = 'none'; pgunT = 0; bombT = 0;
+      piloting.facing = hero.facing; shake = .12; Sfx.play('board');
+      Controls.relabel({ jump: '升', down: '降', melee: '弹', chalk: '枪', use: '离' });
+      var ph = $('vhud'); ph.style.display = 'block';
+      ph.textContent = '战机 · ' + Controls.key('jump') + ' 升 / ' + Controls.key('down') + ' 降 · ' + Controls.key('melee') + ' 投弹 · ' + Controls.key('chalk') + ' 机枪（自动锁定空中目标） · ' + Controls.key('dash') + ' 加速 · ' + Controls.key('use') + ' 离机';
+    } else if (u >= 1) {
       driving = m.v; mount = null; hero.el.style.display = 'none';
       driving.facing = hero.facing; driving.kick(.7); shake = .12;
       var h = $('vhud'); h.style.display = 'block'; h.textContent = '装甲车 · 撞击 + 机枪自动扫射 · ' + Controls.key('dash') + ' 加速冲刺 · ' + (Controls.touchVisible() ? '「车」键' : Controls.key('use')) + ' 下车';
@@ -259,14 +285,113 @@
       else { v.vx = (v.vx || 0) * Math.exp(-dt * 3); if (Math.abs(v.vx) < 2) v.vx = 0; v.x += v.vx * dt; v.update(dt, { vx: v.vx, driven: false }); }
     });
     if (driving) gunStep(dt);
+    planesStep(dt);
     bulletStep(dt);
-    if (driving || engOn) { Sfx.engine(!!driving, driving ? Math.abs(driving.vx) / V_MAX : 0); engOn = !!driving; }
-    var n = !driving && !mount && nearVehicle();
+    var rider = driving || piloting;
+    if (rider || engOn) { Sfx.engine(!!rider, driving ? Math.abs(driving.vx) / V_MAX : piloting ? Math.abs(piloting.vx) / PL_FAST * .9 : 0); engOn = !!rider; }
+    var n = !driving && !piloting && !mount && nearVehicle();
     vprompt.style.display = n ? 'block' : 'none';
     if (n) {
       vprompt.style.left = n.x + 'px'; vprompt.style.top = (M.groundY - 150) + 'px';
       vprompt.textContent = Controls.touchVisible() ? '点「车」上车' : '按 ' + Controls.key('use') + ' 上车';
     }
+  }
+
+  /* ---------- 战机 ---------- */
+  function planeGrounded(pl) { return pl.y >= M.groundY - Plane.GEAR - 1; }
+  function flyStep(dt) {
+    var pl = piloting, dir = (keys.right ? 1 : 0) - (keys.left ? 1 : 0), up = (keys.jump ? 1 : 0) - (keys.down ? 1 : 0);
+    driveBoost = Math.max(0, driveBoost - dt);
+    var air = !planeGrounded(pl) || up > 0;
+    if (dir) pl.facing = dir;
+    var tv = air ? pl.facing * (driveBoost > 0 ? PL_BOOST : dir === pl.facing ? PL_FAST : PL_CRUISE) : dir * 220;
+    pl.vx += (tv - pl.vx) * (1 - Math.exp(-dt * 2.4));
+    var tvy = up > 0 ? -PL_CLIMB : up < 0 ? PL_DIVE : 0;
+    pl.vy += (tvy - pl.vy) * (1 - Math.exp(-dt * 4));
+    pl.x = Math.max(90, Math.min(M.width - 90, pl.x + pl.vx * dt));
+    pl.y += pl.vy * dt;
+    if (pl.y > M.groundY - Plane.GEAR) { pl.y = M.groundY - Plane.GEAR; if (pl.vy > 0) pl.vy = 0; }
+    if (pl.y < PL_CEIL) { pl.y = PL_CEIL; if (pl.vy < 0) pl.vy = 0; }
+    P.x = pl.x; P.y = pl.y; P.vx = 0; P.vy = 0; P.on = true;
+    hero.setFacing(pl.facing);
+    if (planeGrounded(pl) && Math.abs(pl.vx) > 40 && Math.random() < dt * 20) Vehicle.puff(world, pl.x - pl.facing * 90, M.groundY - 6, 12 + Math.random() * 10, -pl.facing * 30);
+  }
+  function setLock(d) {
+    var el = d ? d.el : null;
+    if (lockEl === el) return;
+    if (lockEl) lockEl.classList.remove('lock');
+    lockEl = el;
+    if (lockEl) lockEl.classList.add('lock');
+  }
+  /* 机枪：自动锁定机头前方扇形内最近的空中目标；按住机枪键则无目标时也向前扫射（可扫地面） */
+  function planeGun(dt) {
+    var pl = piloting, m = pl.muzzle(), best = null, bd = PL_GUN_R * PL_GUN_R, bx = 0, by = 0, i, d, dx, dy, dd;
+    pgunT -= dt;
+    for (i = 0; i < dummies.length; i++) {
+      d = dummies[i]; if (d.hp <= 0 || !d.mob || !d.mob.air) continue;
+      dx = d.x - m.x; dy = (d.y - d.h / 2) - m.y; dd = dx * dx + dy * dy;
+      if (dd < bd && dx * pl.facing > 0 && Math.abs(Math.atan2(dy, dx * pl.facing)) < .95) { bd = dd; best = d; bx = dx; by = dy; }
+    }
+    setLock(best);
+    if ((best || keys.chalk) && pgunT <= 0) {
+      pgunT = PL_GUN_RATE;
+      var a = (best ? Math.atan2(by, bx) : (pl.facing > 0 ? 0 : Math.PI)) + (Math.random() - .5) * .06, el = document.createElement('div');
+      el.className = 'bullet'; world.appendChild(el);
+      bullets.push({ el: el, x: m.x, y: m.y, vx: Math.cos(a) * 1600 + pl.vx * .4, vy: Math.sin(a) * 1600, a: a, life: .55 });
+      pl.fire(); Sfx.play('mg'); shake = Math.max(shake, .03);
+    }
+  }
+  function dropBomb() {
+    var pl = piloting;
+    if (bombT > 0 || planeGrounded(pl)) return;
+    bombT = BOMB_CD;
+    var el = box('bomb', 0, 0);
+    bombs.push({ el: el, x: pl.x - pl.facing * 6, y: pl.y + 36, vx: pl.vx * .95, vy: 80 });
+    Sfx.play('drop');
+  }
+  function explode(x, y) {
+    hitstop = Math.max(hitstop, .07); shake = .45; Sfx.play('bomb');
+    var fire = box('boom', x - 75, y - 75); fire.addEventListener('animationend', function () { fire.remove(); });
+    var ring = box('shock', x, y - 4); ring.addEventListener('animationend', function () { ring.remove(); });
+    for (var i = 0; i < 12; i++) Vehicle.puff(world, x + (Math.random() - .5) * 90, y - 10 - Math.random() * 40, 16 + Math.random() * 20, (i < 6 ? -1 : 1) * (40 + Math.random() * 120));
+    dummies.forEach(function (d) {
+      if (d.hp <= 0) return;
+      var dx = d.x - x, dy = (d.y - (d.h || 125) / 2) - y;
+      if (dx * dx + dy * dy < BOMB_R * BOMB_R) hurt(d, 3, 4);
+    });
+  }
+  function bombStep(dt) {
+    for (var i = bombs.length - 1; i >= 0; i--) {
+      var b = bombs[i], py = b.y, j, d, hit = false, hy = b.y;
+      b.vy += BOMB_G * dt; b.vx *= Math.exp(-dt * .25); b.x += b.vx * dt; b.y += b.vy * dt;
+      b.el.style.transform = 'translate(' + b.x.toFixed(1) + 'px,' + b.y.toFixed(1) + 'px) rotate(' + (Math.atan2(b.vy, b.vx) * 57.296).toFixed(1) + 'deg)';
+      if (b.y >= M.groundY) { hit = true; hy = M.groundY; }
+      for (j = 0; !hit && j < M.platforms.length; j++) {
+        var p = M.platforms[j];
+        if (b.x >= p.x && b.x <= p.x + p.w && py <= p.y && b.y >= p.y) { hit = true; hy = p.y; }
+      }
+      for (j = 0; !hit && j < dummies.length; j++) {
+        d = dummies[j];
+        if (d.hp > 0 && overlap(d, b.x - 12, b.y - 8, b.x + 12, b.y + 8)) hit = true;
+      }
+      if (hit) { b.el.remove(); bombs.splice(i, 1); explode(b.x, hy); }
+    }
+  }
+  function planesStep(dt) {
+    bombT -= dt;
+    planes.forEach(function (pl) {
+      if (pl !== piloting) {                                      // 没人驾驶：惯性滑行，空中就坠落到地面
+        pl.vx *= Math.exp(-dt * 2);
+        pl.x = Math.max(90, Math.min(M.width - 90, pl.x + pl.vx * dt));
+        if (!planeGrounded(pl)) {
+          pl.vy = Math.min(800, pl.vy + 900 * dt); pl.y += pl.vy * dt;
+          if (pl.y >= M.groundY - Plane.GEAR) { pl.y = M.groundY - Plane.GEAR; if (pl.vy > 350) { shake = Math.max(shake, .25); Sfx.play('impact'); } pl.vy = 0; }
+        }
+      }
+      pl.update(dt, { vx: pl.vx, vy: pl.vy, flying: !planeGrounded(pl), engine: pl === piloting });
+    });
+    if (piloting) planeGun(dt); else setLock(null);
+    bombStep(dt);
   }
 
   /* ---------- 俯冲重击：空中按 ↓ ---------- */
@@ -355,11 +480,11 @@
 
   /* ---------- 玩家受伤 / 道具 / 小怪 ---------- */
   function dropLoot(d) {
-    var r = Math.random(), y = d.type === 'bat' ? M.groundY : d.y;
+    var r = Math.random(), y = d.mob.air ? M.groundY : d.y;
     if (r < .4) addPickup(d.x, y, 'heal', false); else if (r < .75) addPickup(d.x, y, 'shield', false);
   }
   function hurtPlayer(n, dir) {
-    if (invuln > 0 || driving || mount) return;                // 开车时装甲免疫
+    if (invuln > 0 || driving || piloting || mount) return;     // 开车 / 开飞机时免疫
     var ab = Math.min(shield, n); shield -= ab; hp -= n - ab;
     invuln = .9; shake = Math.max(shake, .22); hitstop = Math.max(hitstop, .04);
     endDash(); if (P.slam) { P.slam = false; hero.setSlam(false); }
@@ -379,7 +504,12 @@
   function mobsStep(dt) {
     var i, d, m, dx, dy, tx, ty, dir;
     for (i = 0; i < dummies.length; i++) {
-      d = dummies[i]; m = d.mob; if (!m || d.hp <= 0) continue;
+      d = dummies[i]; m = d.mob;
+      if (m && d.hp <= 0 && m.air && !d.gone && d.y < M.groundY) {            // 被击落的空中目标掉下来
+        d.fy = (d.fy || 0) + 1000 * dt; d.y = Math.min(M.groundY, d.y + d.fy * dt);
+        d.el.style.top = (d.y - d.h) + 'px';
+      }
+      if (!m || d.hp <= 0) continue;
       d.cd -= dt; d.t += dt;
       dx = P.x - d.x; dy = (P.y - 55) - (d.y - d.h / 2);
       var near = Math.abs(dx) < m.sight && Math.abs(dy) < 380;
@@ -389,7 +519,14 @@
         tx = near ? P.x : d.hx; ty = near && Math.abs(dx) < 180 ? P.y - 70 : d.hy + Math.sin(d.t * 3) * 14;
         d.x += Math.max(-1, Math.min(1, (tx - d.x) / 40)) * m.speed * dt;
         d.y = Math.min(M.groundY, d.y + (ty - d.y) * Math.min(1, dt * 3));
-      } else if (d.type === 'shooter' && near && d.cd <= 0) {
+      } else if (d.type === 'balloon') {
+        d.x = d.hx + Math.sin(d.t * .5 + d.hx) * 25; d.y = d.hy + Math.sin(d.t * 1.3 + d.hx) * 10;
+      } else if (d.type === 'blimp') {
+        d.x = d.hx + Math.sin(d.t * .2 + d.hx) * 260; d.y = d.hy + Math.sin(d.t * .7) * 8;
+      } else if (d.type === 'drone') {
+        d.x = d.hx + Math.sin(d.t * .6 + d.hx) * 200; d.y = d.hy + Math.sin(d.t * 1.7) * 10;
+      }
+      if ((d.type === 'shooter' || d.type === 'drone') && near && d.cd <= 0) {
         d.cd = 2.2 + Math.random() * .8;
         var ox = d.x, oy = d.y - d.h * .6, a = Math.atan2(P.y - 60 - oy, P.x - ox), el = box('orb', 0, 0);
         orbs.push({ el: el, x: ox, y: oy, vx: Math.cos(a) * 320, vy: Math.sin(a) * 320, life: 3 });
@@ -428,7 +565,7 @@
     hpShown += (hp - hpShown) * Math.min(1, dt * 8 || 0); shShown += (shield - shShown) * Math.min(1, dt * 8 || 0);
     $('hpbar').style.width = (hpShown / HP_MAX * 100).toFixed(1) + '%'; $('shbar').style.width = (shShown / SH_MAX * 100).toFixed(1) + '%';
     $('hptxt').textContent = Math.ceil(hp) + ' / ' + HP_MAX; $('shtxt').textContent = '盾 ' + Math.ceil(shield) + ' / ' + SH_MAX;
-    if (!mount) hero.el.style.opacity = invuln > 0 && !driving && Math.floor(invuln * 18) % 2 ? .35 : 1;
+    if (!mount) hero.el.style.opacity = invuln > 0 && !driving && !piloting && Math.floor(invuln * 18) % 2 ? .35 : 1;
   }
 
   function combat(dt) {
@@ -489,7 +626,7 @@
     var dt = Math.min(.033, (now - last) / 1000); last = now;
     if (hitstop > 0) { hitstop -= dt; dt = 0; }
     if (Controls.paused()) dt = 0;                             // 设置面板打开时暂停
-    if (driving) driveStep(dt); else step(dt);
+    if (piloting) flyStep(dt); else if (driving) driveStep(dt); else step(dt);
     combat(dt); vehiclesStep(dt); mobsStep(dt); pickupsStep(dt); vitalsStep(dt); camera(dt);
     rechargeDash(dt);
     for (var si = 0; si < 2; si++) {

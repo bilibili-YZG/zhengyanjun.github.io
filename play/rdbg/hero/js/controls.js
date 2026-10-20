@@ -305,7 +305,7 @@
       '<b>' + ks('melee') + '</b> 教鞭挥击　<b>' + ks('chalk') + '</b> 扔粉笔' +
       (padId ? '<br>🎮 手柄：<b>' + S.pad.jump.map(padName).join('/') + '</b> 跳　<b>' + S.pad.melee.map(padName).join('/') + '</b> 教鞭　<b>' +
         S.pad.chalk.map(padName).join('/') + '</b> 粉笔　<b>' + S.pad.run.map(padName).join('/') + '</b> 奔跑' : '') +
-      '<br><b>' + ks('down') + '</b> 空中俯冲重击　<b>' + ks('use') + '</b> 上/下车<br><b>F</b> 全屏　<b>Esc</b> 设置';
+      '<br><b>' + ks('down') + '</b> 空中俯冲重击　<b>' + ks('use') + '</b> 上/下车·登机<br>✈ 战机：<b>' + ks('jump') + '</b> 升　<b>' + ks('down') + '</b> 降　<b>' + ks('melee') + '</b> 投弹　<b>' + ks('chalk') + '</b> 机枪（自动锁定空中目标）<br><b>F</b> 全屏　<b>Esc</b> 设置';
   }
 
   /* ---------- 设置面板 ---------- */
@@ -377,6 +377,8 @@
     layoutButtons(); refreshButtons(); updateHelp();
     requestAnimationFrame(pollPad);
   };
+  /* 临时改触屏按键文字（战机模式用）；relabel(null) 还原 */
+  api.relabel = function (m) { BTNS.forEach(function (b) { if (btnEls[b.id]) btnEls[b.id].textContent = (m && m[b.id]) || b.label; }); };
   api.paused = function () { return panelOpen; };
   api.key = function (a) { return S.keys[a][0] ? keyName(S.keys[a][0]) : '—'; };
   api.touchVisible = function () { return touchMode() !== 'off'; };

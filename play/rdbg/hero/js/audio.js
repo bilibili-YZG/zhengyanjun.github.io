@@ -1,5 +1,5 @@
 /* 音效模块：全部用 WebAudio 现场合成，没有音频文件。
-   Sfx.play(name)        播放：jump djump land swing hit ko chalk slam impact mg ram board exit tired
+   Sfx.play(name)        播放：bomb drop jump djump land swing hit ko chalk slam impact mg ram board exit tired
    Sfx.engine(on, speed) 载具引擎持续音（speed 0~1.2，随速度变调）；on=false 关闭
    Sfx.setVolume(0~1)  Sfx.setMuted(bool)  Sfx.volume / Sfx.muted
    浏览器要求用户操作后才能出声：第一次按键/点击/触摸会自动解锁。 */
@@ -57,6 +57,8 @@
     orb:    function () { tone(520, 220, .16, 'square', .09); noise(.08, 'bandpass', 1200, 500, .1); },
     dash:   function () { noise(.2, 'bandpass', 900, 3800, .26, 0, .9); tone(j(220), 520, .13, 'sawtooth', .09); },
     ready:  function () { tone(880, 1320, .1, 'sine', .1); tone(1320, 1760, .08, 'sine', .08, .08); },
+    bomb:   function () { tone(95, 26, .6, 'sine', .6); noise(.55, 'lowpass', 2000, 100, .5); tone(60, 28, .4, 'square', .1, .03); },
+    drop:   function () { tone(1000, 380, .4, 'sine', .07); },
     tired:  function () { tone(240, 130, .22, 'sawtooth', .1); tone(200, 100, .22, 'sawtooth', .08, .12); }
   };
   /* 同名音效最短间隔（秒），避免机枪/连续命中叠成噪音 */
