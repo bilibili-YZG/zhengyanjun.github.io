@@ -87,7 +87,7 @@ function dashBar(){var b=$("dashBar");if(!b||!P)return;var n=P.stamMax,i,c=b.chi
  for(i=0;i<n;i++){var f=Math.max(0,Math.min(1,P.stam-i)),w=Math.round(f*100)+"%",bar=c[i].firstChild;if(bar.style.width!==w)bar.style.width=w;c[i].classList.toggle("full",f>=1)}
  b.classList.toggle("no",P.noStam>0)}
 function hearts(){var h=$('hearts');if(!P)return;var s='';for(var i=0;i<P.max;i++)s+='<i class="'+(i<P.hp?'':'lost')+'">♥</i>';if(h.dataset.s!==s){h.innerHTML=s;h.dataset.s=s}}
-function fade(cb){if(fadeBusy)return;fadeBusy=true;var f=$('fade');f.classList.add('on');setTimeout(function(){cb();setTimeout(function(){f.classList.remove('on');fadeBusy=false},120)},380)}
+function fade(cb){if(fadeBusy)return;fadeBusy=true;var f=$('fade');f.classList.add('on');setTimeout(function(){try{cb()}catch(e){console.error(e)}setTimeout(function(){f.classList.remove('on');fadeBusy=false},120)},380)}
 /* 对话 */
 var dlg={lines:[],i:0,chars:0,full:'',active:false,done:null,acc:0};
 function startDialog(lines,done){if(!lines.length){done&&done();return}dlg.lines=lines;dlg.i=0;dlg.done=done;dlg.active=true;state='dialog';$('dialog').classList.remove('hidden');setLine();joy.x=joy.y=0;touchHeld={}}
@@ -220,7 +220,7 @@ function updateMech(dt){var i,m,a;
   else{ic.t-=dt;if(ic.t<=0){ic.st='idle';ic.gone=false;ic.y=ic.y0}}}
 }
 /* ---------- 伤害 ---------- */
-function damagePlayer(n,opt){var p=P;if(p.inv>0||p.dead>0)return;opt=opt||{};p.hp-=n||1;stats.hurt=(stats.hurt||0)+1;AudioFX.sfx('hurt');hitstop=.07;shake=Math.max(shake,9);flashA=.35;emit(p.x+p.w/2,p.y+p.h/2,'#ff7b91',16,200);p.slam=false;p.dash=0;p.atk=0;p.climb=null;
+function damagePlayer(n,opt){var p=P;if(p.inv>0||p.dead>0||state!=='play')return;opt=opt||{};p.hp-=n||1;stats.hurt=(stats.hurt||0)+1;AudioFX.sfx('hurt');hitstop=.07;shake=Math.max(shake,9);flashA=.35;emit(p.x+p.w/2,p.y+p.h/2,'#ff7b91',16,200);p.slam=false;p.dash=0;p.atk=0;p.climb=null;
  if(p.hp<=0){die();return}
  p.inv=1.4;hearts();
  if(opt.respawn){p.vx=0;p.vy=0;p.x=p.safe.x;p.y=p.safe.y;p.state='idle';p.hurt=.1;toast('从最近的立足点重来')}
@@ -496,7 +496,9 @@ function show(id,on){$(id).classList.toggle('hidden',!on)}
 function hideMenus(){['menu','chapters','pause','settings','ending','testDone','saves','achv','codex'].forEach(function(id){show(id,false)})}
 function setHud(){var ch=campaign.chapters[ci],lv=ch.levels[li];$('hudChapter').textContent=(TEST?'试玩':'第'+'一二三四五六七八九十'.charAt(ci)+'章')+' · '+ch.name;$('hudRoom').textContent=lv.name+'  '+(li+1)+'/'+ch.levels.length;$('objective').textContent='目标：'+(lv.objective||'找到出口');$('shardNum').textContent=inDLC?totalBlue:totalShards;document.body.classList.toggle('dlc-mode',inDLC)}
 function banner(a,b2,c){var el=$('banner');$('bnA').textContent=a;$('bnB').textContent=b2;$('bnC').textContent=c||'';el.classList.remove('show');void el.offsetWidth;el.classList.add('show')}
-function enterLevel(c,l){if(window.DLCX)DLCX.leaveRoom();ci=c;li=l;$('story').classList.add('hidden');story.cb=null;dlg.active=false;dlg.done=null;$('dialog').classList.add('hidden');var ch=campaign.chapters[c],lv=ch.levels[l];R=buildRoom(lv);R.tileCanvas=bakeTiles(R);P=newPlayer(R.spawn.x,R.spawn.y);parts=[];buf={};hitstop=0;shake=0;flashA=0;
+function enterLevel(c,l){try{enterLevelRaw(c,l)}catch(e){console.error('地图加载失败，重试一次',e);try{enterLevelRaw(c,l)}catch(e2){console.error(e2);backToTitle('地图加载失败，已返回主页面')}}}
+function backToTitle(msg){fadeBusy=false;var f=$('fade');if(f)f.classList.remove('on');dlg.active=false;dlg.done=null;$('dialog').classList.add('hidden');try{if(window.DLCX)DLCX.leaveRoom()}catch(e){}try{titleScreen()}catch(e){console.error(e)}if(msg)toast(msg,3200)}
+function enterLevelRaw(c,l){if(window.DLCX)DLCX.leaveRoom();ci=c;li=l;$('story').classList.add('hidden');story.cb=null;dlg.active=false;dlg.done=null;$('dialog').classList.add('hidden');var ch=campaign.chapters[c],lv=ch.levels[l];R=buildRoom(lv);R.tileCanvas=bakeTiles(R);P=newPlayer(R.spawn.x,R.spawn.y);parts=[];buf={};hitstop=0;shake=0;flashA=0;
  hideMenus();show('hud',true);applyPrefs();setHud();hearts();updateCamera(0,true);AudioFX.play(R.bossDef?'boss':R.biome);state='play';
  banner(TEST?'试玩关卡':'第'+'一二三四五六七八九十'.charAt(c)+'章 · '+ch.name,lv.name,lv.intro||lv.objective);if(!TEST)saveGame(true)}
 function startChapter(c){ci=c;unlocked=Math.max(unlocked,c);var ch=campaign.chapters[c];AudioFX.play(ch.biome);showStory(ch.intro||[],ch.biome,function(){fade(function(){enterLevel(c,0)})})}
@@ -603,12 +605,14 @@ function step(dt){time+=dt;for(var k in buf){buf[k]-=dt;if(buf[k]<=0)delete buf[
  updateEnemies(dt);updateBoss(dt);updateHazards(dt);updateChalk(dt);updateParts(dt);
  for(var i=P.trail.length-1;i>=0;i--){P.trail[i].t-=dt;if(P.trail[i].t<=0)P.trail.splice(i,1)}updateCamera(dt)}
 function updateDialog(dt){if(!dlg.active)return;if(dlg.chars<dlg.full.length){var before=Math.floor(dlg.chars);dlg.chars=Math.min(dlg.full.length,dlg.chars+dt*38);var n=Math.floor(dlg.chars);if(n>before){$('dlText').textContent=dlg.full.slice(0,n);if(n%2===0){var l=dlg.lines[dlg.i];AudioFX.sfx('talk',l.kind==='hero'?220:l.kind==='robot'?520:l.kind==='boss'?140:330)}}}$('dlMore').style.opacity=dlg.chars>=dlg.full.length?1:.2}
-function frame(now){var dt=Math.min(.1,(now-lastT)/1000||0);lastT=now;pollPad();
+var lastFault=-9;
+function frame(now){try{frameBody(now)}catch(e){console.error(e);var t=(now||0)/1000;if(R&&state!=='menu'&&state!=='ending'&&t-lastFault>5){lastFault=t;try{enterLevel(ci,li)}catch(e2){backToTitle('地图加载失败，已返回主页面')}}else{lastFault=-9;backToTitle('地图加载失败，已返回主页面')}}requestAnimationFrame(frame)}
+function frameBody(now){var dt=Math.min(.1,(now-lastT)/1000||0);lastT=now;pollPad();
  if(state==='play'){acc+=dt;var n=0;while(acc>=STEP&&state==='play'&&n<6){acc-=STEP;step(STEP);n++}if(n>=6)acc=0}else{acc=0;if(state!=='pause')time+=dt}
  if(state==='dialog'){updateDialog(dt);updateParts(dt);updateCamera(dt)}
  if(state==='dead'){P.dead-=dt;updateParts(dt);shake=Math.max(0,shake-dt*20);if(P.dead<=0)respawn()}
  if(state==='story'){updateStory(dt);drawStory()}
- hearts();dashBar();render();requestAnimationFrame(frame)}
+ hearts();dashBar();render()}
 if(window.DLCX)DLCX.attach({T:T,get R(){return R},get P(){return P},get time(){return time},cam:cam,get state(){return state},setState:function(s){state=s},get inDLC(){return inDLC},get ci(){return ci},get li(){return li},
  emit:emit,shoot:shoot,damagePlayer:damagePlayer,damageEnemy:damageEnemy,makeEnemy:makeEnemy,toast:toast,startDialog:startDialog,parseDialog:parseDialog,solidAt:solidAt,groundAt:groundAt,cellAt:cellAt,ov:ov,isSolid:isSolid,
  rebake:function(){R.tileCanvas=bakeTiles(R)},shake:function(v){shake=Math.max(shake,v)},hitstop:function(v){hitstop=Math.max(hitstop,v)},flash:function(v){flashA=Math.max(flashA,v)},

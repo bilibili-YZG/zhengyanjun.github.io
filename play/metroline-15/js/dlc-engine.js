@@ -141,7 +141,7 @@ function startPhase(b,ph,fromDeath){
   if(!fromDeath){C.setCP(Math.max(p.x,3*T),p.y);}
   b.x=p.x+420;b.y=fy-b.h-4*T}
  else if(ph===2){
-  dx.flood=null;dx.voidY=(dp.sbot||76)*T;if(fromDeath)dx.voidY=Math.min(dx.voidY,p.y+p.h+14*T);dx.voidSp=52;dx.stall=false;
+  dx.flood=null;dx.voidY=(dp.sbot||76)*T;if(fromDeath)dx.voidY=p.y+p.h+14*T;dx.voidSp=52;dx.stall=false;
   if(!fromDeath)C.setCP(p.x,p.y);
   b.x=(dp.s0||152)*T+4*T;b.y=Math.max((dp.top||16)*T-2*T,p.y-9*T)}
  else{b.hpFix=1}
@@ -158,7 +158,7 @@ function endPhase(b){
   else{ /* 形态二结束：必须真正跑到竖井入口才进入形态三 */
    b.state='runout';dx.runout=true;b.inv=99;if(dx.flood)dx.flood.sp=150;C.toast('悖论暂时退去——冲向右边的竖井！',2600)}})}
 function dmgBoss(b,n){
- if(b.state!=='fight'||b.cur<=0)return false;b.cur-=n;b.hp-=n;b.flash=.32;C.hitstop(.07);C.shake(6);window.AudioFX&&AudioFX.sfx('hit');C.emit(b.x+b.w/2,b.y+b.h/2,'#ffd08a',22,260);
+ if(b.state!=='fight'||b.cur<=0||C.state!=='play')return false;b.cur-=n;b.hp-=n;b.flash=.32;C.hitstop(.07);C.shake(6);window.AudioFX&&AudioFX.sfx('hit');C.emit(b.x+b.w/2,b.y+b.h/2,'#ffd08a',22,260);
  if(b.cur<=0)endPhase(b);return true}
 function hitBoss(b,n,viaDash){
  if(b.state!=='fight'||b.inv>0)return false;
@@ -176,7 +176,7 @@ function toastOnce(b,key,txt){b.said=b.said||{};if(!b.said[key]){b.said[key]=1;C
 
 function updateBoss(b,dt){
  var r=C.R,p=C.P,dx=r.dx,dp=b.dp;if(!dx)return;b.t+=dt;
- if(b.state==='dying'){b.dyT=(b.dyT||0)+dt;C.shake(4);if(Math.random()<.5)C.emit(b.x+Math.random()*b.w,b.y+Math.random()*b.h,Math.random()<.5?'#fff':'#c070ff',3,220,.8);
+ if(b.state==='dying'){if(C.state!=='play'){return}p.inv=Math.max(p.inv,1);b.dyT=(b.dyT||0)+dt;C.shake(4);if(Math.random()<.5)C.emit(b.x+Math.random()*b.w,b.y+Math.random()*b.h,Math.random()<.5?'#fff':'#c070ff',3,220,.8);
   if(b.dyT>2.4){b.dead=true;b.deadT=0;dx.flood=null;dx.voidY=null;dx.orbs=[];C.bossDone();
    if(b.hurt0!=null&&C.hurtCount()===b.hurt0){var mm=C.meta();if(mm&&mm.perfect)mm.perfect()}
    C.emit(b.x+b.w/2,b.y+b.h/2,'#fff',60,380,1.2);window.AudioFX&&AudioFX.play(r.biome);
