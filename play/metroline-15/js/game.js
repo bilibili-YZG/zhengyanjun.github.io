@@ -706,7 +706,8 @@ if(window.DLCX)DLCX.attach({T:T,get R(){return R},get P(){return P},get time(){r
 qa('[data-station]').forEach(function(el){el.textContent=L15.STATION});qa('[data-line]').forEach(function(el){el.textContent=L15.LINE});
 resize();
 function boot(){if(TEST){var tl2=LS.get(L15.STORAGE.test);if(tl2&&tl2.level){show('menu',false);document.addEventListener('pointerdown',function f(){AudioFX.init();document.removeEventListener('pointerdown',f)});enterLevel(0,0);toast('工坊试玩模式：通关或按 Esc 暂停')}else{titleScreen();toast('没有找到试玩关卡数据')}}
-else titleScreen();}
+else titleScreen();
+['pointerdown','keydown','touchstart'].forEach(function(ev){document.addEventListener(ev,function f(){AudioFX.init();document.removeEventListener(ev,f,true)},true)})}
 if(window.Assets&&Assets.ready)Assets.ready(boot);else boot();
 requestAnimationFrame(frame);
 function collectBlue(d){var gk=gkey();(got[gk]=got[gk]||{})[d.id]=1;totalBlue++;MM.blueShard('dlc'+ci+'-'+li,d.id);$('shardNum').textContent=totalBlue;AudioFX.sfx('shard');var yl=d.kind==='yellowshard';emit(d.x+16,d.y+16,yl?'#ffd84a':'#6db8ff',18,220);toast('◆ '+(yl?'黄色水晶':'蓝色碎片')+' +1（'+totalBlue+'）',1400)}
