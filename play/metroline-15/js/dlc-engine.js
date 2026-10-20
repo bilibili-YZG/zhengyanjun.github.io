@@ -131,7 +131,12 @@ function resetRoom(r){
  var p=bd.p,wall=[p.wall||50,(p.wall||50)+1],ys=[p.wy0||54,p.wy1||71],x,y;
  for(y=0;y<r.cells.length;y++)for(x=0;x<r.cells[y].length;x++)r.cells[y][x]=dx.cells0[y][x];
  if(dx.phase>=1)for(y=ys[0];y<=ys[1];y++)for(x=wall[0];x<=wall[1];x++)r.cells[y][x]=0;
+ sealShaft(r,bd.p,dx.phase<2);
  if(r.tileCanvas&&C)C.rebake()}
+/* 竖井入口封死：到形态三才开放，否则没打完形态二就能爬上去 */
+function sealShaft(r,p,on){
+ var x0=p.s0||152,x1=p.s1||172,by=(p.ceil||60)-1,x,y,dx=r.dx;if(!dx)return;
+ for(y=by-1;y<=by;y++)for(x=x0;x<=x1;x++)if(r.cells[y]&&!dx.cells0[y][x]&&x<r.cells[y].length)r.cells[y][x]=on?1:0}
 
 function startPhase(b,ph,fromDeath){
  var r=C.R,dx=r.dx,p=C.P,dp=b.dp,fy=(dp.floor||72)*T;b.ph=ph;dx.phase=ph;b.cur=b.hpP[ph];b.state='fight';b.sub='idle';b.timer=1.4;b.inv=1.2;b.landed=false;b.phaseStart=false;dx.orbs=[];dx.pend=[];dx.boulders=[];dx.marks=[];r.proj=[];
@@ -141,7 +146,7 @@ function startPhase(b,ph,fromDeath){
   if(!fromDeath){C.setCP(Math.max(p.x,3*T),p.y);}
   b.x=p.x+420;b.y=fy-b.h-4*T}
  else if(ph===2){
-  dx.flood=null;dx.voidY=(dp.sbot||76)*T;if(fromDeath)dx.voidY=p.y+p.h+14*T;dx.voidSp=52;dx.stall=false;
+  sealShaft(r,dp,false);C.rebake();dx.flood=null;dx.voidY=(dp.sbot||76)*T;if(fromDeath)dx.voidY=p.y+p.h+14*T;dx.voidSp=52;dx.stall=false;
   if(!fromDeath)C.setCP(p.x,p.y);
   b.x=(dp.s0||152)*T+4*T;b.y=Math.max((dp.top||16)*T-2*T,p.y-9*T)}
  else{b.hpFix=1}
