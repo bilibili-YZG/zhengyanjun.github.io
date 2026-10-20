@@ -493,7 +493,7 @@ function scanCodex(){if(TEST||!R||!P)return;var x0=cam.x-40,x1=cam.x+vw+40,y0=ca
 function checkAch(){if(TEST)return;if(!inDLC&&Meta.checkDLCUnlock()){Meta.flush();AudioFX.sfx('win');toast('🌀 DLC「未竟之梦」已解锁！在标题页的 DLC 菜单进入',4200)}var a=Meta.check(campaign);Meta.flush();if(a.length){AudioFX.sfx('win');toast('🏆 成就解锁：'+a.map(function(x){return x.n}).join('、'),3600)}}
 /* ---------- 流程 ---------- */
 function show(id,on){$(id).classList.toggle('hidden',!on)}
-function hideMenus(){['menu','chapters','pause','settings','ending','testDone','saves','achv','codex'].forEach(function(id){show(id,false)})}
+function hideMenus(){['menu','chapters','pause','settings','ending','testDone','saves','achv','codex','changelog'].forEach(function(id){show(id,false)})}
 function setHud(){var ch=campaign.chapters[ci],lv=ch.levels[li];$('hudChapter').textContent=(TEST?'试玩':'第'+'一二三四五六七八九十'.charAt(ci)+'章')+' · '+ch.name;$('hudRoom').textContent=lv.name+'  '+(li+1)+'/'+ch.levels.length;$('objective').textContent='目标：'+(lv.objective||'找到出口');$('shardNum').textContent=inDLC?totalBlue:totalShards;document.body.classList.toggle('dlc-mode',inDLC)}
 function banner(a,b2,c){var el=$('banner');$('bnA').textContent=a;$('bnB').textContent=b2;$('bnC').textContent=c||'';el.classList.remove('show');void el.offsetWidth;el.classList.add('show')}
 function enterLevel(c,l){try{enterLevelRaw(c,l)}catch(e){console.error('地图加载失败，重试一次',e);try{enterLevelRaw(c,l)}catch(e2){console.error(e2);backToTitle('地图加载失败，已返回主页面')}}}
