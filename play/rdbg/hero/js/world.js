@@ -16,7 +16,7 @@
   /* 载具 */
   var SLAM_V = 1500, SLAM_R = 190;
   /* 战机：巡航速度恒定向前，按住前进方向加速，反方向 = 掉头；升降直接控制高度 */
-  var PL_CRUISE = 250, PL_FAST = 540, PL_BOOST = 800, PL_CLIMB = 340, PL_DIVE = 400, PL_CEIL = -520, PL_GUN_R = 780, PL_GUN_RATE = .075, BOMB_CD = .5, BOMB_G = 1500, BOMB_R = 175;
+  var PL_CRUISE = 250, PL_FAST = 540, PL_BOOST = 800, PL_CLIMB = 340, PL_DIVE = 400, PL_CEIL = -520, PL_GUN_R = 820, PL_GUN_RATE = .075, BOMB_CD = .5, BOMB_G = 1500, BOMB_R = 175;
   var V_MAX = 330, V_BOOST = 560, GUN_R = 620, GUN_RATE = .085, BOARD_R = 130;
 
   var q = {};
@@ -181,7 +181,7 @@
   function nearVehicle() {
     var best = null, bd = BOARD_R;
     vehicles.concat(planes).forEach(function (v) {
-      var d = Math.abs(v.x - P.x);
+      var d = Math.abs(v.x - P.x) - (v.isPlane ? 70 : 0);
       if (v.isPlane && (v === piloting || v.y < M.groundY - Plane.GEAR - 4)) return;     // 空中的飞机上不去
       if (d < bd && P.y > M.groundY - 120) { bd = d; best = v; }
     });
@@ -314,7 +314,7 @@
     if (pl.y < PL_CEIL) { pl.y = PL_CEIL; if (pl.vy < 0) pl.vy = 0; }
     P.x = pl.x; P.y = pl.y; P.vx = 0; P.vy = 0; P.on = true;
     hero.setFacing(pl.facing);
-    if (planeGrounded(pl) && Math.abs(pl.vx) > 40 && Math.random() < dt * 20) Vehicle.puff(world, pl.x - pl.facing * 90, M.groundY - 6, 12 + Math.random() * 10, -pl.facing * 30);
+    if (planeGrounded(pl) && Math.abs(pl.vx) > 40 && Math.random() < dt * 20) Vehicle.puff(world, pl.x - pl.facing * 140, M.groundY - 6, 12 + Math.random() * 10, -pl.facing * 30);
   }
   function setLock(d) {
     var el = d ? d.el : null;
@@ -346,7 +346,7 @@
     if (bombT > 0 || planeGrounded(pl)) return;
     bombT = BOMB_CD;
     var el = box('bomb', 0, 0);
-    bombs.push({ el: el, x: pl.x - pl.facing * 6, y: pl.y + 36, vx: pl.vx * .95, vy: 80 });
+    bombs.push({ el: el, x: pl.x - pl.facing * 10, y: pl.y + 58, vx: pl.vx * .95, vy: 80 });
     Sfx.play('drop');
   }
   function explode(x, y) {

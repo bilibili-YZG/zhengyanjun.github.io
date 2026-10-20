@@ -4,7 +4,7 @@
    p.x p.y p.facing 1|-1   p.update(dt, { vx, vy, engine })   p.muzzle() → { x, y }   p.fire() 枪口火焰 */
 (function (root) {
   'use strict';
-  var W = 200, H = 90, GEAR = 35;
+  var W = 200, H = 90, S = 1.6, GEAR = 35 * S;      // S：整体放大倍数（贴图 200×90，实际显示 320×144）
   function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
   function node(cls, parent) { var d = document.createElement('div'); d.className = cls; if (parent) parent.appendChild(d); return d; }
   function img(parent, src, w, h, l, t, cls) {
@@ -24,10 +24,11 @@
     this.prop = img(this.tilt, base + 'plane_prop.svg', 12, 64, 176, 14);
     this.flash = img(this.tilt, base + 'vehicle_flash.svg', 44, 44, 188, 24);
     this.flash.style.opacity = 0;
+    el.style.transform = 'scale(' + S + ')';
     this.flip.style.transform = 'scaleX(1)';
     this.place();
   }
-  Plane.GEAR = GEAR;
+  Plane.GEAR = GEAR; Plane.SCALE = S;
   Plane.prototype.isPlane = true;
 
   Plane.prototype.place = function () {
@@ -35,7 +36,7 @@
     this.el.style.top = (this.y - H / 2).toFixed(1) + 'px';
     this.flip.style.transform = 'scaleX(' + this.facing + ')';
   };
-  Plane.prototype.muzzle = function () { return { x: this.x + this.facing * 104, y: this.y + 2 }; };
+  Plane.prototype.muzzle = function () { return { x: this.x + this.facing * 104 * S, y: this.y + 2 * S }; };
   Plane.prototype.fire = function () { this.flashT = .05; };
 
   Plane.prototype.update = function (dt, s) {
@@ -52,7 +53,7 @@
       this.puffT -= dt;
       if (this.puffT <= 0) {
         this.puffT = Math.abs(s.vx) > 450 ? .035 : .08;
-        Vehicle.puff(this.parent, this.x - this.facing * 104, this.y + 8, 10 + Math.random() * 6, -this.facing * 30);
+        Vehicle.puff(this.parent, this.x - this.facing * 104 * S, this.y + 8 * S, (10 + Math.random() * 6) * S, -this.facing * 30);
       }
     }
     this.place();

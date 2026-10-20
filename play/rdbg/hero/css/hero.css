@@ -43,3 +43,14 @@
 @keyframes ghost { from { opacity: .55; } to { opacity: 0; } }
 .streak { position: absolute; width: 90px; height: 3px; border-radius: 2px; pointer-events: none; background: linear-gradient(90deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, .85)); animation: streak .3s ease-out forwards; }
 @keyframes streak { from { opacity: .9; transform: translateX(0) scaleX(1); } to { opacity: 0; transform: translateX(var(--dx, -60px)) scaleX(.4); } }
+
+/* 战机 */
+.plane { width: 200px; height: 90px; }
+.p-flip, .p-tilt { position: absolute; left: 0; top: 0; width: 200px; height: 90px; }
+.p-flip { transition: transform .26s ease-in-out; }
+.p-tilt { transform-origin: 50% 50%; }
+.p-prop { transform-origin: 50% 50%; }
+.bomb { position: absolute; left: 0; top: 0; width: 32px; height: 16px; margin: -8px 0 0 -16px; background: url(../svg/world/plane_bomb.svg) center / contain no-repeat; pointer-events: none; }
+.boom { position: absolute; width: 150px; height: 150px; border-radius: 50%; pointer-events: none; background: radial-gradient(circle, #fff6c0 0%, #ffb030 32%, #e04a1a 60%, rgba(160, 40, 20, 0) 72%); animation: boom .55s ease-out forwards; }
+@keyframes boom { from { transform: scale(.2); opacity: 1; } 55% { opacity: .95; } to { transform: scale(1.6); opacity: 0; } }
+

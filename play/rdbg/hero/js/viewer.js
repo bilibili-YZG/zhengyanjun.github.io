@@ -19,6 +19,9 @@
   stage.appendChild(vwrap);
   var veh = new Vehicle(vwrap, 0, 0, 'svg/world/');
   var vt = 0, vvx = 0, vgun = 0, vbullets = [], vbA = false, vbB = false, engV = false, trailT = 0;
+  var pln = new Plane(vwrap, 0, 0, 'svg/world/');
+  pln.el.style.display = 'none';
+  var pBombs = [], pgun = 0, pbomb = 0, pAlt = 0, pPrev = 0;
   var sl = { ph: 0, t: 0, h: 0, v: 0 }, dsh = { t: 0, g: 0 };
 
   function onEvent(name, d) {
@@ -34,7 +37,8 @@
     anim = a; cool = 0; jt = 0; vt = 0; vvx = 0; vbA = vbB = false;
     sl.ph = 0; sl.t = 0; sl.h = 0; hero.setSlam(false); hero.setDash(false); dsh.t = 0;
     vbullets.forEach(function (b) { b.el.remove(); }); vbullets = [];
-    ['anims', 'vanims'].forEach(function (id) {
+    pBombs.forEach(function (b) { b.el.remove(); }); pBombs = []; pgun = pbomb = pAlt = pPrev = 0; pln.facing = facing;
+    ['anims', 'vanims', 'panims'].forEach(function (id) {
       Array.prototype.forEach.call($(id).children, function (b) { b.classList.toggle('on', b.dataset.a === a); });
     });
     if (a === 'melee' || a === 'chalk') hero.attack(a);
@@ -43,7 +47,7 @@
     facing = d; hero.setFacing(d);
     $('faceL').classList.toggle('on', d < 0); $('faceR').classList.toggle('on', d > 0);
   }
-  ['anims', 'vanims'].forEach(function (id) {
+  ['anims', 'vanims', 'panims'].forEach(function (id) {
     $(id).addEventListener('click', function (e) { var b = e.target.closest('button'); if (b) setAnim(b.dataset.a); });
   });
   $('faceL').onclick = function () { setFace(-1); };
@@ -162,12 +166,80 @@
     floorX -= dt * vvx * k * facing;
   }
 
+  /* 战机演示：容器已按 size/0.24 放大，plane 自己再放大 Plane.SCALE 倍 */
+  function smooth(u) { u = Math.max(0, Math.min(1, u)); return u * u * (3 - 2 * u); }
+  function planeBoom(parent, x, y) {
+    var e = document.createElement('div'); e.className = 'boom'; e.style.left = (x - 75) + 'px'; e.style.top = (y - 75) + 'px';
+    parent.appendChild(e); e.addEventListener('animationend', function () { e.remove(); });
+    var r = document.createElement('div'); r.className = 'shock'; r.style.left = x + 'px'; r.style.top = (y - 4) + 'px';
+    parent.appendChild(r); r.addEventListener('animationend', function () { r.remove(); });
+    for (var i = 0; i < 12; i++) Vehicle.puff(parent, x + (Math.random() - .5) * 90, y - 10 - Math.random() * 40, 16 + Math.random() * 20, (i < 6 ? -1 : 1) * (40 + Math.random() * 120));
+  }
+  function planeFrame(dt, f) {
+    var k = size / .24, gy = f.y / k, t = vt, alt = 0, spd = 0, eng = true, u, i, T;
+    vwrap.style.transform = 'scale(' + k + ')';
+    if (anim === 'p_park') eng = false;
+    else if (anim === 'p_takeoff') {
+      T = t % 9;
+      if (T < 1.4) spd = 250 * smooth(T / 1.4);
+      else if (T < 3.6) { u = smooth((T - 1.4) / 2.2); alt = 180 * u; spd = 250 + 250 * u; }
+      else if (T < 5.4) { alt = 180; spd = 500; }
+      else if (T < 7.6) { u = smooth((T - 5.4) / 2.2); alt = 180 * (1 - u); spd = 500 - 260 * u; }
+      else spd = 240 * (1 - smooth((T - 7.6) / 1.4));
+    }
+    else if (anim === 'p_fly') { alt = 170 + Math.sin(t * 1.5) * 14; spd = 500; }
+    else if (anim === 'p_boost') { alt = 160 + Math.sin(t * 2) * 10; spd = 800; }
+    else if (anim === 'p_climb') { alt = 150 + 110 * Math.sin(t * 1.1); spd = 420; }
+    else if (anim === 'p_turn') { pln.facing = (Math.floor(t / 2.4) % 2 ? -1 : 1) * facing; alt = 150 + Math.sin(t * 1.2) * 10; spd = 300; }
+    else if (anim === 'p_gun') { alt = 150; spd = 300; }
+    else if (anim === 'p_bomb') { alt = 200; spd = 300; }
+    if (anim !== 'p_turn') pln.facing = facing;
+    var vy = dt > 0 ? -(alt - pAlt) / dt * 2.5 : 0; pAlt = alt;
+    pln.x = f.x / k; pln.y = gy - Plane.GEAR - alt;
+    pln.update(dt, { vx: spd * pln.facing, vy: vy, flying: alt > 4, engine: eng });
+    floorX -= dt * spd * k * pln.facing;
+
+    if (anim === 'p_gun') {
+      pgun -= dt;
+      if (pgun <= 0) {
+        pgun = .075;
+        var m = pln.muzzle(), el = document.createElement('div');
+        el.className = 'bullet'; vwrap.appendChild(el);
+        vbullets.push({ el: el, x: m.x, y: m.y, vx: 1600 * pln.facing, vy: 0, a: pln.facing > 0 ? 0 : Math.PI, life: .45 });
+        pln.fire(); Sfx.play('mg');
+      }
+    }
+    if (anim === 'p_bomb') {
+      pbomb -= dt;
+      if (pbomb <= 0) {
+        pbomb = 1.3;
+        var be = document.createElement('div'); be.className = 'bomb'; vwrap.appendChild(be);
+        pBombs.push({ el: be, x: pln.x - pln.facing * 10, y: pln.y + 58, vx: spd * pln.facing * .95, vy: 80 });
+        Sfx.play('drop');
+      }
+    }
+    for (i = vbullets.length - 1; i >= 0; i--) {
+      var b = vbullets[i]; b.life -= dt; b.x += b.vx * dt; b.y += b.vy * dt;
+      b.el.style.transform = 'translate(' + (b.x - 14) + 'px,' + (b.y - 1.5) + 'px) rotate(' + b.a * 57.296 + 'deg)';
+      if (b.life <= 0) { b.el.remove(); vbullets.splice(i, 1); }
+    }
+    for (i = pBombs.length - 1; i >= 0; i--) {
+      var o = pBombs[i];
+      o.vy += 1500 * dt; o.x += o.vx * dt; o.y += o.vy * dt;
+      o.el.style.transform = 'translate(' + o.x.toFixed(1) + 'px,' + o.y.toFixed(1) + 'px) rotate(' + (Math.atan2(o.vy, o.vx) * 57.296).toFixed(1) + 'deg)';
+      if (o.y >= gy) { o.el.remove(); pBombs.splice(i, 1); planeBoom(vwrap, o.x, gy); Sfx.play('bomb'); }
+    }
+    if (eng !== engV) { Sfx.engine(eng, 0); engV = eng; }
+    if (engV) Sfx.engine(true, spd / 560);
+  }
+
   /* ---------- 主循环 ---------- */
   var last = performance.now(), floorX = 0;
   function frame(now) {
     var dt = Math.min(.05, (now - last) / 1000) * rate; last = now;
-    var f = feet(), lift = 0, ox = 0, isV = /^v_/.test(anim), showHero = !isV, vdriven = true, bd = null;
+    var f = feet(), lift = 0, ox = 0, isV = /^[vp]_/.test(anim), isP = /^p_/.test(anim), showHero = !isV, vdriven = true, bd = null;
     vwrap.style.display = isV ? '' : 'none';
+    veh.el.style.display = isP ? 'none' : ''; pln.el.style.display = isP ? '' : 'none';
     if (!isV && engV) { Sfx.engine(false, 0); engV = false; }
     vt += dt;
 
@@ -203,7 +275,7 @@
     hero.update(dt);
     hero.el.style.display = showHero ? '' : 'none';
     hero.place(f.x + ox, f.y - lift);
-    if (isV) vehicleFrame(dt, f, vdriven);
+    if (isP) planeFrame(dt, f); else if (isV) vehicleFrame(dt, f, vdriven);
 
     /* 跑步机地面 */
     if (anim === 'walk' || anim === 'run') floorX -= dt * (anim === 'run' ? 420 : 220) * hero.facing;
@@ -236,7 +308,7 @@
   }
 
   /* 静态调试：?anim=melee&t=0.2 */
-  if (q.anim) {
+  if (q.anim && !/^[vp]_/.test(q.anim)) {
     anim = q.anim; setAnim(q.anim); hero.act = null;
     var f0 = feet();
     hero.preview(q.anim, +q.t || 0);
@@ -247,5 +319,5 @@
       hitbox.style.width = b0.x1 - b0.x0 + 'px'; hitbox.style.height = b0.y1 - b0.y0 + 'px'; hitbox.classList.toggle('active', hero.hitActive);
     }
     $('readout').textContent = '冻结预览  ' + q.anim + ' @ ' + (+q.t || 0) + 's';
-  } else requestAnimationFrame(frame);
+  } else { if (q.anim) setAnim(q.anim); requestAnimationFrame(frame); }
 })();
