@@ -264,7 +264,7 @@ function bossPhase2(b,dt,pcx){
 function updateBossRoom(r,p,dt){
  var dx=r.dx,b=r.boss,pr={x:p.x+3,y:p.y+4,w:p.w-6,h:p.h-6},i;
  var slash=p.atk>.03&&p.atk<.22?{x:p.face>0?p.x+p.w-6:p.x-62,y:p.y-8,w:68,h:p.h+12}:null;
- for(i=dx.orbs.length-1;i>=0;i--){var o=dx.orbs[i],dead=false;o.life-=dt;o.vy+=o.g*dt;o.x+=o.vx*dt;o.y+=o.vy*dt;o.spin=(o.spin||0)+dt*8;
+ for(i=dx.orbs.length-1;i>=0;i--){var o=dx.orbs[i],dead=false;if(!o)continue; /* 打回的球击杀形态时 endPhase 会清空 orbs */o.life-=dt;o.vy+=o.g*dt;o.x+=o.vx*dt;o.y+=o.vy*dt;o.spin=(o.spin||0)+dt*8;
   if(Math.random()<.4)C.emit(o.x,o.y,o.back?'#ffe27a':(o.k==='orb'?'#ff7ad9':'#c070ff'),1,40,.35,0);
   var box={x:o.x-o.r,y:o.y-o.r,w:o.r*2,h:o.r*2};
   if(o.back){if(b&&b.state==='fight'&&overlap(box,{x:b.x+b.w*.12,y:b.y+b.h*.1,w:b.w*.76,h:b.h*.8})){dmgBoss(b,1);cnt('orbReturn');dead=true;C.emit(o.x,o.y,'#ffe27a',20,280)}
