@@ -242,3 +242,4 @@ body.lay-cluster .joy-tip{display:none}
 .md blockquote{margin:8px 0;padding:6px 12px;border-left:3px solid rgba(127,224,238,.5);background:rgba(255,255,255,.05);border-radius:0 8px 8px 0;color:var(--muted)}
 .md code{padding:1px 6px;border-radius:5px;background:rgba(255,255,255,.1);font-family:Consolas,monospace;font-size:.92em}
 .md hr{border:0;border-top:1px solid rgba(255,255,255,.15);margin:14px 0}.md a{color:#7fe0ee}
+.link-btn{margin-left:6px;padding:0;border:0;background:none;color:#7fe0ee;font:inherit;font-size:12px;text-decoration:underline;cursor:pointer;opacity:.85}.link-btn:hover{opacity:1}
