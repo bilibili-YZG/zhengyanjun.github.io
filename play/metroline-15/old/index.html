@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#0b1724"><title>15号线大冒险</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="app">
+<canvas id="game"></canvas>
+<header class="topbar">
+ <div class="brand"><span class="brand-mark">15</span><div><strong>15号线大冒险</strong><small id="chapterLabel">第一章 · 雪原回响</small></div></div>
+ <div class="top-actions"><button id="chapterBtn" class="glass">章节</button><button id="saveBtn" class="glass">存档</button><button id="controlToggle" class="glass">隐藏操纵 UI</button><button id="pauseBtn" class="glass">暂停</button></div>
+</header>
+<div class="hud"><div class="hud-pill"><i class="dot"></i><span id="roomLabel">房间 1 / 4</span></div><div class="hud-pill health-pill" id="healthHud" aria-label="生命值"><span class="heart">♥</span><span class="heart">♥</span><span class="heart">♥</span></div><div class="hud-pill">◆ <span id="shardLabel">0</span></div><div class="hud-pill" id="objectiveLabel">目标：找到发光出口</div></div>
+<div id="hint" class="hint">探索房间，躲避危险，找到发光出口。</div>
+<div id="controls" class="controls"><div class="joystick" id="joystick" aria-label="移动摇杆"><div class="joy-ring"><div id="joyThumb" class="joy-thumb"></div></div></div><div class="actionpad"><button data-key="interact" class="special">互动</button><button data-key="dash" class="special">冲刺</button><button data-key="attack" class="special attack-btn">攻击<br>/俯冲</button><button data-key="jump" class="jump">跳跃</button></div></div>
+<div id="overlay" class="overlay"><div class="panel hero-panel"><div class="eyebrow">A SIDE-SCROLLING ADVENTURE</div><h1>15号线<span>大冒险</span></h1><p class="subtitle">一场突如其来的地底震荡切断了回城路线。你必须穿越雪原、森林、林下洞窟与熔岩深处，重新点亮沿途信标，赶在末班车离站前抵达<strong>北京地铁15号线 · 望京西站</strong>。</p>
+<div class="story-objective"><div class="story-label">本次任务 / OBJECTIVE</div><strong>目标：抵达北京地铁15号线地铁站</strong><span>探索四大区域 → 激活信标 → 击败熔岩守线者 → 登上望京西站台的列车</span></div><div class="hero-art"><div class="sun"></div><div class="mountain m1"></div><div class="mountain m2"></div><div class="rail-light"></div></div><div class="menu-buttons"><button id="startBtn" class="primary">开始冒险 <span>→</span></button><button id="continueBtn" class="secondary">继续存档</button><button id="openChaptersBtn" class="secondary">章节选择</button></div><div class="small-note">剧情：你是最后一名仍在地底线路巡检的“信标跑者”。通讯器只剩一句断续的广播：“15号线……望京西站……末班车即将进站。”收集信标，恢复路线，回到城市。<br>电脑：A/D 或 ←/→ 移动，W/空格跳跃，Shift 冲刺，J 攻击；空中按住↓再按 J 可俯冲碎石，E 互动。手机：使用屏幕按钮。</div></div></div>
+<div id="chapterModal" class="overlay hidden"><div class="panel chapter-panel"><button class="close" id="closeChapters">×</button><div class="eyebrow">CHAPTER SELECT</div><h2>选择章节</h2><p class="muted">已解锁章节可自由重玩；进度会自动保存。</p><div id="chapterCards" class="chapter-cards"></div></div></div>
+<div id="pauseModal" class="overlay hidden"><div class="panel compact"><div class="eyebrow">PAUSED</div><h2>旅途暂停</h2><p class="muted">喘口气，再出发。</p><button id="resumeBtn" class="primary full">继续游戏</button><button id="pauseChaptersBtn" class="secondary full">选择章节</button></div></div>
+<div id="toast" class="toast"></div><audio id="music" preload="auto" loop></audio>
+</div>
+<script src="js/levels/level1-snow.js"></script><script src="js/levels/level2-forest.js"></script><script src="js/levels/level3-undergrowth.js"></script><script src="js/levels/level4-lava.js"></script><script src="js/levels/level-design.js"></script><script src="js/levels/level-house-redesign.js"></script><script src="js/game.js"></script>
+</body></html>
