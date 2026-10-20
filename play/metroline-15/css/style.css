@@ -243,3 +243,19 @@ body.lay-cluster .joy-tip{display:none}
 .md code{padding:1px 6px;border-radius:5px;background:rgba(255,255,255,.1);font-family:Consolas,monospace;font-size:.92em}
 .md hr{border:0;border-top:1px solid rgba(255,255,255,.15);margin:14px 0}.md a{color:#7fe0ee}
 .link-btn{margin-left:6px;padding:0;border:0;background:none;color:#7fe0ee;font:inherit;font-size:12px;text-decoration:underline;cursor:pointer;opacity:.85}.link-btn:hover{opacity:1}
+
+/* ---------- 设置：键位 / 手柄 / 触屏按钮位置 ---------- */
+.fold>summary{cursor:pointer;font-weight:800;list-style:none;padding:2px 0}
+.fold>summary::-webkit-details-marker{display:none}
+.fold>summary::before{content:'▸ ';color:var(--accent)}.fold[open]>summary::before{content:'▾ '}
+.fold .btn{margin-top:10px;text-align:center}
+.binds{display:grid;gap:6px;margin-top:10px}
+.bind-row{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:calc(13px*var(--ui))}
+.bind-slots{display:flex;gap:6px}
+.bind{min-width:calc(62px*var(--ui));padding:6px 8px;border-radius:9px;background:rgba(255,255,255,.07);border:1px solid var(--edge);color:#e2f0f8;font:inherit;font-size:calc(12px*var(--ui));font-weight:700;cursor:pointer}
+.bind.cap{background:rgba(255,210,122,.18);border-color:rgba(255,210,122,.7);color:#ffe9b0}
+.layout-edit{position:absolute;inset:0;z-index:50;background:rgba(3,8,16,.55)}
+.le-bar{position:absolute;left:50%;top:calc(10px + var(--sa-t));transform:translateX(-50%);display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px 14px;padding:10px 14px;border-radius:16px;background:var(--glass);border:1px solid var(--edge);font-size:calc(13px*var(--ui));max-width:calc(100% - 20px);z-index:2}
+.le-bar .btn{padding:8px 14px;font-size:calc(13px*var(--ui))}
+.le-ghost{position:fixed;display:grid;place-items:center;border-radius:50%;background:rgba(127,227,230,.22);border:2px dashed rgba(190,240,250,.75);color:#e9fbff;font-weight:800;font-size:14px;touch-action:none;cursor:grab;user-select:none}
+.le-ghost.sel{background:rgba(255,210,122,.3);border-color:#ffd27a;box-shadow:0 0 0 4px rgba(255,210,122,.25)}

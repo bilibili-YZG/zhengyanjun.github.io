@@ -75,7 +75,7 @@
       <button id="codexBtn" class="btn">图鉴</button>
       <button id="settingsBtn" class="btn">设置</button>
     </div>
-    <div class="keys"><span><kbd>A</kbd><kbd>D</kbd>/<kbd>←</kbd><kbd>→</kbd> 移动</span><span><kbd>空格</kbd>/<kbd>W</kbd> 跳（可二段跳）</span><span><kbd>J</kbd> 教鞭</span><span><kbd>L</kbd> 扔粉笔（远程）</span><span><kbd>K</kbd>/<kbd>Shift</kbd> 冲刺</span><span><kbd>↓</kbd>+<kbd>J</kbd> 空中俯冲</span><span><kbd>E</kbd> 互动 / 攀藤</span><span><kbd>Esc</kbd> 暂停</span><span>支持手柄 · 触屏</span></div>
+    <div class="keys" id="keyHints"><span><kbd>A</kbd><kbd>D</kbd>/<kbd>←</kbd><kbd>→</kbd> 移动</span><span><kbd>空格</kbd>/<kbd>W</kbd> 跳（可二段跳）</span><span><kbd>J</kbd> 教鞭</span><span><kbd>L</kbd> 扔粉笔（远程）</span><span><kbd>K</kbd>/<kbd>Shift</kbd> 冲刺</span><span><kbd>↓</kbd>+<kbd>J</kbd> 空中俯冲</span><span><kbd>E</kbd> 互动 / 攀藤</span><span><kbd>Esc</kbd> 暂停</span><span>支持手柄 · 触屏</span></div>
     <div class="menu-foot"><a href="editor.html">🛠 关卡工坊</a><span style="color:var(--muted)">v1.0.1 <button id="changelogBtn" class="link-btn">更新日志</button></span></div>
   </div>
 </div>
@@ -176,10 +176,24 @@
           <svg viewBox="0 0 80 48" aria-hidden="true"><rect x="2" y="2" width="76" height="44" rx="5"/><rect x="20" y="28" width="40" height="12" rx="2" class="line"/><path d="M26 34h28" class="line"/></svg><b>隐藏</b><small>适合电脑</small></label>
       </div></div>
     <div class="row"><span>按钮大小</span><div class="seg"><label><input type="radio" name="ctlSize" value="1">小</label><label><input type="radio" name="ctlSize" value="2">中</label><label><input type="radio" name="ctlSize" value="3">大</label></div></div>
+    <details class="row col fold"><summary>键盘按键 <small class="muted">点一格后按下想用的键 · ⌫ 清除 · Esc 取消</small></summary>
+      <div id="keyBinds" class="binds"></div><button id="keyReset" class="btn full">恢复默认键位</button></details>
+    <details class="row col fold"><summary>手柄按键 <small class="muted">移动固定为左摇杆 / 十字键</small></summary>
+      <p class="muted" style="margin:4px 0 8px;font-size:12px">点一格后按下手柄上的按钮；键盘 ⌫ 清除，Esc 取消。</p>
+      <div id="padBinds" class="binds"></div><button id="padReset" class="btn full">恢复默认手柄按键</button></details>
+    <div class="row"><span>触屏按钮位置 <small class="muted">拖动摇杆和按钮，摆到顺手的地方</small></span><button id="layoutBtn" class="btn">自定义位置…</button></div>
     <button id="fullBtn" class="btn full">全屏 / 退出全屏</button>
     <button id="resetBtn" class="btn full danger">清除全部存档</button>
     <button id="resetMetaBtn" class="btn full danger">清除成就 / 晶体 / 图鉴记录</button>
   </div>
+</div>
+
+<!-- 触屏按钮位置编辑 -->
+<div id="layoutEdit" class="layout-edit hidden">
+  <div class="le-bar"><b>自定义触屏按钮位置</b><span class="muted">拖动按钮摆放 · 选中：<b id="leSelName"></b></span>
+    <label>大小 <input id="leScale" type="range" min="50" max="180" value="100" disabled></label>
+    <button id="leReset" class="btn">恢复默认</button><button id="leDone" class="btn primary">完成</button></div>
+  <div id="leStage"></div>
 </div>
 
 <!-- 结局 -->
@@ -224,6 +238,8 @@
 <script src="js/levels/c4-04.js"></script>
 <script src="js/levels/c4-05.js"></script>
 <script src="js/levels/c4-06.js"></script>
+<script src="js/levels/c5-01.js"></script>
+<script src="js/levels/c5-02.js"></script>
 <!-- DLC关卡：深渊回响 -->
 <script src="js/levels/d1-01.js"></script>
 <script src="js/levels/d1-02.js"></script>

@@ -196,7 +196,8 @@ function bake(){var l=cur(),pw=l.width*T,ph=l.height*T;tileScale=Math.min(1,Math
   function at(cx,cy){if(cx<0||cx>=l.width)return 1;if(cy<0||cy>=l.height)return 0;return l.cells[cy][cx]}
   for(var y=0;y<l.height;y++)for(var xx=0;xx<l.width;xx++){var v=l.cells[y][xx];if(!v)continue;GFX.drawTile(x,set,v,xx,y,{up:!isSolid(at(xx,y-1))&&at(xx,y-1)!==2,down:!isSolid(at(xx,y+1)),left:!isSolid(at(xx-1,y)),right:!isSolid(at(xx+1,y))})}tilesDirty=false}
 function px(o){var c=INFO[o.kind];return{kind:o.kind,x:o.x*T,y:o.y*T,w:o.w*T,h:o.h*T,tex:(o.props||{}).tex}}
-function drawObj(x,o,biome,t,lvlH){var c=INFO[o.kind],d=px(o),p=o.props||{};if(!c)return;
+function drawObj(x,o,biome,t,lvlH){var c=INFO[o.kind],p=o.props||{};if(!c)return;if(p.hidden){x.save();x.globalAlpha*=.4;drawObj2(x,o,biome,t,lvlH);x.restore();return}drawObj2(x,o,biome,t,lvlH)}
+function drawObj2(x,o,biome,t,lvlH){var c=INFO[o.kind],d=px(o),p=o.props||{};if(!c)return;
   if(c.g==='enemy'&&o.kind!=='boss'){d.face=-1;d.alpha=.85;d.aim=Math.PI;d.flash=0;d.windup=0;d.charge=0;GFX.enemy(x,d,t,biome)}
   else if(o.kind==='boss'){GFX.boss(x,{type:p.boss||'lava',tex:p.tex,x:d.x,y:d.y,w:d.w,h:d.h,state:'idle',face:-1,flash:0},t)}
   else if(c.g==='npc'){GFX.npc(x,p.tex?o.kind+'#'+p.tex:o.kind,d.x,d.y,d.w,d.h,t,1)}
@@ -214,7 +215,7 @@ function draw(){var l=cur(),now=(performance.now()-t0)/1000,t=anim?now:1.2,bi=l.
   g.drawImage(tileCv,0,0,W,H);
   l.objects.forEach(function(o){if(o.type!=='background')drawObj(g,o,bi,t,H)});
   // 名牌
-  g.font='bold 11px sans-serif';g.textAlign='center';l.objects.forEach(function(o){if(o.type==='npc'||o.kind==='sign'){g.fillStyle='rgba(0,0,0,.55)';var tw=g.measureText(o.label).width+10;g.fillRect(o.x*T+o.w*T/2-tw/2,o.y*T-20,tw,15);g.fillStyle='#fff';g.fillText(o.label,o.x*T+o.w*T/2,o.y*T-9)}if(o.kind==='boss'){g.fillStyle='#ffb79a';g.fillText(o.dialogue||o.label,o.x*T+o.w*T/2,o.y*T-6)}});g.textAlign='start';
+  g.font='bold 11px sans-serif';g.textAlign='center';l.objects.forEach(function(o){if(o.type==='npc'||o.kind==='sign'||o.kind==='talkonce'||o.kind==='talkmulti'){g.fillStyle='rgba(0,0,0,.55)';var tw=g.measureText(o.label).width+10;g.fillRect(o.x*T+o.w*T/2-tw/2,o.y*T-20,tw,15);g.fillStyle='#fff';g.fillText(o.label,o.x*T+o.w*T/2,o.y*T-9)}if(o.kind==='boss'){g.fillStyle='#ffb79a';g.fillText(o.dialogue||o.label,o.x*T+o.w*T/2,o.y*T-6)}});g.textAlign='start';
   // 网格
   if(showGrid&&zoom>=.3){var x0=Math.max(0,Math.floor(panX/T)),x1=Math.min(l.width,Math.ceil((panX+SW/zoom)/T)),y0=Math.max(0,Math.floor(panY/T)),y1=Math.min(l.height,Math.ceil((panY+SH/zoom)/T));g.strokeStyle='rgba(170,225,255,.12)';g.lineWidth=1/zoom;g.beginPath();for(var gx=x0;gx<=x1;gx++){g.moveTo(gx*T,y0*T);g.lineTo(gx*T,y1*T)}for(var gy=y0;gy<=y1;gy++){g.moveTo(x0*T,gy*T);g.lineTo(x1*T,gy*T)}g.stroke();
     g.strokeStyle='rgba(170,225,255,.25)';g.beginPath();for(gx=x0-x0%5;gx<=x1;gx+=5){g.moveTo(gx*T,y0*T);g.lineTo(gx*T,y1*T)}g.stroke()}
@@ -312,7 +313,7 @@ function dupSel(){if(!sel)return;var o=obj(sel);if(!o||UNIQUE[o.kind]){toast('�
 
 /* ================= 属性面板 ================= */
 var PROPS={delay:['延迟（秒）','n'],respawn:['重生时间（秒）','n'],strength:['风力强度','n'],range:['巡逻范围（格）','n'],dir:['朝向（-1 左 / 1 右）','n'],rate:['射击间隔（秒）','n'],boss:['Boss 类型','s',[['ice','Boss1 风雪稽查员（冲撞/雪球/冰锥）'],['root','Boss2 枯根傀儡（树根/纸片/重踏）'],['spore','Boss3 孢子母巢（追踪孢子/孢子雨/召唤）'],['lava','Boss4 守线者（全部招式）'],['paradox','DLC 悖论（三个形态，需配套的竞技场/走廊/竖井）']]],hp:['生命值','n'],period:['周期（秒）','n'],phase:['相位（0 或 1 错开）','n'],hold:['离开后保持开启（秒）','n'],dx:['水平移动（格，负=向左）','n'],dy:['垂直移动（格，负=向上）','n'],speed:['速度','n'],once:['只触发一次（1/0）','n']};
-var EXTRA={plate:['hold'],laser:['period','phase']};
+var EXTRA={plate:['hold'],laser:['period','phase']};PROPS.hidden=['游戏里隐形（工坊里半透明显示，仍可互动）','s',[['','否：正常显示'],['1','是：游戏中不显示']]];Object.keys(INFO).forEach(function(k){if(INFO[k].g==='npc'||INFO[k].g==='sign')EXTRA[k]=(EXTRA[k]||[]).concat('hidden')});PROPS.mode=['多次对话的顺序','s',[['seq','顺序：依次说，说完停在最后一段'],['loop','循环：说完回到第一段'],['random','随机：每次随机一段（不连续重复）']]];
 var DLG_KINDS={npc:1,sign:1,trigger:1};
 function showProps(){var box=$('props'),o=sel?obj(sel):null;$('stSel').textContent=o?('选中：'+o.label+' ('+o.x+','+o.y+')'):'';
   if(!o){box.innerHTML='<p class="hint">在地图上点选一个物件即可编辑。<br>选择工具 + 拖动 = 移动；拖右下角方块 = 改大小。</p>';return}
@@ -326,10 +327,10 @@ function showProps(){var box=$('props'),o=sel?obj(sel):null;$('stSel').textConte
   field('名称（NPC 名牌 / 对话框名字）',o.label,'x',function(v){o.label=v||d.n;renderLinks()});
   var two=document.createElement('div');two.className='two';box.appendChild(two);
   var l=cur();[['X','x',0,l.width-1],['Y','y',0,l.height-1],['宽','w',1,l.width],['高','h',1,l.height]].forEach(function(f){var lab=document.createElement('label');lab.textContent=f[0];var el=document.createElement('input');el.type='number';el.value=o[f[1]];el.onchange=function(){change();o[f[1]]=clamp(Math.round(+el.value||0),f[2],f[3]);render();saved();showProps()};lab.appendChild(el);two.appendChild(lab)});
-  var keys=Object.keys(d.p).concat(EXTRA[o.kind]||[]);keys.forEach(function(k){if(!PROPS[k]||(k==='once'))return;var pd=PROPS[k];var v=o.props[k]!=null?o.props[k]:(pd[1]==='n'?0:'');field(pd[0],v,pd[1],function(nv){if(k==='boss')setBoss(o,nv);else o.props[k]=nv;},pd[2])});
+  var keys=Object.keys(d.p).concat(EXTRA[o.kind]||[]);keys.forEach(function(k){if(!PROPS[k]||(k==='once'))return;var pd=PROPS[k];var v=o.props[k]!=null?o.props[k]:(pd[1]==='n'?0:'');field(pd[0],v,pd[1],function(nv){if(k==='boss')setBoss(o,nv);else if(k==='hidden'){if(nv)o.props.hidden=1;else delete o.props.hidden}else o.props[k]=nv;},pd[2])});
   if(o.kind!=='trigger'&&o.kind!=='spawn'){var te=field('自定义贴图 <assets/textures/ 下的文件名，留空=默认>',o.props.tex||'','x',function(v){v=(v||'').trim();if(v)o.props.tex=v;else delete o.props.tex});
     te.setAttribute('list','texList');te.placeholder=o.kind+'（默认按种类名自动匹配）';var dl=document.createElement('datalist');dl.id='texList';(window.Assets?Assets.names():[]).forEach(function(n){var op=document.createElement('option');op.value=n;dl.appendChild(op)});box.appendChild(dl)}
-  if(DLG_KINDS[d.g]){var hint=document.createElement('p');hint.className='hint';hint.innerHTML=d.g==='trigger'?'玩家走进这个区域时自动播放。Boss 房里放一个，对话结束后 Boss 开战。':'玩家靠近按「互动」时播放。';box.appendChild(hint);
+  if(DLG_KINDS[d.g]){var hint=document.createElement('p');hint.className='hint';hint.innerHTML=d.g==='trigger'?'玩家走进这个区域时自动播放。Boss 房里放一个，对话结束后 Boss 开战。':o.kind==='talkonce'?'只能对话一次：说完后变暗，不能再互动。想分多段？没必要，一段对话写完即可。':o.kind==='talkmulti'?'每次互动说一段。用单独一行 <b>===</b> 把对话分成多段，下面选段落的播放顺序（顺序 / 循环 / 随机）。':'玩家靠近按「互动」时播放。';box.appendChild(hint);
     field('对话（每行一句：“名字：内容”，名字写“我”=老师头像）',String(o.dialogue||'').split('|').join('\n'),'t',function(v){o.dialogue=unlines(v).join('|')})}
   if(o.kind==='boss')field('Boss 显示名',o.dialogue||'','x',function(v){o.dialogue=v});
   if(LINK_SRC[o.kind]||LINK_DST[o.kind]){var rel=l.links.filter(function(k){return k.from===o.id||k.to===o.id});var p2=document.createElement('p');p2.className='hint';
@@ -389,9 +390,9 @@ $('fileInput').onchange=function(e){var f=e.target.files[0];if(!f)return;var r=n
     else{var c=normCampaign(d);if(!confirm('导入的主线有 '+c.chapters.length+' 章，将替换当前草稿（可撤销），继续？'))return;change();proj=c;ci=0;li=0;tilesDirty=true;refreshAll();fit();toast('已导入「'+c.name+'」')}saved()}catch(err){alert('导入失败：'+err.message)}};r.readAsText(f,'utf-8');e.target.value=''};
 $('moreBtn').onclick=function(e){e.stopPropagation();$('moreMenu').classList.toggle('hidden')};document.addEventListener('click',function(){$('moreMenu').classList.add('hidden')});
 function syncFromSource(){change();proj=normCampaign(srcCampaign(target));ci=clamp(ci,0,proj.chapters.length-1);li=clamp(li,0,proj.chapters[ci].levels.length-1);sel=null;draftBase=SRCBASE(target);tilesDirty=true;refreshAll();fit();saved();toast('已同步：载入游戏源码里的 '+proj.chapters.length+' 章 '+proj.chapters.reduce(function(a,c){return a+c.levels.length},0)+' 个房间')}
-function askSync(){if(confirm('游戏源码里的关卡（'+(target?'DLC：js/levels/d1-01 …':'js/levels/c1-01 … c4-06')+'）与工坊草稿不一致。\n\n确定：载入游戏当前关卡（覆盖草稿，可撤销）\n取消：保留草稿')){syncFromSource()}else{draftBase=SRCBASE(target);saved()}}
+function askSync(){if(confirm('游戏源码里的关卡（'+(target?'DLC：js/levels/d1-01 …':'js/levels/c1-01 … c5-NN')+'）与工坊草稿不一致。\n\n确定：载入游戏当前关卡（覆盖草稿，可撤销）\n取消：保留草稿')){syncFromSource()}else{draftBase=SRCBASE(target);saved()}}
 $('resetDefaultBtn').textContent='同步：载入游戏源码关卡（覆盖草稿）';
-$('resetDefaultBtn').onclick=function(){if(!confirm(target?'用 DLC 源码里的关卡替换当前草稿？（可撤销）':'用游戏源码里的关卡（js/levels/c1-01 … c4-06）替换当前草稿？（可撤销）'))return;syncFromSource()};
+$('resetDefaultBtn').onclick=function(){if(!confirm(target?'用 DLC 源码里的关卡替换当前草稿？（可撤销）':'用游戏源码里的关卡（js/levels/c1-01 … c5-NN）替换当前草稿？（可撤销）'))return;syncFromSource()};
 (function(){var b=document.createElement('button');b.textContent='导出本关为游戏关卡 .js';b.onclick=exportLevelJs;$('moreMenu').insertBefore(b,$('lockBtn'))})();
 $('loadPublishedBtn').onclick=function(){var p=LS.get(pubKey(target));if(!p){toast('游戏目前用的就是默认内容');return}change();proj=normCampaign(p);ci=0;li=0;tilesDirty=true;refreshAll();fit();saved();toast('已载入已发布的版本')};
 $('unpublishBtn').onclick=function(){if(!confirm(target?'让游戏恢复使用 DLC 源码里的默认关卡？（你的草稿不受影响）':'让游戏恢复使用默认主线？（你的草稿不受影响）'))return;LS.del(pubKey(target));if(target&&window.EditorDLC)EditorDLC.syncStats(target,srcCampaign(target));saved();toast('游戏已恢复默认内容')};

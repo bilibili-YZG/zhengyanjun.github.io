@@ -13,7 +13,7 @@ var CODEX=[
  {k:'boss_ice',cat:'creature',n:'风雪稽查员',d:'第一章 Boss。冲撞、雪球、冰锥。它出招前身体会泛红光，这时冲刺撞上去能打断它。'},
  {k:'boss_root',cat:'creature',n:'枯根傀儡',d:'第二章 Boss。树根、飞舞的作业纸、重踏冲击波。看清预警的红柱，再钻空档。'},
  {k:'boss_spore',cat:'creature',n:'孢子母巢',d:'第三章 Boss。追踪孢子、孢子雨，还会召唤小怪。它漂浮在空中，粉笔很好用。'},
- {k:'boss_lava',cat:'creature',n:'守线者',d:'最后一位守关者。冲撞、火球、熔柱、重踏，血量越低越凶。不必完美，只要灯还亮着。'},
+ {k:'boss_lava',cat:'creature',n:'守线者',d:'地底的最后一位守关者。冲撞、火球、熔柱、重踏，血量越低越凶。不必完美，只要灯还亮着。'},
  /* NPC */
  {k:'worker',cat:'npc',n:'巡线员',d:'守着雪原站口的人。他会告诉你怎么在这条线上活下去，也会讲牛顿第一定律。'},
  {k:'child',cat:'npc',n:'雪地孩子',d:'一个迷路的孩子，有一道受力分析的题一直没弄懂，也不敢举手问。'},
@@ -51,6 +51,8 @@ var CODEX=[
  {k:'checkpoint',cat:'mech',n:'信标灯',d:'点亮后会存档，你倒下时会回到这里。'},
  {k:'exit',cat:'mech',n:'出口',d:'站在里面停一会儿就能过关。Boss 房的出口会被封锁，要先击败守关者。'},
  {k:'sign',cat:'mech',n:'剧情路牌',d:'路边的牌子，靠近按「互动」查看。'},
+ {k:'talkonce',cat:'mech',n:'一次性对话框',d:'只能互动一次的对话，说完就暗下去了。'},
+ {k:'talkmulti',cat:'mech',n:'多次对话框',d:'每次互动都会听到不同的话。'},
  /* 道具 */
  {k:'shard',cat:'item',n:'信标碎片',d:'每一枚碎片里，都封着孩子们说过的一句话。收集情况会记录在「成就 · 晶体」里。'},
  {k:'dashgem',cat:'item',n:'冲刺水晶',d:'碰一下就补满冲刺和二段跳，几秒后会重新凝结。'},
@@ -92,6 +94,7 @@ var ACH=[
  {id:'ch2_all',n:'苔木之声',d:'找齐第二章的全部碎片',prog:function(m,i){return i.ch[1]?[i.ch[1].have,i.ch[1].total]:null}},
  {id:'ch3_all',n:'洞窟微光',d:'找齐第三章的全部碎片',prog:function(m,i){return i.ch[2]?[i.ch[2].have,i.ch[2].total]:null}},
  {id:'ch4_all',n:'熔岩余烬',d:'找齐第四章的全部碎片',prog:function(m,i){return i.ch[3]?[i.ch[3].have,i.ch[3].total]:null}},
+ {id:'ch5_all',n:'黎明的曙光',d:'找齐第五章的全部碎片',prog:function(m,i){return i.ch[4]?[i.ch[4].have,i.ch[4].total]:null}},
  {id:'boss_ice',n:'风雪散去',d:'击败风雪稽查员',prog:function(m){return [m.boss.ice?1:0,1]}},
  {id:'boss_root',n:'枯枝逢春',d:'击败枯根傀儡',prog:function(m){return [m.boss.root?1:0,1]}},
  {id:'boss_spore',n:'孢子归尘',d:'击败孢子母巢',prog:function(m){return [m.boss.spore?1:0,1]}},

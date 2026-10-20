@@ -8,6 +8,20 @@ var prefs=Object.assign({mute:false,size:2,controls:'auto'},LS.get(L15.STORAGE.p
 if(prefs.controls==='on')prefs.controls='split';else if(prefs.controls==='off')prefs.controls='hidden';
 if(['auto','split','cluster','hidden'].indexOf(prefs.controls)<0)prefs.controls='auto';
 if(!(prefs.size>=1&&prefs.size<=3))prefs.size=2;
+/* 按键绑定：键盘每个动作最多 3 个键，手柄每个动作最多 2 个按钮；触屏按钮位置按屏幕比例保存 */
+var ACTS=[['left','向左'],['right','向右'],['up','向上 / 攀爬'],['down','向下 / 俯冲'],['jump','跳跃'],['attack','教鞭'],['dash','冲刺'],['interact','互动 / 攀藤'],['chalk','扔粉笔'],['pause','暂停']];
+var KEY_DEF={left:['a','arrowleft'],right:['d','arrowright'],up:['w','arrowup'],down:['s','arrowdown'],jump:[' ','w','arrowup'],attack:['j','z'],dash:['k','x','shift'],interact:['e','enter','f'],chalk:['l','c'],pause:['p']};
+var PAD_ACTS=[['jump','跳跃'],['attack','教鞭'],['dash','冲刺'],['interact','互动'],['chalk','扔粉笔'],['pause','暂停']];
+var PAD_DEF={jump:[0],dash:[1,5],attack:[2],interact:[3],chalk:[4,7],pause:[9]};
+var PAD_NAMES=['A','B','X','Y','LB','RB','LT','RT','Select','Start','L3','R3','↑','↓','←','→','Home'];
+var CTL_IDS=['joy','jump','attack','dash','interact','chalk'],CTL_NAME={joy:'摇杆',jump:'跳',attack:'教鞭',dash:'冲刺',interact:'互动',chalk:'粉笔'},CTL_BASE={joy:150,jump:92,attack:72,dash:66,interact:58,chalk:62};
+var le={on:false,sel:null,def:{}}; /* 触屏按钮位置编辑器的状态；放在前面，因为首次 resize 就会用到 */
+function fixBinds(src,def,max,ok){var out={},k;for(k in def){var l=src&&Array.isArray(src[k])?src[k].filter(ok).slice(0,max):def[k].slice();out[k]=l}return out}
+prefs.keys=fixBinds(prefs.keys,KEY_DEF,3,function(x){return typeof x==='string'&&x.length>0&&x.length<16});
+prefs.pad=fixBinds(prefs.pad,PAD_DEF,2,function(x){return typeof x==='number'&&x>=0&&x<32&&(x<12||x>15)});
+(function(){var L=prefs.layout,out={};if(L&&typeof L==='object')CTL_IDS.forEach(function(id){var v=L[id];if(v&&isFinite(v.x)&&isFinite(v.y))out[id]={x:Math.max(.03,Math.min(.97,+v.x)),y:Math.max(.03,Math.min(.97,+v.y)),s:Math.max(.5,Math.min(1.8,+v.s||1))}});prefs.layout=out})();
+function keyName(k){return ({' ':'空格',arrowleft:'←',arrowright:'→',arrowup:'↑',arrowdown:'↓',shift:'Shift',control:'Ctrl',alt:'Alt',enter:'Enter',backspace:'⌫',tab:'Tab',escape:'Esc'})[k]||String(k).toUpperCase()}
+var KEYACT={};function rebuildKeyMap(){KEYACT={};ACTS.forEach(function(a){prefs.keys[a[0]].forEach(function(k){(KEYACT[k]=KEYACT[k]||[]).push(a[0])})})}rebuildKeyMap();
 /* 工坊试玩不记录成就 / 图鉴 / 晶体 */
 var MM=TEST?{cnt:function(){},shard:function(){},blueShard:function(){},seen:function(){},boss:function(){},cleared:function(){},dlcChapter:function(){},dlcCleared:function(){},perfect:function(){},check:function(){return[]}}:Meta;
 function savePrefs(){LS.set(L15.STORAGE.prefs,prefs)}
@@ -27,7 +41,7 @@ var slot=-1,codexT=0,achT=0;
 var inDLC=false,dlcId=null,totalBlue=0; /* DLC 模式：战役切到 DLC，进度单独存，不动主线存档 */
 var keys={},touchHeld={},buf={},joy={x:0,y:0,id:null},padPrev={},toastT=0,fadeBusy=false;
 /* ---------- 画布 ---------- */
-function resize(){W=innerWidth;H=innerHeight;dpr=Math.min(devicePixelRatio||1,2);while(W*H*dpr*dpr>5.2e6&&dpr>1)dpr-=.25;canvas.width=Math.round(W*dpr);canvas.height=Math.round(H*dpr);applyPrefs();
+function resize(){W=innerWidth;H=innerHeight;dpr=Math.min(devicePixelRatio||1,2);while(W*H*dpr*dpr>5.2e6&&dpr>1)dpr-=.25;canvas.width=Math.round(W*dpr);canvas.height=Math.round(H*dpr);applyPrefs();leRefresh();
  sc=Math.min(H/(H<560?400:576),W/(H<560?640:760));vw=W/sc;vh=H/sc;$('rotate').classList.toggle('hidden',!(H>W*1.1&&W<900&&document.body.classList.contains('touch')));vig=null;
  var s=$('storyCanvas');if(s){s.width=Math.round(W*Math.min(dpr,1.5));s.height=Math.round(H*Math.min(dpr,1.5))}}
 addEventListener('resize',function(){setTimeout(resize,60)});addEventListener('orientationchange',function(){setTimeout(resize,250)});
@@ -39,41 +53,50 @@ function applyPrefs(){var mode=uiMode(),show=mode!=='hidden',mult=[.85,1,1.2][pr
  ctlScale=base*mult;var rs=document.documentElement.style;rs.setProperty('--ctl',ctlScale.toFixed(3));rs.setProperty('--ui',Math.max(1,Math.min(1.75,m/700)).toFixed(3));
  var c=$('controls');c.classList.toggle('hidden',!show);c.classList.toggle('cluster',mode==='cluster');c.classList.toggle('split',mode==='split');
  document.body.classList.toggle('touch',show);document.body.classList.toggle('ui-cluster',mode==='cluster');document.body.classList.toggle('ui-split',mode==='split');
- $('muteBtn').textContent=prefs.mute?'🔇':'🔊';AudioFX.setMuted(prefs.mute)}
+ $('muteBtn').textContent=prefs.mute?'🔇':'🔊';AudioFX.setMuted(prefs.mute);applyLayout()}
 /* ---------- 输入 ---------- */
 function press(n,t){buf[n]=t||.14}
+function keyHeld(a){var l=prefs.keys[a],i;for(i=0;i<l.length;i++)if(keys[l[i]])return true;return false}
 function isHeld(n){
- if(n==='left')return keys.arrowleft||keys.a||touchHeld.left||joy.x<-.3||pad('left');
- if(n==='right')return keys.arrowright||keys.d||touchHeld.right||joy.x>.3||pad('right');
- if(n==='up')return keys.arrowup||keys.w||joy.y<-.55||pad('up');
- if(n==='down')return keys.arrowdown||keys.s||joy.y>.55||pad('down');
- if(n==='jump')return keys[' ']||keys.arrowup||keys.w||keys.k&&0||touchHeld.jump||pad('jump');
+ if(n==='left')return keyHeld('left')||touchHeld.left||joy.x<-.3||pad('left');
+ if(n==='right')return keyHeld('right')||touchHeld.right||joy.x>.3||pad('right');
+ if(n==='up')return keyHeld('up')||joy.y<-.55||pad('up');
+ if(n==='down')return keyHeld('down')||joy.y>.55||pad('down');
+ if(n==='jump')return keyHeld('jump')||touchHeld.jump||pad('jump');
  return false}
-var padState={};function pad(n){return !!padState[n]}
+var padState={},padCap=null,padPrevAll=[];function pad(n){return !!padState[n]}
 function pollPad(){var gp=navigator.getGamepads?navigator.getGamepads():[],p=null,i;for(i=0;i<gp.length;i++)if(gp[i]&&gp[i].connected){p=gp[i];break}
- padState={};if(!p)return;var ax=p.axes[0]||0,ay=p.axes[1]||0;padState.left=ax<-.4||(p.buttons[14]&&p.buttons[14].pressed);padState.right=ax>.4||(p.buttons[15]&&p.buttons[15].pressed);padState.up=ay<-.6||(p.buttons[12]&&p.buttons[12].pressed);padState.down=ay>.6||(p.buttons[13]&&p.buttons[13].pressed);
- padState.jump=p.buttons[0]&&p.buttons[0].pressed;var map={jump:0,dash:1,attack:2,interact:3,chalk:4,pause:9};Object.keys(map).forEach(function(k){var d=p.buttons[map[k]]&&p.buttons[map[k]].pressed;if(d&&!padPrev[k])act(k);padPrev[k]=d});if(p.buttons[5]&&p.buttons[5].pressed&&!padPrev.rb){act('dash')}padPrev.rb=p.buttons[5]&&p.buttons[5].pressed;if(p.buttons[7]&&p.buttons[7].pressed&&!padPrev.rt){act('chalk')}padPrev.rt=p.buttons[7]&&p.buttons[7].pressed}
+ padState={};if(!p)return;var ax=p.axes[0]||0,ay=p.axes[1]||0;function bp(n){return !!(p.buttons[n]&&p.buttons[n].pressed)}
+ padState.left=ax<-.4||bp(14);padState.right=ax>.4||bp(15);padState.up=ay<-.6||bp(12);padState.down=ay>.6||bp(13);
+ if(padCap){ /* 改键中：等下一个被按下的按钮（十字键固定用来移动，不能绑定） */
+  for(i=0;i<p.buttons.length;i++){var dn=bp(i);if(dn&&!padPrevAll[i]&&(i<12||i>15)){finishPadCap(i);break}}
+  padPrevAll=p.buttons.map(function(b){return b.pressed});PAD_ACTS.forEach(function(a){padPrev[a[0]]=prefs.pad[a[0]].some(bp)});return}
+ PAD_ACTS.forEach(function(a){var k=a[0],d=prefs.pad[k].some(bp);if(d&&!padPrev[k])act(k);padPrev[k]=d;if(k==='jump')padState.jump=d});
+ padPrevAll=p.buttons.map(function(b){return b.pressed})}
 function act(k){AudioFX.init();
  if(state==='dialog'){if(k==='jump'||k==='interact'||k==='attack')advanceDialog();return}
  if(state==='story'){if(k==='jump'||k==='interact'||k==='attack')advanceStory();return}
  if(k==='pause'){togglePause();return}
  if(state!=='play')return;press(k,k==='jump'?.16:.14)}
-var KEYMAP={' ':'jump',w:'jump',arrowup:'jump',j:'attack',z:'attack',k:'dash',x:'dash',shift:'dash',e:'interact',enter:'interact',f:'interact',l:'chalk',c:'chalk'};
-addEventListener('keydown',function(e){var k=e.key.toLowerCase();if([' ','arrowleft','arrowright','arrowup','arrowdown'].indexOf(k)>=0)e.preventDefault();
+var keyCap=null,PRESS_ACTS={jump:1,attack:1,dash:1,interact:1,chalk:1};
+addEventListener('keydown',function(e){var k=e.key.toLowerCase();
+ if(keyCap){e.preventDefault();e.stopPropagation();finishKeyCap(k);return}
+ if(padCap){e.preventDefault();finishPadCap(k==='escape'?-1:(k==='backspace'||k==='delete')?-2:null);return}
+ if([' ','arrowleft','arrowright','arrowup','arrowdown'].indexOf(k)>=0)e.preventDefault();
  if(e.repeat){keys[k]=true;return}keys[k]=true;
- if(k==='escape'||k==='p'){act('pause');return}if(k==='m'){prefs.mute=!prefs.mute;savePrefs();applyPrefs();return}
- if(KEYMAP[k])act(KEYMAP[k]);if(k==='arrowup'||k==='w'){if(state==='play')press('up',.2)}});
+ if(k==='escape'){act('pause');return}if(k==='m'){prefs.mute=!prefs.mute;savePrefs();applyPrefs();return}
+ var hit=KEYACT[k];if(hit)hit.forEach(function(a){if(a==='pause'||PRESS_ACTS[a])act(a);else if(a==='up'&&state==='play')press('up',.2)})});
 addEventListener('keyup',function(e){keys[e.key.toLowerCase()]=false});
 addEventListener('blur',function(){keys={};touchHeld={};joy.x=joy.y=0;if(state==='play')togglePause(true)});
 document.addEventListener('visibilitychange',function(){if(document.hidden&&state==='play')togglePause(true)});
 /* 触屏：虚拟摇杆 + 按钮（多点触控，支持学校大屏） */
 var joyEl=$('joy'),joyThumb=$('joyThumb');
 function moveJoy(e){var r=joyEl.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2,lim=r.width*.36,dx=e.clientX-cx,dy=e.clientY-cy,len=Math.hypot(dx,dy)||1,k=Math.min(1,lim/len);dx*=k;dy*=k;joy.x=dx/lim;joy.y=dy/lim;joyThumb.style.transform='translate('+dx+'px,'+dy+'px)'}
-joyEl.addEventListener('pointerdown',function(e){e.preventDefault();AudioFX.init();joy.id=e.pointerId;try{joyEl.setPointerCapture(e.pointerId)}catch(x){}moveJoy(e)});
+joyEl.addEventListener('pointerdown',function(e){e.preventDefault();if(le.on)return;AudioFX.init();joy.id=e.pointerId;try{joyEl.setPointerCapture(e.pointerId)}catch(x){}moveJoy(e)});
 joyEl.addEventListener('pointermove',function(e){if(e.pointerId===joy.id){e.preventDefault();moveJoy(e)}});
 ['pointerup','pointercancel','lostpointercapture'].forEach(function(ev){joyEl.addEventListener(ev,function(e){if(e.pointerId!==joy.id&&ev!=='lostpointercapture')return;joy.id=null;joy.x=joy.y=0;joyThumb.style.transform='translate(0,0)'})});
 Array.prototype.forEach.call(document.querySelectorAll('[data-act]'),function(b){var k=b.dataset.act,ids={};
- b.addEventListener('pointerdown',function(e){e.preventDefault();ids[e.pointerId]=1;try{b.setPointerCapture(e.pointerId)}catch(x){}b.classList.add('down');if(k==='jump')touchHeld.jump=true;act(k)});
+ b.addEventListener('pointerdown',function(e){e.preventDefault();if(le.on)return;ids[e.pointerId]=1;try{b.setPointerCapture(e.pointerId)}catch(x){}b.classList.add('down');if(k==='jump')touchHeld.jump=true;act(k)});
  function up(e){delete ids[e.pointerId];if(!Object.keys(ids).length){b.classList.remove('down');if(k==='jump')touchHeld.jump=false}}
  b.addEventListener('pointerup',up);b.addEventListener('pointercancel',up);b.addEventListener('lostpointercapture',up)});
 canvas.addEventListener('pointerdown',function(e){AudioFX.init();if(state==='dialog')advanceDialog()});
@@ -155,7 +178,7 @@ function buildRoom(lv){
   case'dashgem':d.gone=false;d.t=0;r.gems.push(d);break;
   case'wind':r.winds.push(d);break;
   case'boss':r.bossDef=d;break;
-  case'sign':r.signs.push(d);break;
+  case'sign':case'talkonce':case'talkmulti':r.signs.push(d);break;
   case'trigger':d.used=false;r.triggers.push(d);break;
   default:if(window.DLCX&&DLCX.build(r,d,o.kind,gs))break;if(inf&&inf.g==='npc')r.npcs.push(d);else if(inf&&inf.g==='background')r.decor.push(d)}});
  (lv.links||[]).forEach(function(k){(r.src[k.to]=r.src[k.to]||[]).push(k.from)});
@@ -236,6 +259,12 @@ function hitBoss(n,viaDash){var b=R.boss;if(!b||b.dead||b.flash>0||b.deadT>0)ret
  if(b.hp<=0){b.hp=0;b.deadT=.01;b.state='dying';R.proj=[];R.warns=[];R.fire=[];AudioFX.sfx('roar')}return true}
 /* ---------- 玩家 ---------- */
 function approach(v,t,d){return v<t?Math.min(t,v+d):Math.max(t,v-d)}
+/* 对话框物件：对话文本里单独一行 === 把它分成多段。一次性：只能对话一次；多次：mode=seq 依次说、说完停在最后一段 / loop 循环 / random 随机 */
+function talkBox(d){var lines=String(d.say||'').split('|'),segs=[[]];lines.forEach(function(l){if(l.trim()==='===')segs.push([]);else segs[segs.length-1].push(l)});segs=segs.filter(function(s){return s.join('').trim()});
+ if(!segs.length)segs=[['……']];var n=d.talkN||0,idx=0;
+ if(d.kind==='talkonce'){if(d.talked)return;d.talked=true;idx=0}
+ else{var m=d.p&&d.p.mode;idx=m==='random'?(segs.length>1?(function(){var r;do{r=Math.floor(Math.random()*segs.length)}while(r===d.lastIdx);return r})():0):m==='loop'?n%segs.length:Math.min(n,segs.length-1);d.talkN=n+1;d.lastIdx=idx}
+ startDialog(parseDialog(segs[idx].join('|'),'sign'),null)}
 function say(d,kind){if(window.DLCX&&DLCX.isQuiz(d.say)){DLCX.quiz(d);return}startDialog(parseDialog(d.say,kind||d.kind),null)}
 function updatePlayer(dt){
  var p=P,L=isHeld('left'),Rt=isHeld('right'),up=isHeld('up'),dn=isHeld('down'),dir=(Rt?1:0)-(L?1:0),i;
@@ -348,7 +377,7 @@ function combat(){var p=P,i;
 function toggleSwitch(s){if(s.on)return;s.on=true;AudioFX.sfx('switch');emit(s.x+16,s.y+10,'#ffe79a',16,180);toast('开关已启动')}
 function doInteract(){var p=P,cx=p.x+p.w/2,cy=p.y+p.h/2,i;
  for(i=0;i<R.npcs.length;i++){var n=R.npcs[i];if(Math.abs(cx-(n.x+n.w/2))<62&&Math.abs(cy-(n.y+n.h/2))<60){n.face=cx<n.x+n.w/2?-1:1;if(window.DLCX)DLCX.onTalk(n);say(n);return}}
- for(i=0;i<R.signs.length;i++){var s=R.signs[i];if(Math.abs(cx-(s.x+s.w/2))<60&&Math.abs(cy-(s.y+s.h/2))<60){if(window.DLCX&&DLCX.isQuiz(s.say)){DLCX.quiz(s);return}startDialog(parseDialog(s.say||'路牌：……','sign'),null);return}}
+ for(i=0;i<R.signs.length;i++){var s=R.signs[i];if(Math.abs(cx-(s.x+s.w/2))<60&&Math.abs(cy-(s.y+s.h/2))<60){if(s.kind==='talkonce'||s.kind==='talkmulti'){talkBox(s);return}if(window.DLCX&&DLCX.isQuiz(s.say)){DLCX.quiz(s);return}startDialog(parseDialog(s.say||'路牌：……','sign'),null);return}}
  for(i=0;i<R.switches.length;i++){var w=R.switches[i];if(!w.on&&Math.abs(cx-(w.x+w.w/2))<56&&Math.abs(cy-(w.y+w.h/2))<60){toggleSwitch(w);return}}}
 /* ---------- 敌人 ---------- */
 function solidAt(px,py){return isSolid(cellAt(Math.floor(px/T),Math.floor(py/T)))}
@@ -444,7 +473,7 @@ function drawWeather(biome){var w=L15.weatherOf(biome),i;if(weather.length!==w.n
  g.restore()}
 function nearInteract(){if(!P||!R)return null;var cx=P.x+P.w/2,cy=P.y+P.h/2,i,o;
  for(i=0;i<R.npcs.length;i++){o=R.npcs[i];if(Math.abs(cx-(o.x+o.w/2))<62&&Math.abs(cy-(o.y+o.h/2))<60)return{x:o.x+o.w/2,y:o.y-30,t:'对话'}}
- for(i=0;i<R.signs.length;i++){o=R.signs[i];if(Math.abs(cx-(o.x+o.w/2))<60&&Math.abs(cy-(o.y+o.h/2))<60)return{x:o.x+o.w/2,y:o.y-12,t:'查看'}}
+ for(i=0;i<R.signs.length;i++){o=R.signs[i];if(o.kind==='talkonce'&&o.talked)continue;if(Math.abs(cx-(o.x+o.w/2))<60&&Math.abs(cy-(o.y+o.h/2))<60)return{x:o.x+o.w/2,y:o.y-12,t:'查看'}}
  for(i=0;i<R.switches.length;i++){o=R.switches[i];if(!o.on&&Math.abs(cx-(o.x+o.w/2))<56&&Math.abs(cy-(o.y+o.h/2))<60)return{x:o.x+o.w/2,y:o.y-14,t:'拉动'}}
  if(!P.climb)for(i=0;i<R.vines.length;i++){o=R.vines[i];if(Math.abs(cx-(o.x+o.w/2))<18&&P.y+P.h*.7>o.y&&P.y<o.y+o.h-14)return{x:o.x+o.w/2,y:P.y-18,t:'攀爬'}}
  return null}
@@ -458,13 +487,13 @@ function render(){g.setTransform(dpr,0,0,dpr,0,0);
  R.decor.forEach(function(o){if(vis(o))GFX.thing(g,o,t,R.biome,R.h)});
  g.drawImage(R.tileCanvas,0,0);
  var set=GFX.tiles(R.biome);for(var ty=0;ty<R.ch;ty++)for(var tx=Math.max(0,Math.floor(vx0/T));tx<Math.min(R.cw,Math.ceil(vx1/T));tx++)if(R.cells[ty][tx]===3){var ba=R.bounceAnim[ty*R.cw+tx],sq=ba!=null?Math.max(0,1-(t-ba)*4):0;g.save();g.translate(tx*T+T/2,ty*T+T);g.scale(1+sq*.25,1-sq*.3+Math.sin(t*3+tx)*.02);g.drawImage(set.bounce,-T/2,-T,T,T);g.restore()}
- [R.winds,R.lavas,R.spikes,R.lasers,R.flames,R.vines,R.vents,R.spores,R.springs,R.movers,R.crumbles,R.convs,R.gates,R.plates,R.switches,R.checks,R.signs,R.icicles,R.saws,R.gems,R.xthings].forEach(function(a){a.forEach(function(o){if(vis(o))GFX.thing(g,o,t,R.biome,R.h)})});
+ [R.winds,R.lavas,R.spikes,R.lasers,R.flames,R.vines,R.vents,R.spores,R.springs,R.movers,R.crumbles,R.convs,R.gates,R.plates,R.switches,R.checks,R.signs,R.icicles,R.saws,R.gems,R.xthings].forEach(function(a){a.forEach(function(o){if(vis(o)&&!(o.p&&o.p.hidden))GFX.thing(g,o,t,R.biome,R.h)})});
  R.rubble.forEach(function(o){if(!o.dead&&vis(o))GFX.thing(g,o,t,R.biome,R.h)});
  if(R.exit){GFX.thing(g,R.exit,t,R.biome,R.h);if(P&&P.exitT>0){var kx=Math.min(1,P.exitT/.3);g.save();g.strokeStyle='#fff1a8';g.lineWidth=5;g.lineCap='round';g.beginPath();g.arc(R.exit.x+R.exit.w/2,R.exit.y-18,16,-Math.PI/2,-Math.PI/2+kx*Math.PI*2);g.stroke();g.restore()}}
  R.shards.forEach(function(o){if(!o.got&&vis(o))GFX.thing(g,o,t,R.biome,R.h)});R.hearts.forEach(function(o){if(!o.got&&vis(o))GFX.thing(g,o,t,R.biome,R.h)});
  R.warns.forEach(function(w){var k=1-w.t/w.max,bl=Math.sin(t*30)>0?1:.5;g.fillStyle='#ff3a3a';g.globalAlpha=(.12+k*.25)*bl;if(w.kind==='pillar')g.fillRect(w.x,w.y-T*3.2,w.w,T*3.2);else g.fillRect(w.x,cam.y,w.w,w.y-cam.y);g.globalAlpha=.8*bl;g.fillRect(w.x,w.y-4,w.w,4);g.globalAlpha=1});
  R.fire.forEach(function(f){var fg=g.createLinearGradient(0,f.y+f.h,0,f.y);fg.addColorStop(0,'#ffffff');fg.addColorStop(.3,f.col);fg.addColorStop(1,f.col+'00');g.fillStyle=fg;g.globalAlpha=Math.min(1,f.t*4);g.fillRect(f.x,f.y,f.w,f.h);g.globalAlpha=1;GFX.glow(g,f.x+f.w/2,f.y+f.h*.6,f.h*.7,f.col,.5)});
- R.npcs.forEach(function(n){if(!vis(n))return;GFX.npc(g,n.p&&n.p.tex?n.kind+"#"+n.p.tex:n.kind,n.x,n.y,n.w,n.h,t,n.face||(P.x<n.x?-1:1));g.fillStyle='rgba(8,20,32,.6)';g.font='bold 11px "Noto Sans SC",sans-serif';g.textAlign='center';var lw=g.measureText(n.label).width+12;g.beginPath();g.roundRect(n.x+n.w/2-lw/2,n.y-56,lw,17,8);g.fill();g.fillStyle='#e9fffb';g.fillText(n.label,n.x+n.w/2,n.y-43)});
+ R.npcs.forEach(function(n){if(!vis(n)||(n.p&&n.p.hidden))return;GFX.npc(g,n.p&&n.p.tex?n.kind+"#"+n.p.tex:n.kind,n.x,n.y,n.w,n.h,t,n.face||(P.x<n.x?-1:1));g.fillStyle='rgba(8,20,32,.6)';g.font='bold 11px "Noto Sans SC",sans-serif';g.textAlign='center';var lw=g.measureText(n.label).width+12;g.beginPath();g.roundRect(n.x+n.w/2-lw/2,n.y-56,lw,17,8);g.fill();g.fillStyle='#e9fffb';g.fillText(n.label,n.x+n.w/2,n.y-43)});
  R.enemies.forEach(function(e){if(!e.dead&&vis(e))GFX.enemy(g,e,t,R.biome)});
  if(R.boss&&!R.boss.dead){g.save();if(R.boss.state==='dying')g.globalAlpha=Math.sin(t*40)>0?1:.35;GFX.boss(g,R.boss,t);g.restore()}
  R.chalk.forEach(function(q){GFX.chalk(g,q,t)});
@@ -475,7 +504,7 @@ function render(){g.setTransform(dpr,0,0,dpr,0,0);
   if(P.atk>0){var pr=1-P.atk/.22;g.save();g.translate(P.x+P.w/2,P.y+P.h*.45);g.scale(P.face,1);g.globalAlpha=Math.min(1,P.atk*7);g.strokeStyle=b.accent;g.lineWidth=7;g.lineCap='round';g.beginPath();g.arc(8,0,40,-1.3+pr*.6,-1.3+pr*.6+2.2*Math.min(1,pr*2.5));g.stroke();g.strokeStyle='#fff';g.lineWidth=2.5;g.beginPath();g.arc(8,0,40,-1.2+pr*.6,-1.2+pr*.6+2*Math.min(1,pr*2.5));g.stroke();g.restore()}
   if(P.slam){g.strokeStyle='#ffd28a';g.globalAlpha=.8;g.lineWidth=4;g.beginPath();g.moveTo(P.x+4,P.y-14);g.lineTo(P.x+4,P.y-40);g.moveTo(P.x+P.w-4,P.y-14);g.lineTo(P.x+P.w-4,P.y-40);g.stroke();g.globalAlpha=1}}
  parts.forEach(function(p){g.globalAlpha=Math.max(0,Math.min(1,p.life/p.max*1.5));g.fillStyle=p.c;g.beginPath();g.arc(p.x,p.y,p.r*Math.max(.3,p.life/p.max),0,6.283);g.fill()});g.globalAlpha=1;
- var ni=state==='play'?nearInteract():null;if(ni){g.save();g.translate(ni.x,ni.y+Math.sin(t*5)*3);var touchy=document.body.classList.contains('touch'),lab=(touchy?'':'E ')+ni.t;g.font='bold 12px "Noto Sans SC",sans-serif';g.textAlign='center';var ww=g.measureText(lab).width+18;g.fillStyle='rgba(8,24,38,.88)';g.beginPath();g.roundRect(-ww/2,-22,ww,22,11);g.fill();g.strokeStyle=b.accent;g.lineWidth=1.5;g.stroke();g.fillStyle='#e5fffb';g.fillText(lab,0,-6.5);g.restore()}
+ var ni=state==='play'?nearInteract():null;if(ni){g.save();g.translate(ni.x,ni.y+Math.sin(t*5)*3);var touchy=document.body.classList.contains('touch'),lab=(touchy||!prefs.keys.interact.length?'':keyName(prefs.keys.interact[0])+' ')+ni.t;g.font='bold 12px "Noto Sans SC",sans-serif';g.textAlign='center';var ww=g.measureText(lab).width+18;g.fillStyle='rgba(8,24,38,.88)';g.beginPath();g.roundRect(-ww/2,-22,ww,22,11);g.fill();g.strokeStyle=b.accent;g.lineWidth=1.5;g.stroke();g.fillStyle='#e5fffb';g.fillText(lab,0,-6.5);g.restore()}
  if(interactBtn)interactBtn.classList.toggle('ready',!!ni);
  g.setTransform(dpr,0,0,dpr,0,0);drawWeather(R.biome);
  if(!vig||vig.w!==W||vig.h!==H){vig=GFX.mk(Math.max(1,W),Math.max(1,H));vig.w=W;vig.h=H;var vg=vig.getContext('2d'),rg=vg.createRadialGradient(W/2,H/2,Math.min(W,H)*.35,W/2,H/2,Math.max(W,H)*.75);rg.addColorStop(0,'rgba(0,0,0,0)');rg.addColorStop(1,'rgba(0,0,0,.45)');vg.fillStyle=rg;vg.fillRect(0,0,W,H)}g.drawImage(vig,0,0,W,H);
@@ -542,7 +571,7 @@ function applySave(s){unlocked=Math.min(s.unlocked||0,campaign.chapters.length-1
 function newGame(){got={};totalShards=0;stats={deaths:0,kills:0,time:0};unlocked=0;ci=0;li=0;hideMenus();AudioFX.init();AudioFX.play('station');if(!TEST&&slot>=0)saveGame(true);showStory(campaign.prologue||[],'school',function(){startChapter(0)})}
 function titleScreen(){campaign=baseCampaign;inDLC=false;dlcId=null;document.body.classList.remove('dlc-mode');state='menu';R=null;P=null;hideMenus();show('hud',false);$('controls').classList.add('hidden');show('menu',true);var n=Meta.newest(),s=n<0?null:fixSave(Meta.slots()[n]);$('continueBtn').disabled=!s;
  $('continueInfo').textContent=s?('存档 '+(n+1)+' · '+campaign.chapters[s.ci].name+' · '+campaign.chapters[s.ci].levels[s.li].name+(s.cleared?'（已通关）':'')):'暂无存档';
- $('customTag').classList.toggle('hidden',!customCampaign);AudioFX.play('station')}
+ $('customTag').classList.toggle('hidden',!customCampaign);AudioFX.play('file:OLD TITLE THEME 75')}
 /* 存档页（界面在 meta-ui.js）：start 新旅程 / load 读取 / save 覆盖保存 / del 删除 */
 function loadSlot(i){var s=fixSave(Meta.slots()[i]);if(!s)return;slot=i;applySave(s);hideMenus();AudioFX.duck(false);AudioFX.init();if(s.cleared){state='menu';show('menu',true);openChapters();return}fade(function(){enterLevel(s.ci,s.li)})}
 function slotAction(act,i,mode){
@@ -562,7 +591,7 @@ function openChapters(){var box=$('chapterList');box.innerHTML='';campaign.chapt
   box.appendChild(d)});show('chapters',true)}
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
 function qa(sel){return Array.prototype.slice.call(document.querySelectorAll(sel))}
-function syncSettings(){$('setMute').checked=!prefs.mute;qa('[name=ctlSize]').forEach(function(r){r.checked=+r.value===prefs.size});qa('[name=ctlMode]').forEach(function(r){r.checked=r.value===prefs.controls});$('modeNow').textContent=({split:'分开',cluster:'聚集',hidden:'隐藏'})[uiMode()]||''}
+function syncSettings(){renderBinds();$('setMute').checked=!prefs.mute;qa('[name=ctlSize]').forEach(function(r){r.checked=+r.value===prefs.size});qa('[name=ctlMode]').forEach(function(r){r.checked=r.value===prefs.controls});$('modeNow').textContent=({split:'分开',cluster:'聚集',hidden:'隐藏'})[uiMode()]||''}
 /* 按钮 */
 function on(id,fn){var el=$(id);if(el)el.addEventListener('click',function(e){AudioFX.init();AudioFX.sfx('select');fn(e)})}
 on('newBtn',function(){openSaves('new')});
@@ -573,7 +602,7 @@ on('codexBtn',function(){MetaUI.renderCodex();show('codex',true)});
 on('chaptersBtn',function(){var n=Meta.newest(),s=n<0?null:fixSave(Meta.slots()[n]);if(s){slot=n;applySave(s)}openChapters()});
 on('settingsBtn',function(){syncSettings();show('settings',true)});
 on('closeChapters',function(){show('chapters',false);if(state==='menu')show('menu',true)});
-on('closeSettings',function(){show('settings',false)});
+on('closeSettings',function(){cancelCaps();show('settings',false)});
 on('closeSaves',function(){show('saves',false)});
 on('closeAchv',function(){show('achv',false)});
 on('closeCodex',function(){show('codex',false)});
@@ -595,6 +624,62 @@ $('setMute').onchange=function(e){prefs.mute=!e.target.checked;savePrefs();apply
 qa('[name=ctlSize]').forEach(function(r){r.onchange=function(){prefs.size=+r.value;savePrefs();applyPrefs()}});
 qa('[name=ctlMode]').forEach(function(r){r.onchange=function(){prefs.controls=r.value;savePrefs();applyPrefs();syncSettings();toast(({auto:'触屏按钮：自动识别',split:'触屏按钮：分开摆放（适合手机）',cluster:'触屏按钮：集中在底部中间（适合大屏）',hidden:'触屏按钮：已隐藏（适合电脑键盘）'})[prefs.controls],1800)}});
 addEventListener('keydown',function(e){if(e.key==='Enter'&&state==='ending'){titleScreen()}});
+/* ---------- 改键 / 手柄改键 / 触屏按钮位置 ---------- */
+function bindBtn(txt,cap,fn){var b=document.createElement('button');b.type='button';b.className='bind'+(cap?' cap':'');b.textContent=txt;b.onclick=function(){AudioFX.init();AudioFX.sfx('select');fn()};return b}
+function bindRow(label,slots){var row=document.createElement('div'),n=document.createElement('span'),box=document.createElement('div');row.className='bind-row';box.className='bind-slots';n.textContent=label;slots.forEach(function(b){box.appendChild(b)});row.appendChild(n);row.appendChild(box);return row}
+function renderBinds(){var kb=$('keyBinds'),pb=$('padBinds');if(!kb||!pb)return;kb.innerHTML='';pb.innerHTML='';
+ ACTS.forEach(function(a){var l=prefs.keys[a[0]],sl=[],i;for(i=0;i<3;i++)(function(i){var cap=keyCap&&keyCap.a===a[0]&&keyCap.i===i;sl.push(bindBtn(cap?'按下按键…':(i<l.length?keyName(l[i]):'＋'),cap,function(){padCap=null;keyCap={a:a[0],i:i};renderBinds()}))})(i);kb.appendChild(bindRow(a[1],sl))});
+ PAD_ACTS.forEach(function(a){var l=prefs.pad[a[0]],sl=[],i;for(i=0;i<2;i++)(function(i){var cap=padCap&&padCap.a===a[0]&&padCap.i===i;sl.push(bindBtn(cap?'按手柄按钮…':(i<l.length?(PAD_NAMES[l[i]]||('按钮'+l[i])):'＋'),cap,function(){
+   var gp=navigator.getGamepads?navigator.getGamepads():[],ok=false,j;for(j=0;j<gp.length;j++)if(gp[j]&&gp[j].connected)ok=true;
+   if(!ok)toast('没有检测到手柄：请先连接手柄并按一下任意键唤醒',2400);
+   keyCap=null;padCap={a:a[0],i:i};renderBinds()}))})(i);pb.appendChild(bindRow(a[1],sl))})}
+function afterBindChange(){savePrefs();rebuildKeyMap();renderBinds();refreshHints()}
+function setSlot(list,i,v,max){var l=list.slice();if(v===undefined){if(i<l.length)l.splice(i,1)}else{if(i<l.length)l[i]=v;else l.push(v);l=l.filter(function(x,j){return l.indexOf(x)===j})}return l.slice(0,max)}
+function finishKeyCap(k){var c=keyCap;keyCap=null;
+ if(k==='escape'){renderBinds();return}
+ if(k==='backspace'||k==='delete')prefs.keys[c.a]=setSlot(prefs.keys[c.a],c.i,undefined,3);
+ else if(k==='m'||/^f\d+$/.test(k)||['tab','meta','os','contextmenu','dead','unidentified','capslock'].indexOf(k)>=0){toast('这个键不能绑定（M 固定为静音，Esc 固定为暂停）',1800);renderBinds();return}
+ else prefs.keys[c.a]=setSlot(prefs.keys[c.a],c.i,k,3);
+ afterBindChange()}
+function finishPadCap(b){if(b===null)return;var c=padCap;padCap=null;
+ if(b===-1){renderBinds();return}
+ prefs.pad[c.a]=setSlot(prefs.pad[c.a],c.i,b===-2?undefined:b,2);afterBindChange()}
+function kbds(a,n){return prefs.keys[a].slice(0,n).map(function(k){return '<kbd>'+keyName(k)+'</kbd>'}).join('/')||'<kbd>—</kbd>'}
+function refreshHints(){var el=$('keyHints');if(!el)return;
+ el.innerHTML='<span>'+kbds('left',1)+kbds('right',1)+' 移动</span><span>'+kbds('jump',2)+' 跳（可二段跳）</span><span>'+kbds('attack',1)+' 教鞭</span><span>'+kbds('chalk',1)+' 扔粉笔（远程）</span><span>'+kbds('dash',2)+' 冲刺</span><span>'+kbds('down',1)+'+'+kbds('attack',1)+' 空中俯冲</span><span>'+kbds('interact',1)+' 互动 / 攀藤</span><span><kbd>Esc</kbd>/'+kbds('pause',1)+' 暂停</span><span>支持手柄 · 触屏</span>'}
+function cancelCaps(){if(keyCap||padCap){keyCap=padCap=null;renderBinds()}}
+on('keyReset',function(){prefs.keys=fixBinds(null,KEY_DEF,3,function(){return true});afterBindChange();toast('键盘按键已恢复默认',1400)});
+on('padReset',function(){prefs.pad=fixBinds(null,PAD_DEF,2,function(){return true});afterBindChange();toast('手柄按键已恢复默认',1400)});
+
+/* 触屏按钮位置：prefs.layout[id]={x,y,s}，x/y 是按钮中心占屏幕宽高的比例，s 是单独缩放；没动过的按钮保持原来的布局 */
+function ctlEl(id){return id==='joy'?$('joy'):document.querySelector('[data-act="'+id+'"]')}
+var LAYOUT_PROPS=['position','left','top','right','bottom','width','height'];
+function clearLayoutStyles(){CTL_IDS.forEach(function(id){var el=ctlEl(id);if(el)LAYOUT_PROPS.forEach(function(p){el.style.removeProperty(p)})})}
+function applyLayout(){clearLayoutStyles();if(uiMode()==='hidden')return;
+ CTL_IDS.forEach(function(id){var L=prefs.layout[id],el=ctlEl(id);if(!L||!el)return;var sz=CTL_BASE[id]*ctlScale*L.s,st=el.style;
+  st.position='fixed';st.right='auto';st.bottom='auto';st.left=(L.x*W-sz/2)+'px';st.top=(L.y*H-sz/2)+'px';st.width=sz+'px';st.height=sz+'px'})}
+function measureDefaults(){var c=$('controls'),wasHidden=c.classList.contains('hidden'),plain=!c.classList.contains('split')&&!c.classList.contains('cluster'),d={};
+ clearLayoutStyles();c.classList.remove('hidden');c.style.visibility='hidden';if(plain)c.classList.add('split');
+ CTL_IDS.forEach(function(id){var r=ctlEl(id).getBoundingClientRect();d[id]={x:(r.left+r.width/2)/W,y:(r.top+r.height/2)/H}});
+ c.style.visibility='';if(wasHidden)c.classList.add('hidden');if(plain)c.classList.remove('split');applyLayout();return d}
+function ghostPos(id){var L=prefs.layout[id],d=le.def[id];return {x:L?L.x:d.x,y:L?L.y:d.y,s:L?L.s:1}}
+function placeGhost(gh){var id=gh.dataset.id,p=ghostPos(id),sz=CTL_BASE[id]*ctlScale*p.s;gh.style.width=gh.style.height=sz+'px';gh.style.left=(p.x*W-sz/2)+'px';gh.style.top=(p.y*H-sz/2)+'px'}
+function selectGhost(id){le.sel=id;qa('.le-ghost').forEach(function(x){x.classList.toggle('sel',x.dataset.id===id)});var sl=$('leScale');sl.disabled=!id;$('leSelName').textContent=id?CTL_NAME[id]:'（点一下按钮选中）';if(id)sl.value=Math.round(ghostPos(id).s*100)}
+function dragGhost(gh){var id=gh.dataset.id,drag=null;
+ gh.addEventListener('pointerdown',function(e){e.preventDefault();try{gh.setPointerCapture(e.pointerId)}catch(x){}var p=ghostPos(id);drag={pid:e.pointerId,dx:e.clientX-p.x*W,dy:e.clientY-p.y*H};selectGhost(id)});
+ gh.addEventListener('pointermove',function(e){if(!drag||e.pointerId!==drag.pid)return;var p=ghostPos(id);prefs.layout[id]={x:Math.max(.03,Math.min(.97,(e.clientX-drag.dx)/W)),y:Math.max(.03,Math.min(.97,(e.clientY-drag.dy)/H)),s:p.s};placeGhost(gh)});
+ function end(e){if(drag&&e.pointerId===drag.pid){drag=null;savePrefs()}}
+ gh.addEventListener('pointerup',end);gh.addEventListener('pointercancel',end)}
+function buildGhosts(){var st=$('leStage'),keep=le.sel;st.innerHTML='';CTL_IDS.forEach(function(id){var gh=document.createElement('div');gh.className='le-ghost'+(id==='joy'?' joy':'');gh.dataset.id=id;gh.textContent=CTL_NAME[id];st.appendChild(gh);placeGhost(gh);dragGhost(gh)});selectGhost(keep)}
+function openLayoutEditor(){cancelCaps();show('settings',false);le.on=true;le.sel=null;le.def=measureDefaults();show('layoutEdit',true);buildGhosts();
+ if(uiMode()==='hidden')toast('当前触屏按钮是「隐藏」状态：摆好位置后，请在设置里把触屏按钮布局改成「分开」或「聚集」才会显示',4200)}
+function closeLayoutEditor(){le.on=false;show('layoutEdit',false);applyLayout();syncSettings();show('settings',true)}
+function leRefresh(){if(le&&le.on){le.def=measureDefaults();buildGhosts()}}
+on('layoutBtn',openLayoutEditor);on('leDone',closeLayoutEditor);
+on('leReset',function(){prefs.layout={};savePrefs();le.def=measureDefaults();buildGhosts();applyLayout();toast('按钮位置已恢复默认',1400)});
+$('leScale').oninput=function(){var id=le.sel;if(!id)return;var p=ghostPos(id);prefs.layout[id]={x:p.x,y:p.y,s:this.value/100};placeGhost(document.querySelector('.le-ghost[data-id="'+id+'"]'));savePrefs()};
+renderBinds();refreshHints();
+
 /* ---------- 主循环 ---------- */
 var STEP=1/60,acc=0,lastT=0;
 function step(dt){time+=dt;for(var k in buf){buf[k]-=dt;if(buf[k]<=0)delete buf[k]}
