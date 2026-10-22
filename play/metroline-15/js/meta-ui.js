@@ -33,12 +33,17 @@ function renderAchv(){var camp=api.campaign(),info=Meta.summary(camp),m=Meta.dat
   var blueBlock='';(window.DLC_REGISTRY||[]).forEach(function(dl){var dc=window.getDLCCampaign&&window.getDLCCampaign(dl);if(!dc||!dc.chapters)return;var yel=!!dc.requireYellow,bi=yel?Meta.yellowShardInfo(dc):Meta.blueShardInfo(dc);if(!bi.total)return;
   blueBlock+='<div class="crystal-top"><div class="big" style="color:'+(yel?'#ffd84a':'#6db8ff')+'">◆ '+bi.have+' <small>/ '+bi.total+'</small></div><div class="muted">'+esc(dl.name)+' · '+(yel?'黄色水晶':'蓝色碎片')+'（DLC 专属）</div></div><div class="crystal-ch">';
   dc.chapters.forEach(function(ch,ci){var c=bi.ch[ci]||{have:0,total:0,rooms:[]},pct=c.total?Math.round(c.have/c.total*100):0,bi2=GFX.B(ch.biome);
-   blueBlock+='<div class="cc" style="--tint:'+bi2.accent+'"><div class="cc-h"><b>'+esc(ch.name)+'</b><span>'+c.have+' / '+c.total+(c.have>=c.total&&c.total?' ✓':'')+'</span></div><div class="bar"><i style="width:'+pct+'%"></i></div></div>'});
+   blueBlock+='<div class="cc" style="--tint:'+bi2.accent+'"><div class="cc-h"><b>'+esc(ch.name)+'</b><span>'+c.have+' / '+c.total+(c.have>=c.total&&c.total?' ✓':'')+'</span></div><div class="bar"><i style="width:'+pct+'%"></i></div><div class="rooms-chips">'+c.rooms.map(function(r){return '<span class="chip'+(r.total&&r.have>=r.total?' full':'')+'" title="'+esc(r.name)+'">'+esc(r.name.replace(/^(\d+)\s*·.*/,'$1'))+'<em>'+r.have+'/'+r.total+'</em></span>'}).join('')+'</div></div>'});
   blueBlock+='</div>'});
- h+='</div>'+blueBlock+'<h3 class="sec">成就 <small>'+D.ACH.filter(function(a){return m.ach[a.id]}).length+' / '+D.ACH.length+'</small></h3><div class="ach-grid">';
- D.ACH.forEach(function(a){var got=m.ach[a.id],p=a.prog(m,info),pc=p&&p[1]?Math.min(100,Math.round(p[0]/p[1]*100)):0;
-  h+='<div class="ach'+(got?' got':'')+'"><div class="ach-i">'+(got?'★':'☆')+'</div><div class="ach-b"><b>'+esc(a.n)+'</b><span>'+esc(a.d)+'</span>'+(got?'<em>'+fmtDate(got)+' 解锁</em>':(p?'<div class="bar sm"><i style="width:'+pc+'%"></i></div><em>'+p[0]+' / '+p[1]+'</em>':''))+'</div></div>'});
- h+='</div>';$('achvBody').innerHTML=h}
+ h+='</div>'+blueBlock+'<h3 class="sec">成就 <small>'+D.ACH.filter(function(a){return m.ach[a.id]}).length+' / '+D.ACH.length+'</small></h3>';
+ function achCard(a){var got=m.ach[a.id],p=a.prog(m,info),pc=p&&p[1]?Math.min(100,Math.round(p[0]/p[1]*100)):0;
+  h+='<div class="ach'+(got?' got':'')+'"><div class="ach-i">'+(got?'★':'☆')+'</div><div class="ach-b"><b>'+esc(a.n)+'</b><span>'+esc(a.d)+'</span>'+(got?'<em>'+fmtDate(got)+' 解锁</em>':(p?'<div class="bar sm"><i style="width:'+pc+'%"></i></div><em>'+p[0]+' / '+p[1]+'</em>':''))+'</div></div>'}
+ var AG=[['main','主线'],['dream','DLC · 未竟之梦'],['metro','DLC · 地铁历险'],['ny','DLC · 雪镇跨年']];
+ function achGroup(a){var id=a.id;return /^(dlc_|blue_shard|boss_paradox|paradox_|quiz_|orb_|lab_|chaos_)/.test(id)?'dream':/^(yellow_|metro_|boss_train)/.test(id)?'metro':/^ny_/.test(id)?'ny':'main'}
+ AG.forEach(function(g){var list=D.ACH.filter(function(a){return achGroup(a)===g[0]});if(!list.length)return;
+  h+='<h4 class="ach-sub" style="margin:18px 0 8px;font-size:14px;opacity:.85">'+g[1]+' <small>'+list.filter(function(a){return m.ach[a.id]}).length+' / '+list.length+'</small></h4><div class="ach-grid">';list.forEach(achCard);h+='</div>'});
+ $('achvBody').innerHTML=h}
+
 /* ---------- 图鉴 ---------- */
 function drawIcon(c,e,seen){var S=c.width,g=c.getContext('2d'),G=window.GFX,k=e.k,inf=L15.INFO[k.indexOf('boss_')===0?'boss':k]||{w:1,h:1},T=32,t=1.3;g.clearRect(0,0,S,S);g.save();
  try{
@@ -54,12 +59,21 @@ function drawIcon(c,e,seen){var S=c.width,g=c.getContext('2d'),G=window.GFX,k=e.
  }catch(err){}
  g.restore();
  if(!seen){g.globalCompositeOperation='source-atop';g.fillStyle='#0a1422';g.fillRect(0,0,S,S);g.globalCompositeOperation='source-over'}}
+/* 图鉴条目属于哪个战役：主线优先，其余按首次出现的 DLC 归类 */
+var _cxg=null;
+function cxGroups(){if(_cxg)return _cxg;var m={},LV=(window.L15&&L15.LEVELS)||{};
+ [['c','main'],['d','dream'],['metro','metro'],['ny','ny']].forEach(function(p){Object.keys(LV).forEach(function(id){var ok=p[0]==='c'?/^c\d|^c5egg/.test(id):p[0]==='d'?/^d\d/.test(id):id.indexOf(p[0])===0;if(!ok)return;
+  (LV[id]||[]).forEach(function(lv){if(!lv)return;lv.objects.forEach(function(o){var k=o.kind==='boss'?'boss_'+((o.props&&o.props.boss)||'lava'):o.kind;if(!m[k])m[k]=p[1]})})})});
+ return _cxg=m}
 function renderCodex(){var m=Meta.data,tabs='',ALL=Meta.entries(),list=ALL.filter(function(e){return e.cat===codexCat}),all=ALL.length,seenAll=ALL.filter(function(e){return m.seen[e.k]}).length;
  D.CATS.forEach(function(c){var tot=ALL.filter(function(e){return e.cat===c[0]}),sn=tot.filter(function(e){return m.seen[e.k]}).length;if(!tot.length)return;
   tabs+='<button class="ctab'+(c[0]===codexCat?' on':'')+'" data-cat="'+c[0]+'">'+c[1]+'<em>'+sn+'/'+tot.length+'</em></button>'});
  $('codexTabs').innerHTML=tabs;$('codexCount').textContent=seenAll+' / '+all;
  var box=$('codexGrid');box.innerHTML='';
- list.forEach(function(e){var sn=!!m.seen[e.k],card=document.createElement('div');card.className='cx'+(sn?'':' unseen');
+ var GN=[['main','主线'],['dream','DLC · 未竟之梦'],['metro','DLC · 地铁历险'],['ny','DLC · 雪镇跨年']],gmap=cxGroups(),gi=function(e){var g=gmap[e.k]||'main';for(var q=0;q<GN.length;q++)if(GN[q][0]===g)return q;return 0};
+ list=list.map(function(e,i){return [e,i]}).sort(function(x,y){return gi(x[0])-gi(y[0])||x[1]-y[1]}).map(function(x){return x[0]});var lastG=-1;
+ list.forEach(function(e){var g=gi(e);if(g!==lastG){lastG=g;var hd=document.createElement('h4');hd.textContent=GN[g][1];hd.style.cssText='grid-column:1/-1;margin:14px 0 2px;font-size:14px;opacity:.85';box.appendChild(hd)}
+  var sn=!!m.seen[e.k],card=document.createElement('div');card.className='cx'+(sn?'':' unseen');
   var cv=document.createElement('canvas');cv.width=cv.height=96;card.appendChild(cv);
   var d=document.createElement('div');d.className='cx-t';d.innerHTML=sn?'<b>'+esc(e.n)+'</b><span>'+esc(e.d)+'</span>':'<b>？？？</b><span>还没有遇到过。继续往前走，在旅途中会遇见它。</span>';card.appendChild(d);box.appendChild(card);drawIcon(cv,e,sn)})}
 return {init:init,renderSaves:renderSaves,renderAchv:renderAchv,renderCodex:renderCodex};

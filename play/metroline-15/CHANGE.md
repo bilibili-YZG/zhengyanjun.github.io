@@ -252,4 +252,7 @@
 - `README.md` 里"5 首音乐""24 个房间"等描述是合并版时写的，没有反映后来加入的 DLC 与更多音乐文件。
 - `tools/validate.js` 不覆盖「地铁历险」；新增关卡后记得自己检查。
 - 蓝色碎片/黄色水晶的存档键是 `'dlc'+章序号+'-'+关序号`（`game.js` 的 `collectBlue`、`meta.js` 的 `blueShardInfo`），**不区分是哪个 DLC**，所以「未竟之梦」和「地铁历险」会共用同一批键（物件 id 不同所以暂时不冲突）。再加 DLC 时要注意，必要时给键加上 DLC id。
+- **第五章 / 跨年 Boss 的新增文件与入口**：`js/gfx7.js`（倦怠骑士造型、破败背景 `t_ruin`、黄昏光柱、钟魔迪斯科形态的墨镜叠加；晚于 `gfx6.js` 加载，包装 `G.boss` / `G.drawBg`）；骑士逻辑全在 `js/dlc-ch5.js`（`CH5X`），钟魔两段血 / 应援 / 滑板 / 镭射在 `js/dlc-newyear.js`（`NYX`，`hitBoss` / `drawBossHud` 由 `game.js` 转调）。
+- **调试入口**：`egg-test.html`（`?egg=1` 进彩蛋房）、`boss-test.html`（`?boss=1` 进骑士战）、`strong.html`（`?boss=1&strong=1` 完全体骑士：三阶段全招式、死亡回 25%、攻速 ×1.5、剥夺冲刺）。`?egg` / `?boss` 钩子在 `game.js` 末尾，发布前可删。
+- 骑士战里 `game.js` 对主角限速（普通 330 / 冲刺 520）；骑士相关成就计数键：`parries`、`verdicts`、`knightwin`、`knightclean`、`strongwin`。
 - 项目没有自动化测试；验证方式 = `node tools/validate.js` + 浏览器实际试玩。

@@ -9,7 +9,7 @@ var SHOW=['【节目一：请在 js/data/dlc-newyear.js 里改成节目名】','
 
 var THEMES={
  t_ny1:{name:'雪镇夜',base:'snow',sky:['#0b1233','#4a5a96'],far:'#34426e',mid:'#2a3560',top:'#f4fcff',body:'#7f94bc',dark:'#4f6290',accent:'#ffd23f',glow:'#ffe9a8',music:'SnowdinTown',bossMusic:'SnowdinTown',bpm:100,weather:'snow'},
- t_ny2:{name:'钟楼',base:'snow',sky:['#1a0a2a','#5a2a4a'],far:'#3a1f4a',mid:'#4a2a56',top:'#ffe9f0',body:'#7a5a8a',dark:'#4a2f5a',accent:'#ff9ad5',glow:'#ffd9ec',music:'SnowdinTown',bossMusic:'SnowdinTown',bpm:100,weather:'snow',wx:{n:46,c:'#ffd23f',vy:34,vx:8,r:2.6,glow:1}}
+ t_ny2:{name:'钟楼',base:'snow',sky:['#1a0a2a','#5a2a4a'],far:'#3a1f4a',mid:'#4a2a56',top:'#ffe9f0',body:'#7a5a8a',dark:'#4a2f5a',accent:'#ff9ad5',glow:'#ffd9ec',music:'fresh',bossMusic:'fresh',bpm:100,weather:'snow',wx:{n:46,c:'#ffd23f',vy:34,vx:8,r:2.6,glow:1}}
 };
 L15.registerThemes(THEMES);
 

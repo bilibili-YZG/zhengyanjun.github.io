@@ -5,7 +5,7 @@
 <button id="dl">下载完美存档</button>
 <script>
 ['data/defs','data/level-builder','data/dlc-kit'].forEach(function(s){document.write('<script src="js/'+s+'.js"><\/script>')});
-['c1','c2','c3','c4','c5'].forEach(function(c){for(var i=1;i<=(c==='c5'?2:6);i++)document.write('<script src="js/levels/'+c+'-0'+i+'.js"><\/script>')});
+['c1','c2','c3','c4','c5'].forEach(function(c){if(c==='c5')document.write('<script src="js/levels/c5-egg.js"><\/script>');for(var i=1;i<=6;i++)document.write('<script src="js/levels/'+c+'-0'+i+'.js"><\/script>')});
 [4,4,4].forEach(function(n,c){for(var i=1;i<=n;i++)document.write('<script src="js/levels/d'+(c+1)+'-0'+i+'.js"><\/script>')});
 ['data/metro-kit'].forEach(function(s){document.write('<script src="js/'+s+'.js"><\/script>')});
 [1,2,3,4].forEach(function(c){for(var i=1;i<=3;i++)document.write('<script src="js/levels/metro'+c+'-0'+i+'.js"><\/script>')});
@@ -28,7 +28,7 @@ document.getElementById('dl').onclick=function(){
  if(ny){var r3=scan(ny,'dlc',['gift'],{});dlcSave.newyear_party=mkSave(ny,r3)}
  (window.DLC_REGISTRY||[]).forEach(function(d){dlcUnlock[d.id]=1}); /* 所有 DLC 的口令解锁标记 */
  D.CODEX.forEach(function(e){m.seen[e.k]=now}); /* 图鉴全收集 */
- D.ACH.forEach(function(a){m.ach[a.id]=now});   /* 成就全收集 */
+ m.boss.knight=1;D.ACH.forEach(function(a){m.ach[a.id]=now});   /* 成就全收集 */
  var s={ci:CAMPAIGN_DEFAULT.chapters.length-1,li:0,unlocked:CAMPAIGN_DEFAULT.chapters.length-1,shards:main.n,stats:{deaths:0,kills:0,time:0},sig:CAMPAIGN_DEFAULT.chapters.map(function(c){return c.levels.length}).join('-'),t:now,cleared:true,
   dlcUnlock:dlcUnlock,prog:{ach:m.ach,seen:m.seen,boss:m.boss,dlcProgress:m.dlcProgress,metroProgress:m.metroProgress,shards:m.shards,blueShards:m.blueShards,yellowShards:m.yellowShards,clears:99,clean:99,dlcClears:99,metroClears:99,metroClean:99,dlcUnlocked:true,paradoxPerfect:true,dlcSave:dlcSave}};
  s.got=m.shards;

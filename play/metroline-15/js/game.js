@@ -33,7 +33,7 @@ var campaign=window.CAMPAIGN_DEFAULT,customCampaign=false;
 if(TEST){var tl=LS.get(L15.STORAGE.test);if(tl&&tl.themes)L15.registerThemes(tl.themes);if(tl&&tl.level)campaign={name:'试玩',prologue:[],epilogue:[],chapters:[{id:'t',name:'试玩关卡',subtitle:'来自关卡工坊',biome:tl.level.background||'snow',intro:[],outro:[],levels:[tl.level]}]}}
 else{var ovc=LS.get(L15.STORAGE.campaign);if(validCampaign(ovc)){campaign=ovc;customCampaign=true;L15.registerThemes(ovc.themes)}}
 var baseCampaign=campaign;
-var SCENES={school:1,station:1,snow:1,forest:1,underground:1,lava:1,train:1,icecave:1,lab:1,chaos:1,ny_curtain:1,ny_town:1,ny_intermission:1,ny_clock:1,ny_midnight:1,ny_fireworks:1};
+var SCENES={dawn:1,school:1,station:1,snow:1,forest:1,underground:1,lava:1,train:1,icecave:1,lab:1,chaos:1,ny_curtain:1,ny_town:1,ny_intermission:1,ny_clock:1,ny_midnight:1,ny_fireworks:1};
 function parsePage(s,def){var i=s.indexOf('|');if(i>0&&SCENES[s.slice(0,i)])return{scene:s.slice(0,i),text:s.slice(i+1)};return{scene:def,text:s}}
 function parseDialog(str,kind){return String(str||'').split('|').map(function(l){var m=l.match(/^([^：:]{1,10})[：:](.*)$/);return m?{who:m[1],text:m[2],kind:m[1]==='我'?'hero':kind}:{who:'',text:l,kind:kind}}).filter(function(l){return l.text})}
 /* ---------- 状态 ---------- */
@@ -188,7 +188,7 @@ function buildRoom(lv){
  (lv.links||[]).forEach(function(k){(r.src[k.to]=r.src[k.to]||[]).push(k.from)});
  r.platforms=r.movers.concat(r.crumbles,r.convs);
  resetActors(r);return r}
-function resetActors(r){if(window.DLCX)DLCX.resetRoom(r);r.icicles.forEach(function(d){d.st='idle';d.gone=false;d.shake=false;d.y=d.y0;d.t=0});r.crumbles.forEach(function(d){d.st='idle';d.gone=false;d.shake=false;d.touched=false;d.t=0});r.gems.forEach(function(d){d.gone=false;d.t=0});r.enemies=r.enemyDefs.map(makeEnemy);r.boss=r.bossDef?makeBoss(r.bossDef):null;if(r.boss&&r.bossGone){r.boss.dead=true;r.boss.deadT=0}r.proj=[];r.chalk=[];r.warns=[];r.fire=[]}
+function resetActors(r){if(window.DLCX)DLCX.resetRoom(r);r.icicles.forEach(function(d){d.st='idle';d.gone=false;d.shake=false;d.y=d.y0;d.t=0});r.crumbles.forEach(function(d){d.st='idle';d.gone=false;d.shake=false;d.touched=false;d.t=0});r.gems.forEach(function(d){d.gone=false;d.t=0});r.enemies=r.enemyDefs.map(makeEnemy);r.boss=r.bossDef?makeBoss(r.bossDef):null;if(r.boss&&r.boss.type==='knight'&&window.CH5X)CH5X.initBoss(r.boss,r.bossDef,r);if(r.boss&&r.bossGone){r.boss.dead=true;r.boss.deadT=0}r.proj=[];r.chalk=[];r.warns=[];r.fire=[]}
 function newPlayer(x,y){return{x:x,y:y,w:PW,h:PH,vx:0,vy:0,face:1,ground:false,coyote:0,jumps:0,rising:false,dash:0,dashCd:0,dashUsed:false,stam:DASH_MAX,stamMax:DASH_MAX,noStam:0,dashId:0,atk:0,atkCd:0,swing:0,slam:false,drop:0,inv:0,hurt:0,hp:5,max:5,climb:null,grabCd:0,anim:0,state:'idle',sx:1,sy:1,safe:{x:x,y:y},safeT:0,onIce:false,standOn:null,trail:[],dead:0,wasGround:false,fall:0,cx:0,cy:0}}
 /* ---------- 粒子 ---------- */
 function emit(x,y,col,n,spd,life,grav){spd=spd||160;for(var i=0;i<n;i++){var a=Math.random()*6.283,s=spd*(.3+Math.random()*.7);parts.push({x:x,y:y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-spd*.3,life:(life||.6)*(.5+Math.random()*.7),max:life||.6,c:col,r:1.5+Math.random()*3,g:grav==null?500:grav})}}
@@ -252,13 +252,13 @@ function damagePlayer(n,opt){var p=P;if(p.inv>0||p.dead>0||state!=='play')return
  p.inv=1.4;hearts();
  if(opt.respawn){p.vx=0;p.vy=0;p.x=p.safe.x;p.y=p.safe.y;p.state='idle';p.hurt=.1;toast('从最近的立足点重来')}
  else{p.hurt=.28;p.vy=-300;p.vx=-(opt.dir||p.face)*190}}
-function die(){var p=P;p.dead=1.5;p.vx=p.vy=0;stats.deaths++;MM.cnt('deaths');AudioFX.sfx('boom');emit(p.x+p.w/2,p.y+p.h/2,'#fff',30,240);hearts();state='dead'}
-function respawn(){var cp=R.cp||{x:R.spawn.x,y:R.spawn.y};P=newPlayer(cp.x,cp.y);P.inv=1.5;resetActors(R);R.shards.forEach(function(s){});hearts();state='play';cam.x=Math.max(0,Math.min(R.w-vw,P.x-vw*.4));toast(R.cp?'回到最近的信标灯':'从房间入口重新出发');AudioFX.play(R.bossDef&&!R.bossGone?'boss':R.biome);updateCamera(0,true)}
+function die(){var p=P;if(window.CH5X&&R&&R.boss&&R.boss.type==='knight')CH5X.onPlayerDeath(R.boss);p.dead=1.5;p.vx=p.vy=0;stats.deaths++;MM.cnt('deaths');AudioFX.sfx('boom');emit(p.x+p.w/2,p.y+p.h/2,'#fff',30,240);hearts();state='dead'}
+function respawn(){var cp=R.cp||{x:R.spawn.x,y:R.spawn.y};P=newPlayer(cp.x,cp.y);P.inv=1.5;resetActors(R);R.shards.forEach(function(s){});hearts();state='play';cam.x=Math.max(0,Math.min(R.w-vw,P.x-vw*.4));toast(R.cp?'回到最近的信标灯':'从房间入口重新出发');AudioFX.play(R.bossGone?R.biome:roomMusic());updateCamera(0,true)}
 function nearHazard(p){var a=R.spikes.concat(R.lavas),i;for(i=0;i<a.length;i++){var h=a[i];if(p.x+p.w>h.x-40&&p.x<h.x+h.w+40&&p.y+p.h>h.y-60)return true}return false}
 function er(e){return {x:e.x+6,y:e.y+(e.kind==='slime'?6:4),w:e.w-12,h:e.h-(e.kind==='slime'?6:8)}}
 function damageEnemy(e,n,dir){if(e.dead||e.invt>0||e.phased)return false;e.hp-=n;e.flash=.18;e.windup=0;e.invt=.12;emit(e.x+e.w/2,e.y+e.h/2,'#ffffff',8,150);AudioFX.sfx('hit');if(e.kind!=='turret')e.x+=dir*12;
  if(e.hp<=0){e.dead=true;stats.kills++;MM.cnt('kills');AudioFX.sfx('kill');emit(e.x+e.w/2,e.y+e.h/2,GFX.B(R.biome).accent,18,220);if(Math.random()<.18)R.hearts.push({id:'drop'+Math.random(),kind:'heart',x:e.x+e.w/2-16,y:e.y,w:32,h:32,p:{},got:false,temp:true})}return true}
-function hitBoss(n,viaDash){var b=R.boss;if(!b||b.dead||b.flash>0||b.deadT>0)return false;if(b.type==='paradox'&&window.DLCX)return DLCX.hitBoss(b,n,viaDash);if(viaDash&&b.state==='wind'){n+=1;b.state='stun';b.timer=1.7;toast('打断成功！')}
+function hitBoss(n,viaDash){var b=R.boss;if(!b||b.dead||b.flash>0||b.deadT>0)return false;if(b.type==='paradox'&&window.DLCX)return DLCX.hitBoss(b,n,viaDash);if(b.type==='knight'&&window.CH5X)return CH5X.hitBoss(b,n,viaDash);if(b.type==='midnight'&&window.NYX&&NYX.hitBoss)return NYX.hitBoss(b,n,viaDash);if(viaDash&&b.state==='wind'){n+=1;b.state='stun';b.timer=1.7;toast('打断成功！')}
  b.hp-=n;b.flash=.32;hitstop=.07;shake=Math.max(shake,6);AudioFX.sfx('hit');emit(b.x+b.w/2,b.y+b.h/2,'#ffd08a',22,260);var r=b.hp/b.max;b.phase=r<.34?2:r<.67?1:0;
  if(b.hp<=0){b.hp=0;b.deadT=.01;b.state='dying';R.proj=[];R.warns=[];R.fire=[];AudioFX.sfx('roar')}return true}
 /* ---------- 玩家 ---------- */
@@ -311,7 +311,7 @@ function updatePlayer(dt){
  // 冲刺水晶：补满冲刺与二段跳
  for(i=0;i<R.gems.length;i++){var gz=R.gems[i];if(!gz.gone&&Math.abs(p.x+p.w/2-(gz.x+gz.w/2))<30&&Math.abs(p.y+p.h/2-(gz.y+gz.h/2))<36){gz.gone=true;gz.t=2.8;p.dashUsed=false;p.dashCd=0;p.stam=p.stamMax;p.jumps=Math.min(p.jumps,1);AudioFX.sfx('bounce');emit(gz.x+16,gz.y+16,'#7dffe8',16,200);toast('冲刺与二段跳已恢复',900)}}
  // 位移
- p.vx+=(p.ax||0)*dt;var vxo=p.vx;moveX(p,p.vx*dt);moveY(p,p.vy*dt);
+ p.vx+=(p.ax||0)*dt;if(R.kn){var vcap=p.dash>0?520:330;if(p.vx>vcap)p.vx=vcap;else if(p.vx<-vcap)p.vx=-vcap} /* 骑士战限速：普通 330、冲刺 520（原冲刺 740） */var vxo=p.vx;moveX(p,p.vx*dt);moveY(p,p.vy*dt);
  if(p.ground&&!p.wasGround){if(p.slam){slamLand()}else if(p.fall>260){p.sx=1.22;p.sy=.8;AudioFX.sfx('land');shake=Math.max(shake,Math.min(4,p.fall/250));emit(p.x+p.w/2,p.y+p.h,'#dfeef3',Math.min(10,p.fall/90|0),110,.4)}}
  if(p.ground)p.slam=false;
  // 弹簧
@@ -414,11 +414,12 @@ function updateEnemies(dt){var p=P,pcx=p.x+p.w/2,pcy=p.y+p.h/2;
  R.enemies=R.enemies.filter(function(e){return !e.dead||!e.temp})}
 /* ---------- Boss ---------- */
 var BOSS_ATK={train:['charge','volley','rain','charge'],ice:['charge','volley','rain'],root:['rain','volley','slam'],spore:['volley','rain','summon'],lava:['charge','volley','rain','slam']};
-var BOSS_COL={midnight:'#ffd23f',train:'#ffd27a',ice:'#bff3ff',root:'#f7f1e0',spore:'#b8ff9b',lava:'#ff9a4a'};
+var BOSS_COL={knight:'#ff3a4a',midnight:'#ffd23f',train:'#ffd27a',ice:'#bff3ff',root:'#f7f1e0',spore:'#b8ff9b',lava:'#ff9a4a'};
 function updateBoss(dt){var b=R.boss;if(!b||b.dead)return;b.flash=Math.max(0,b.flash-dt);if(b.type==='paradox'&&window.DLCX){DLCX.updateBoss(b,dt);return}
  if(b.state==='dying'){b.deadT+=dt;shake=Math.max(shake,4);if(Math.random()<.5)emit(b.x+Math.random()*b.w,b.y+Math.random()*b.h,Math.random()<.5?'#fff':BOSS_COL[b.type],3,220,.8);
-  if(b.deadT>2.2){b.dead=true;b.deadT=0;R.bossGone=true;MM.boss(b.type);AudioFX.sfx('win');flashA=.6;emit(b.x+b.w/2,b.y+b.h/2,'#fff',60,380,1.2);toast(b.label+' 化作光点散去——出口已开启！',3200);AudioFX.play(R.biome);saveGame(true)}return}
+  if(b.deadT>2.2){if(b.type==='knight'&&window.CH5X)CH5X.onDeath(b);b.dead=true;b.deadT=0;R.bossGone=true;MM.boss(b.type);AudioFX.sfx('win');flashA=.6;emit(b.x+b.w/2,b.y+b.h/2,'#fff',60,380,1.2);toast(b.label+' 化作光点散去——出口已开启！',3200);AudioFX.play(R.biome);saveGame(true)}return}
  var p=P,pcx=p.x+p.w/2,bcx=b.x+b.w/2,ph=b.phase,col=BOSS_COL[b.type],floorY=b.hy+b.h;
+ if(b.type==='knight'&&window.CH5X){CH5X.bossStep(b,dt);return}
  if(!b.started){var trig=R.triggers.length&&R.triggers.every(function(t){return t.used});if((trig&&state==='play')||Math.abs(pcx-bcx)<340){b.started=true;b.timer=1.2;AudioFX.sfx('roar');shake=10;toast(b.label+' 拦住了去路！')}return}
  if(b.type!=='midnight'&&(b.state!=='atk'||(b.atk!=='charge'&&b.atk!=='express'))){if(!(b.rev&&b.state==='wind'))b.face=pcx<bcx?-1:1};
  if(b.type==='spore'){b.y=b.hy-30+Math.sin(time*1.6)*18}
@@ -527,7 +528,7 @@ function render(){g.setTransform(dpr,0,0,dpr,0,0);
  if(fxOn('vig')){if(!vig||vig.w!==W||vig.h!==H){vig=GFX.mk(Math.max(1,W),Math.max(1,H));vig.w=W;vig.h=H;var vg=vig.getContext('2d'),rg=vg.createRadialGradient(W/2,H/2,Math.min(W,H)*.35,W/2,H/2,Math.max(W,H)*.75);rg.addColorStop(0,'rgba(0,0,0,0)');rg.addColorStop(1,'rgba(0,0,0,.45)');vg.fillStyle=rg;vg.fillRect(0,0,W,H)}g.drawImage(vig,0,0,W,H)}
  if(P&&P.hp===1&&state==='play'){g.fillStyle='rgba(255,40,70,'+(.08+Math.sin(t*5)*.05)+')';g.fillRect(0,0,W,H)}
  if(window.DLCX)DLCX.drawScreen(g,W,H,t);if(flashA>0){g.fillStyle='rgba(255,255,255,'+flashA+')';g.fillRect(0,0,W,H)}
- var bb=R.boss;if(bb&&bb.type==='paradox'&&bb.started&&!bb.dead){DLCX.drawBossHud(g,bb,W,H)}else if(bb&&bb.started&&!bb.dead){var cl=document.body.classList.contains('ui-cluster'),bw=Math.min(cl?600:520,W*(cl?.42:.6)),bx=(W-bw)/2,by=cl?Math.round(70*Math.max(1,Math.min(1.75,Math.min(W,H)/700))):H-(document.body.classList.contains('touch')?Math.min(200,H*.32):56);g.fillStyle='rgba(6,14,24,.75)';g.beginPath();g.roundRect(bx-12,by-26,bw+24,44,12);g.fill();g.fillStyle='#ffe9d9';g.font='bold 13px "Noto Sans SC",sans-serif';g.textAlign='left';g.fillText(bb.label,bx,by-8);g.textAlign='right';g.fillStyle='#ffb79a';g.fillText(['','第二阶段','狂暴'][bb.phase]||'',bx+bw,by-8);g.fillStyle='#3a1f26';g.beginPath();g.roundRect(bx,by,bw,9,5);g.fill();g.fillStyle=bb.flash>0?'#fff':'#ff6a4f';g.beginPath();g.roundRect(bx,by,Math.max(0,bw*bb.hp/bb.max),9,5);g.fill();g.textAlign='start'}
+ var bb=R.boss;if(bb&&bb.type==='paradox'&&bb.started&&!bb.dead){DLCX.drawBossHud(g,bb,W,H)}else if(bb&&bb.type==='midnight'&&bb.started&&!bb.dead&&window.NYX&&NYX.drawBossHud){NYX.drawBossHud(g,bb,W,H)}else if(bb&&bb.started&&!bb.dead){var cl=document.body.classList.contains('ui-cluster'),bw=Math.min(cl?600:520,W*(cl?.42:.6)),bx=(W-bw)/2,by=cl?Math.round(70*Math.max(1,Math.min(1.75,Math.min(W,H)/700))):H-(document.body.classList.contains('touch')?Math.min(200,H*.32):56);g.fillStyle='rgba(6,14,24,.75)';g.beginPath();g.roundRect(bx-12,by-26,bw+24,44,12);g.fill();g.fillStyle='#ffe9d9';g.font='bold 13px "Noto Sans SC",sans-serif';g.textAlign='left';g.fillText(bb.label,bx,by-8);g.textAlign='right';g.fillStyle='#ffb79a';g.fillText(['','第二阶段','狂暴'][bb.phase]||'',bx+bw,by-8);g.fillStyle='#3a1f26';g.beginPath();g.roundRect(bx,by,bw,9,5);g.fill();g.fillStyle=bb.flash>0?'#fff':'#ff6a4f';g.beginPath();g.roundRect(bx,by,Math.max(0,bw*bb.hp/bb.max),9,5);g.fill();g.textAlign='start'}
  if(state==='dead'){g.fillStyle='rgba(10,4,12,'+Math.min(.7,(1.5-P.dead)*.9)+')';g.fillRect(0,0,W,H);g.fillStyle='#ffe3e3';g.font='900 '+Math.round(Math.min(34,W*.06))+'px "Noto Sans SC",sans-serif';g.textAlign='center';g.fillText('深呼吸，再来一次',W/2,H/2);g.textAlign='start'}
 }
 /* ---------- 图鉴 / 成就 ---------- */
@@ -542,18 +543,22 @@ function show(id,on){$(id).classList.toggle('hidden',!on)}
 function hideMenus(){['menu','chapters','pause','settings','ending','testDone','saves','achv','codex','changelog'].forEach(function(id){show(id,false)})}
 /* 地铁历险：本关还没捡的黄色水晶数（只有战役带 requireYellow 才计，其余战役恒为 0） */
 function yellowLeft(){if(!inDLC||!campaign.requireYellow||!R||!R.xblue)return 0;var n=0;R.xblue.forEach(function(d){if(d.kind==='yellowshard'&&!d.got)n++});return n}
-function objText(){var lv=campaign.chapters[ci].levels[li],yl=yellowLeft(),t='目标：'+(lv.objective||'找到出口');if(inDLC&&campaign.requireYellow&&R&&R.xblue){var tot=R.xblue.filter(function(d){return d.kind==='yellowshard'}).length;if(tot)t+='（黄色水晶 '+(tot-yl)+'/'+tot+'）'}return t}
-function setHud(){var ch=campaign.chapters[ci],lv=ch.levels[li];$('hudChapter').textContent=(TEST?'试玩':'第'+'一二三四五六七八九十'.charAt(ci)+'章')+' · '+ch.name;$('hudRoom').textContent=lv.name+'  '+(li+1)+'/'+ch.levels.length;$('objective').textContent=objText();$('shardNum').textContent=inDLC?totalBlue:totalShards;document.body.classList.toggle('dlc-mode',inDLC)}
+function objText(){var lv=campaign.chapters[ci].levels[li];if(R&&R.lv&&R.lv.egg)return '';var yl=yellowLeft(),t='目标：'+(lv.objective||'找到出口');if(inDLC&&campaign.requireYellow&&R&&R.xblue){var tot=R.xblue.filter(function(d){return d.kind==='yellowshard'}).length;if(tot)t+='（黄色水晶 '+(tot-yl)+'/'+tot+'）'}return t}
+function setHud(){var ch=campaign.chapters[ci],lv=ch.levels[li];$('hudChapter').textContent=(TEST?'试玩':'第'+'一二三四五六七八九十'.charAt(ci)+'章')+' · '+ch.name;var eg=R&&R.lv&&R.lv.egg;$('hudRoom').textContent=eg?'':lv.name+'  '+(li+1)+'/'+ch.levels.length;if(eg)$('hudChapter').textContent='';$('objective').style.display=eg?'none':'';document.querySelector('.hud-title').style.display=eg?'none':'';$('objective').textContent=objText();$('shardNum').textContent=inDLC?totalBlue:totalShards;document.body.classList.toggle('dlc-mode',inDLC)}
 function banner(a,b2,c){var el=$('banner');$('bnA').textContent=a;$('bnB').textContent=b2;$('bnC').textContent=c||'';el.classList.remove('show');void el.offsetWidth;el.classList.add('show')}
+function roomMusic(){var d=R.bossDef;return d&&!(d.p&&d.p.boss==='knight'&&!(R.kn&&R.kn.cued))?'boss':R.biome} /* 倦怠骑士的 Boss 曲等开场那一刀砍下去才响 */
+var eggRoom=false,eggNext=0; /* 彩蛋房：第五章换房间时 10% 概率进入，每个存档只进一次（记在 stats.egg） */
 function enterLevel(c,l){try{enterLevelRaw(c,l)}catch(e){console.error('地图加载失败，重试一次',e);try{enterLevelRaw(c,l)}catch(e2){console.error(e2);backToTitle('地图加载失败，已返回主页面')}}}
 function backToTitle(msg){fadeBusy=false;var f=$('fade');if(f)f.classList.remove('on');dlg.active=false;dlg.done=null;$('dialog').classList.add('hidden');try{if(window.DLCX)DLCX.leaveRoom()}catch(e){}try{titleScreen()}catch(e){console.error(e)}if(msg)toast(msg,3200)}
-function enterLevelRaw(c,l){if(window.DLCX)DLCX.leaveRoom();ci=c;li=l;$('story').classList.add('hidden');story.cb=null;dlg.active=false;dlg.done=null;$('dialog').classList.add('hidden');var ch=campaign.chapters[c],lv=ch.levels[l];R=buildRoom(lv);R.tileCanvas=bakeTiles(R);P=newPlayer(R.spawn.x,R.spawn.y);parts=[];buf={};hitstop=0;shake=0;flashA=0;
- hideMenus();show('hud',true);applyPrefs();setHud();hearts();updateCamera(0,true);AudioFX.play(R.bossDef?'boss':R.biome);state='play';
- banner(TEST?'试玩关卡':'第'+'一二三四五六七八九十'.charAt(c)+'章 · '+ch.name,lv.name,lv.intro||lv.objective);if(!TEST)saveGame(true)}
+function enterLevelRaw(c,l){if(window.CH5X)CH5X.cleanup();if(window.DLCX)DLCX.leaveRoom();ci=c;li=l;$('story').classList.add('hidden');story.cb=null;dlg.active=false;dlg.done=null;$('dialog').classList.add('hidden');var ch=campaign.chapters[c],lv=eggRoom&&ch.egg?ch.egg:ch.levels[l];R=buildRoom(lv);R.tileCanvas=bakeTiles(R);P=newPlayer(R.spawn.x,R.spawn.y);parts=[];buf={};hitstop=0;shake=0;flashA=0;
+ hideMenus();show('hud',true);applyPrefs();setHud();hearts();updateCamera(0,true);AudioFX.play(roomMusic());state='play';
+ if(R.lv.egg)banner('','',lv.intro);else banner(TEST?'试玩关卡':'第'+'一二三四五六七八九十'.charAt(c)+'章 · '+ch.name,lv.name,lv.intro||lv.objective);if(!TEST)saveGame(true)}
 function startChapter(c){ci=c;unlocked=Math.max(unlocked,c);var ch=campaign.chapters[c];AudioFX.play(ch.biome);showStory(ch.intro||[],ch.biome,function(){fade(function(){enterLevel(c,0)})})}
 function finishRoom(){if(R.done)return;R.done=true;AudioFX.sfx('door');state='trans';
  if(TEST){AudioFX.sfx('win');show('testDone',true);return}
  var ch=campaign.chapters[ci];
+ if(eggRoom){eggRoom=false;var en=eggNext;fade(function(){enterLevel(ci,en)});return}
+ if(!inDLC&&!TEST&&ci===4&&ch.egg&&!stats.egg&&li+1<ch.levels.length&&Math.random()<.1){stats.egg=1;eggRoom=true;eggNext=li+1;var en2=li+1;fade(function(){enterLevel(ci,en2)});return}
  if(li+1<ch.levels.length){var bw=ch.between&&ch.between[li],nl=li+1;
   if(bw&&bw.length)fade(function(){R=null;P=null;show('hud',false);showStory(bw,ch.biome,function(){fade(function(){enterLevel(ci,nl)})})});
   else fade(function(){enterLevel(ci,li+1)});return}
@@ -591,7 +596,7 @@ function saveGame(silent,extra){if(TEST)return;if(inDLC){saveDLC(extra);return}v
 function loadSave(){var n=Meta.newest();return n<0?null:fixSave(Meta.slots()[n])}
 function applySave(s){unlocked=Math.min(s.unlocked||0,campaign.chapters.length-1);totalShards=s.shards||0;got=s.got||{};stats=s.stats||{deaths:0,kills:0,time:0};stats.deaths=stats.deaths||0;stats.kills=stats.kills||0;stats.time=stats.time||0}
 function newGame(){got={};totalShards=0;stats={deaths:0,kills:0,time:0};unlocked=0;ci=0;li=0;hideMenus();AudioFX.init();AudioFX.play('station');if(!TEST&&slot>=0)saveGame(true);showStory(campaign.prologue||[],'school',function(){startChapter(0)})}
-function titleScreen(){AudioFX.play('file:OLD TITLE THEME 75');campaign=baseCampaign;inDLC=false;dlcId=null;document.body.classList.remove('dlc-mode');state='menu';R=null;P=null;hideMenus();show('hud',false);$('controls').classList.add('hidden');show('menu',true);var n=Meta.newest(),s=n<0?null:fixSave(Meta.slots()[n]);$('continueBtn').disabled=!s;
+function titleScreen(){eggRoom=false;if(window.CH5X)CH5X.cleanup();AudioFX.play('file:OLD TITLE THEME 75');campaign=baseCampaign;inDLC=false;dlcId=null;document.body.classList.remove('dlc-mode');state='menu';R=null;P=null;hideMenus();show('hud',false);$('controls').classList.add('hidden');show('menu',true);var n=Meta.newest(),s=n<0?null:fixSave(Meta.slots()[n]);$('continueBtn').disabled=!s;
  $('continueInfo').textContent=s?('存档 '+(n+1)+' · '+campaign.chapters[s.ci].name+' · '+campaign.chapters[s.ci].levels[s.li].name+(s.cleared?'（已通关）':'')):'暂无存档';
  var ct=$('customTag');if(ct)ct.classList.toggle('hidden',!customCampaign)}
 /* 存档页（界面在 meta-ui.js）：start 新旅程 / load 读取 / save 覆盖保存 / del 删除 */
@@ -726,7 +731,7 @@ function frameBody(now){var dt=Math.min(.1,(now-lastT)/1000||0);lastT=now;pollPa
  if(state==='story'){updateStory(dt);drawStory()}
  hearts();dashBar();render()}
 if(window.DLCX)DLCX.attach({T:T,get sc(){return sc},get W(){return W},get H(){return H},get R(){return R},get P(){return P},get time(){return time},cam:cam,get state(){return state},setState:function(s){state=s},get inDLC(){return inDLC},get ci(){return ci},get li(){return li},
- emit:emit,shoot:shoot,damagePlayer:damagePlayer,damageEnemy:damageEnemy,makeEnemy:makeEnemy,toast:toast,startDialog:startDialog,parseDialog:parseDialog,solidAt:solidAt,groundAt:groundAt,cellAt:cellAt,ov:ov,isSolid:isSolid,
+ emit:emit,shoot:shoot,damagePlayer:damagePlayer,damageEnemy:damageEnemy,makeEnemy:makeEnemy,toast:toast,startDialog:startDialog,parseDialog:parseDialog,solidAt:solidAt,groundAt:groundAt,cellAt:cellAt,ov:ov,isSolid:isSolid,held:function(a){return isHeld(a)},
  rebake:function(){R.tileCanvas=bakeTiles(R)},shake:function(v){shake=Math.max(shake,v)},hitstop:function(v){hitstop=Math.max(hitstop,v)},flash:function(v){flashA=Math.max(flashA,v)},
  collectBlue:collectBlue,bossDone:bossDone,hurtCount:function(){return stats.hurt||0},setCP:function(x,y){R.cp={x:x,y:y}},meta:function(){return MM},hearts:hearts,save:function(){saveGame(true)}});
 /* ---------- 启动 ---------- */
@@ -741,4 +746,6 @@ requestAnimationFrame(frame);
 function collectBlue(d){var gk=gkey();(got[gk]=got[gk]||{})[d.id]=1;totalBlue++;$('objective').textContent=objText();if(d.kind==='yellowshard')MM.yellowShard('dlc'+ci+'-'+li,d.id);else if(d.kind!=='gift')MM.blueShard('dlc'+ci+'-'+li,d.id);$('shardNum').textContent=totalBlue;AudioFX.sfx('shard');var yl=d.kind==='yellowshard',gf=d.kind==='gift';emit(d.x+16,d.y+16,gf?'#ff6a8a':yl?'#ffd84a':'#6db8ff',18,220);toast((gf?'🎁 礼物':'◆ '+(yl?'黄色水晶':'蓝色碎片'))+' +1（'+totalBlue+'）',1400)}
 function bossDone(){R.bossGone=true;MM.boss('paradox');flashA=.6;AudioFX.sfx('win');saveGame(true)}
 window.L15Game={get state(){return state},get R(){return R},get P(){return P},enterLevel:enterLevel,startChapter:startChapter,startDLCRun:startDLCRun,get inDLC(){return inDLC},get campaign(){return campaign},setCampaign:setCampaign};
+if(params.get('egg')==='1')window.addEventListener('load',function(){setTimeout(function(){hideMenus();eggRoom=true;state='play';enterLevel(4,0)},300)});
+if(params.get('boss')==='1')window.addEventListener('load',function(){setTimeout(function(){hideMenus();eggRoom=false;enterLevel(4,5)},300)}); /* 调试：?boss=1 直接进骑士战 */ /* 调试：?egg=1 直接进彩蛋房 */
 })();
