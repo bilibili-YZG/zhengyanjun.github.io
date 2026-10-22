@@ -101,6 +101,8 @@ function strapAng(d,t){var per=d.p.period||3.2;return .85*Math.sin((t/per+(d.p.p
 function cyc(d,t,def){var per=d.p.period||def;return ((t+(d.p.phase||0)*per)%per)/per}
 function update(dt,r,p){
  var ch=chap(r);M.ch=ch;M.on=ch===2?lightOnAt(C.time):true;
+ /* Boss 战开始后，车头这节车厢的后门锁上：Boss 只在这一节里冲撞，主角不能退到后面的车厢里躲 */
+ var tb=r.boss;if(p&&tb&&tb.type==='train'&&tb.started&&!tb.dead&&tb.state!=='dying'){var lx=(tb.p&&tb.p.left!=null?tb.p.left:1)*T;if(p.x<lx){p.x=lx;if(p.vx<0)p.vx=0;if(!tb.locked){tb.locked=true;sfx('door');C.toast('贯通门锁上了——只能在这节车厢里决一胜负！',1800)}}}
  if(!r.mx||!p)return;
  var tm=C.time,pr={x:p.x+3,y:p.y+4,w:p.w-6,h:p.h-6},pcx=p.x+p.w/2,pcy=p.y+p.h/2,hurtOK=p.inv<=0&&p.dash<=0;
  function hurt(cx){if(hurtOK){C.damagePlayer(1,{dir:pcx>cx?1:-1});hurtOK=false}}
@@ -217,7 +219,7 @@ var X={
   g.fillStyle='#2a3a4a';g.fillRect(sx-8,o.y-6,16,8);g.fillStyle='#6dffff';g.fillRect(sx-4,o.y-4,8,3);glow(g,sx,o.y+h/2,70,'#6dffff',.5)}
 };
 var _thing=G.thing;
-G.thing=function(g,o,t,biome,lvlH){var f=X[o.kind];if(f){g.save();f(g,o,t);g.restore()}else _thing.apply(this,arguments)};
+G.thing=function(g,o,t,biome,lvlH){var f=X[o.kind];if(f){if(!o.p)o.p={}; /* 关卡工坊画的物件没有 p（道具参数），补一个空的 */g.save();f(g,o,t);g.restore()}else _thing.apply(this,arguments)};
 
 /* ==================== 绘制：怪物 ==================== */
 function person(g,body,head,hair,lean,legPh,armUp){ /* 小人：身体 / 头 / 头发 */
@@ -283,37 +285,116 @@ var E={
 var _enemy=G.enemy;
 G.enemy=function(g,e,t,biome){var f=E[e.kind];if(f){g.save();f(g,e,t);g.restore()}else _enemy.apply(this,arguments)};
 
+/* ==================== Boss「迷途列车」的行为 ====================
+   三个阶段，每一招都有预兆，冲撞之后一定会撞墙过热（趴窝 = 输出窗口），不再无缝连冲：
+     冲撞   车灯扫出红色车道 → 汽笛音调一路拉高 → 冲过去 → 撞墙，落石 + 过热趴窝
+     汽笛   多普勒震波：三道地面冲击波，先慢后快，最后会叠在一起到你脚下
+     放电   受电弓引雷：脚下和场地里同时落下电柱
+     脱钩   第二阶段起：把车厢甩出去，低的要跳，高的别跳（第三阶段先低后高连发）
+     过站不停  第三阶段：冲到一半急刹，立刻掉头反冲（假动作），然后才过热 */
+var TA=[['charge','whistle','arc'],['charge','whistle','arc','uncouple'],['charge','express','uncouple','arc','whistle']];
+var TW={charge:.95,express:.9,whistle:.7,arc:.6,uncouple:.85};
+function floorBelow(x,y){var R=C.R,cx=Math.floor(x/T),cy=Math.max(0,Math.floor(y/T));for(var j=cy;j<R.ch;j++)if(C.isSolid(C.cellAt(cx,j)))return j*T;return R.h}
+function strike(x,y,t){C.R.warns.push({x:x-28,w:56,y:floorBelow(x,y),t:t,max:t,kind:'pillar'})}
+function later(b,t,f){(b.q=b.q||[]).push({t:t,f:f})}
+function trainShoot(b,vx,y,o){var nx=b.face>0?b.x+b.w:b.x;C.shoot(nx,y,vx,0,o);return C.R.proj[C.R.proj.length-1]}
+function trainAtk(b,fy,minX,maxX){var ph=b.phase,p=C.P,pcx=p.x+p.w/2,pcy=p.y+p.h/2,i,col='#ffd27a';b.state='atk';
+ if(b.atk==='charge'||b.atk==='express'){b.vx=b.face*(430+ph*70);b.timer=2.8;b.combo=b.atk==='express'&&!b.rev?1:0;sfx('dash')}
+ else if(b.atk==='whistle'){var sp=[170,250,350,430].slice(0,3+(ph>1?1:0));b.horn=1;sfx('roar');C.shake(6);
+  sp.forEach(function(v,k){later(b,k*.26,function(){sfx('shoot');C.emit(b.face>0?b.x+b.w:b.x,fy-14,col,10,200,.4);trainShoot(b,b.face*v,fy-14,{wave:true,pierce:true,deflect:false,r:12,col:col,life:3.6})})});b.timer=1.1}
+ else if(b.atk==='arc'){var n=3+ph,wt=1.05-ph*.1;b.arcT=wt+.4;sfx('boom');strike(pcx,pcy,wt);
+  for(i=1;i<n;i++){(function(k){var x=minX+Math.random()*(maxX+b.w-minX);later(b,k*.14,function(){strike(x,Math.random()<.5?pcy:fy-T,wt)})})(i)}b.timer=.9}
+ else if(b.atk==='uncouple'){var seq=ph>1?[0,1]:[0];b.hitch=1;sfx('switch');
+  seq.forEach(function(hi,k){later(b,k*.7,function(){sfx('shoot');C.shake(4);C.emit(b.face>0?b.x:b.x+b.w,fy-40,col,12,160,.4);var q=trainShoot(b,b.face*(hi?340:290),hi?fy-106:fy-34,{pierce:true,deflect:false,r:20,col:col,life:3.6});q.car=b.face;q.hi=hi})});b.timer=.7*seq.length+.3}}
+function trainCrash(b,fy){var ph=b.phase;sfx('boom');C.shake(14);C.hitstop(.05);C.emit(b.face>0?b.x+b.w:b.x,fy-40,'#ffd27a',30,340,.7);C.emit(b.x+b.w/2,fy-b.h,'#c0c8d0',16,200,.7);
+ for(var i=0;i<3+ph;i++){var t=.8+i*.1;C.R.warns.push({x:C.P.x+(Math.random()-.5)*520,w:56,y:floorBelow(C.P.x,C.P.y),t:t,max:t,kind:'drop'})}
+ b.state='stun';b.timer=2-ph*.25;b.vx=0;b.combo=0;b.rev=false;C.toast('撞墙过热——趁现在！',1100)}
+function bossStep(b,dt){
+ var r=C.R,p=C.P,ph=b.phase,pcx=p.x+p.w/2,bcx=b.x+b.w/2,fy=b.hy+b.h,minX=b.p&&b.p.left!=null?b.p.left*T:T,maxX=r.w-T-b.w,i;
+ b.ht=(b.ht||0)+dt;b.horn=Math.max(0,(b.horn||0)-dt*1.4);b.arcT=Math.max(0,(b.arcT||0)-dt);b.hitch=Math.max(0,(b.hitch||0)-dt*1.2);
+ if(b.lastPh==null)b.lastPh=0;
+ if(ph!==b.lastPh){b.lastPh=ph;b.q=[];b.vx=0;b.state='recover';b.timer=1.3;b.rev=false;sfx('roar');C.shake(12);C.flash(.35);C.emit(bcx,b.y+b.h*.4,ph>1?'#ff7a2a':'#ffd27a',40,360,.8);C.toast(ph===1?'迷途列车：车厢开始脱钩！':'迷途列车：过站不停——！',2200)}
+ if(b.q&&b.q.length)for(i=b.q.length-1;i>=0;i--){b.q[i].t-=dt;if(b.q[i].t<=0){var f=b.q[i].f;b.q.splice(i,1);f()}}
+ switch(b.state){
+ case'idle':b.timer-=dt*(1+ph*.25);var d=pcx-bcx;if(Math.abs(d)>240)b.x+=Math.sign(d)*70*dt;b.x=clamp(b.x,minX,maxX);
+  if(b.timer<=0){var list=TA[ph],a=list[Math.floor(Math.random()*list.length)];if(a===b.lastAtk)a=list[(list.indexOf(a)+1)%list.length];b.lastAtk=b.atk=a;b.state='wind';b.timer=b.wt=TW[a]-ph*.08;b.rev=false;sfx('switch')}break;
+ case'wind':b.timer-=dt;
+  if(b.atk==='charge'||b.atk==='express'){b.lane=b.face>0?maxX-b.x+b.w*.5:b.x-minX+b.w*.5;b.hornT=(b.hornT||0)-dt;if(b.hornT<=0){b.hornT=.16;sfx('switch')}} /* 汽笛一声比一声急 */
+  if(b.timer<=0)trainAtk(b,fy,minX,maxX);break;
+ case'atk':b.timer-=dt;
+  if(b.atk==='charge'||b.atk==='express'){b.x+=b.vx*dt;if(Math.random()<.7)C.emit(b.vx>0?b.x:b.x+b.w,fy-6,'#ffd27a',2,110,.4);if(Math.random()<.5)C.emit(b.x+Math.random()*b.w,fy-2,'#fff6a0',1,60,.3);
+   if(b.x<=minX||b.x>=maxX||b.timer<=0){b.x=clamp(b.x,minX,maxX);
+    if(b.combo&&!b.rev){ /* 过站不停：急刹 → 掉头 */
+     b.rev=true;b.vx=0;b.face=-b.face;b.state='wind';b.atk='express';b.timer=b.wt=.5;sfx('boom');C.shake(6);C.emit(b.x+b.w/2,fy-4,'#fff6a0',20,260,.5)}
+    else trainCrash(b,fy)}}
+  else if(b.timer<=0){b.state='recover';b.timer=1-ph*.15}break;
+ case'stun':b.timer-=dt;if(Math.random()<.5)C.emit(b.x+b.w*(.2+Math.random()*.5),b.y+b.h*.1,'#dfe6ec',1,50,.8,-60);if(b.timer<=0){b.state='idle';b.timer=.9-ph*.15}break;
+ case'recover':b.timer-=dt;if(b.timer<=0){b.state='idle';b.timer=1.1-ph*.2}break}
+}
+/* 被甩出去的车厢（弹幕的画法） */
+G.drawCar=function(g,q,t){var f=q.car||1;g.save();g.translate(q.x,q.y);g.scale(f,1);
+ glow(g,0,0,70,'#ffd27a',.35);
+ g.fillStyle='#c9d2da';g.beginPath();g.roundRect(-34,-17,68,32,5);g.fill();g.fillStyle='#26384f';g.fillRect(-34,2,68,9);g.fillStyle='#ffb73a';g.fillRect(-34,-1,68,3);
+ g.fillStyle='#10202e';for(var i=0;i<3;i++)g.fillRect(-28+i*20,-12,14,11);
+ g.fillStyle='rgba(180,240,255,.5)';for(var j=0;j<3;j++){ell(g,-21+j*20,-6,3,3);g.fill()}
+ g.fillStyle='#1a222b';ell(g,-20,16,6,6);g.fill();ell(g,20,16,6,6);g.fill();
+ g.strokeStyle='rgba(255,230,140,.6)';g.lineWidth=2;for(var k=0;k<3;k++){g.beginPath();g.moveTo(-40-k*10,-8+k*8);g.lineTo(-64-k*10,-8+k*8);g.stroke()}
+ g.restore()};
+
 /* ==================== 绘制：Boss「迷途列车」 ==================== */
 function drawTrain(g,b,t){
- var w=b.w,h=b.h,fl=b.flash>0,face=b.face||1,atk=b.state==='atk'?b.atk:'',wind=b.state==='wind',chg=atk==='charge';
+ var w=b.w,h=b.h,fl=b.flash>0,face=b.face||1,ph=b.phase||0,st=b.state,wind=st==='wind',atk=st==='atk'?b.atk:'',chg=atk==='charge'||atk==='express',stun=st==='stun',
+  lane=wind&&(b.atk==='charge'||b.atk==='express'),pul=.5+.5*Math.sin(t*(lane?30:12));
  g.save();g.translate(b.x+w/2,b.y+h);g.scale(face,1);
- var lean=wind?-10:0,hov=chg?0:Math.sin(t*3)*3;g.translate(lean,hov);
- /* 车灯光柱：蓄力时亮起，冲刺时拉满 */
- if(wind||chg){var bl=chg?520:260,gr=g.createLinearGradient(w*.5,0,w*.5+bl,0);gr.addColorStop(0,'rgba(255,240,170,.55)');gr.addColorStop(1,'rgba(255,240,170,0)');g.fillStyle=gr;g.beginPath();g.moveTo(w*.48,-h*.42);g.lineTo(w*.5+bl,-h*.42-bl*.28);g.lineTo(w*.5+bl,-h*.42+bl*.28);g.lineTo(w*.48,-h*.3);g.closePath();g.fill()}
- /* 受电弓和电火花 */
+ /* 冲撞车道：红色警戒带一直铺到墙边，越临近越闪 */
+ if(lane){var L=b.lane||600,k=1-(b.timer||0)/(b.wt||1),lg=g.createLinearGradient(w*.5,0,w*.5+L,0);lg.addColorStop(0,'rgba(255,60,40,'+((.2+k*.3)*pul)+')');lg.addColorStop(1,'rgba(255,60,40,.04)');
+  g.fillStyle=lg;g.fillRect(w*.5,-26,L,26);g.fillStyle='rgba(255,210,120,'+(.25+k*.4)+')';for(var s=0;s<L;s+=44)g.fillRect(w*.5+(s+(t*260)%44)%L,-3,22,3)}
+ var lean=wind?-10:0,hov=chg||stun?0:Math.sin(t*3)*3;g.translate(lean+(stun?Math.sin(t*50)*1.4:0),hov);
+ /* 车灯光柱：蓄力时亮起，冲刺时拉满；过热时熄灭 */
+ if(!stun&&(wind||chg)){var bl=chg?520:260,gr=g.createLinearGradient(w*.5,0,w*.5+bl,0);gr.addColorStop(0,'rgba(255,240,170,.55)');gr.addColorStop(1,'rgba(255,240,170,0)');g.fillStyle=gr;g.beginPath();g.moveTo(w*.48,-h*.42);g.lineTo(w*.5+bl,-h*.42-bl*.28);g.lineTo(w*.5+bl,-h*.42+bl*.28);g.lineTo(w*.48,-h*.3);g.closePath();g.fill()}
+ /* 受电弓：放电时一道雷直通隧道顶 */
  g.strokeStyle='#8a97a3';g.lineWidth=4;g.beginPath();g.moveTo(-w*.1,-h*.88);g.lineTo(-w*.02,-h*1.06);g.lineTo(w*.1,-h*.88);g.moveTo(-w*.06,-h*1.06);g.lineTo(w*.06,-h*1.06);g.stroke();
- g.strokeStyle='#8fe8ff';g.lineWidth=2;g.globalAlpha=.5+Math.sin(t*40)*.4;g.beginPath();g.moveTo(-w*.06,-h*1.06);g.lineTo(-w*.02,-h*1.16+Math.random()*8);g.lineTo(w*.06,-h*1.06);g.stroke();g.globalAlpha=1;
- /* 车身 */
- g.fillStyle=fl?'#fff':'#dfe6ec';g.beginPath();g.moveTo(-w*.5,-h*.14);g.lineTo(-w*.5,-h*.82);g.quadraticCurveTo(-w*.5,-h*.9,-w*.42,-h*.9);g.lineTo(w*.2,-h*.9);g.quadraticCurveTo(w*.42,-h*.86,w*.52,-h*.5);g.lineTo(w*.52,-h*.14);g.closePath();g.fill();
+ var arcing=(b.arcT||0)>0||(wind&&b.atk==='arc');
+ g.strokeStyle=arcing?'#ffffff':'#8fe8ff';g.lineWidth=arcing?3:2;g.globalAlpha=arcing?.9:.5+Math.sin(t*40)*.4;g.beginPath();g.moveTo(-w*.06,-h*1.06);
+ if(arcing){var yy=-h*1.06;for(var z=0;z<7;z++){yy-=34;g.lineTo(-w*.02+(Math.random()-.5)*34,yy)}}else g.lineTo(-w*.02,-h*1.16+Math.random()*8);
+ g.lineTo(w*.06,-h*1.06);g.stroke();g.globalAlpha=1;if(arcing)glow(g,-w*.02,-h*1.1,90,'#8fe8ff',.8);
+ /* 车身：上亮下脏的金属漆 + 铆钉 + 车厢接缝 */
+ var bg=g.createLinearGradient(0,-h*.9,0,-h*.14);bg.addColorStop(0,'#f1f5f8');bg.addColorStop(.55,'#cfd8e0');bg.addColorStop(1,'#8e9ba7');
+ g.fillStyle=fl?'#fff':bg;g.beginPath();g.moveTo(-w*.5,-h*.14);g.lineTo(-w*.5,-h*.82);g.quadraticCurveTo(-w*.5,-h*.9,-w*.42,-h*.9);g.lineTo(w*.2,-h*.9);g.quadraticCurveTo(w*.42,-h*.86,w*.52,-h*.5);g.lineTo(w*.52,-h*.14);g.closePath();g.fill();
+ if(!fl){g.fillStyle='rgba(60,40,20,'+(.12+ph*.08)+')';g.fillRect(-w*.5,-h*.3,w*1.02,h*.16); /* 锈渍和油污，越打越惨 */
+  g.strokeStyle='rgba(40,50,60,.35)';g.lineWidth=1.2;[-.2,.08].forEach(function(sx){g.beginPath();g.moveTo(w*sx,-h*.88);g.lineTo(w*sx,-h*.14);g.stroke()});
+  g.fillStyle='rgba(80,90,100,.7)';for(var rv=-.46;rv<.5;rv+=.075){ell(g,w*rv,-h*.87,1.6,1.6);g.fill();ell(g,w*rv,-h*.17,1.6,1.6);g.fill()}
+  g.strokeStyle='rgba(30,36,44,.4)';g.lineWidth=1;for(var sc=0;sc<5;sc++){var sx0=-w*.42+sc*w*.19;g.beginPath();g.moveTo(sx0,-h*.5-sc%2*8);g.lineTo(sx0+14,-h*.46-sc%2*8);g.stroke()}
+  if(ph>=1){g.strokeStyle='#2a2f36';g.lineWidth=2;g.beginPath();g.moveTo(-w*.3,-h*.9);g.lineTo(-w*.27,-h*.8);g.lineTo(-w*.32,-h*.72);g.lineTo(-w*.28,-h*.62);g.stroke()}
+  if(ph>=2){g.strokeStyle='rgba(255,120,40,'+(.55+Math.sin(t*9)*.3)+')';g.lineWidth=2.5;g.beginPath();g.moveTo(w*.05,-h*.86);g.lineTo(w*.1,-h*.74);g.lineTo(w*.04,-h*.64);g.lineTo(w*.1,-h*.52);g.stroke();glow(g,w*.08,-h*.7,60,'#ff7a2a',.35)}}
  g.fillStyle=fl?'#fff':'#26384f';g.fillRect(-w*.5,-h*.34,w*1.02,h*.2);
  g.fillStyle=fl?'#fff':'#ffb73a';g.fillRect(-w*.5,-h*.4,w*1.02,h*.05);
- /* 车窗里是一排排“被遗忘的乘客”的剪影 */
+ /* 车窗：被遗忘的乘客，偶尔有一只手按在玻璃上 */
  g.fillStyle='#10202e';for(var i=0;i<3;i++){g.beginPath();g.roundRect(-w*.44+i*w*.19,-h*.78,w*.15,h*.3,5);g.fill()}
- g.fillStyle='rgba(180,240,255,.55)';for(var j=0;j<3;j++){var wx=-w*.44+j*w*.19+w*.075;ell(g,wx,-h*.62,5,5);g.fill();g.fillRect(wx-6,-h*.58,12,h*.08)}
- /* 车头：挡风玻璃是一张脸 */
+ for(var j=0;j<3;j++){var wx=-w*.44+j*w*.19+w*.075;g.fillStyle='rgba(180,240,255,.55)';ell(g,wx,-h*.62,5,5);g.fill();g.fillRect(wx-6,-h*.58,12,h*.08);
+  if(Math.sin(t*.9+j*2.1)>.55){g.fillStyle='rgba(200,245,255,.5)';g.fillRect(wx+7,-h*.7+Math.sin(t*3+j)*2,4,12)}}
+ /* 车头：挡风玻璃是一张脸；过热时眼睛暗下去，第三阶段眼睛烧橙 */
  g.fillStyle='#10202e';g.beginPath();g.moveTo(w*.22,-h*.84);g.lineTo(w*.46,-h*.74);g.lineTo(w*.5,-h*.46);g.lineTo(w*.22,-h*.46);g.closePath();g.fill();
- var ey=wind?'#ff4a3a':chg?'#fff27a':'#ffd23f';g.fillStyle=ey;poly(g,[w*.26,-h*.7,w*.34,-h*.74,w*.34,-h*.6,w*.26,-h*.58]);g.fill();poly(g,[w*.4,-h*.68,w*.47,-h*.62,w*.46,-h*.54,w*.4,-h*.58]);g.fill();
+ var ey=stun?'#5c6b78':wind?'#ff4a3a':chg?'#fff27a':ph>1?'#ff8a2a':'#ffd23f';g.fillStyle=ey;poly(g,[w*.26,-h*.7,w*.34,-h*.74,w*.34,-h*.6,w*.26,-h*.58]);g.fill();poly(g,[w*.4,-h*.68,w*.47,-h*.62,w*.46,-h*.54,w*.4,-h*.58]);g.fill();
  g.fillStyle='#eaf1f6';g.fillRect(w*.26,-h*.5,w*.22,3);
- /* 大灯 */
- g.fillStyle=ey;ell(g,w*.5,-h*.3,9,9);g.fill();glow(g,w*.5,-h*.3,chg?120:70,ey,chg?.9:.6);
- /* 车号牌 */
- g.fillStyle='#10202e';g.beginPath();g.roundRect(-w*.12,-h*.46,w*.2,h*.1,3);g.fill();g.fillStyle='#ffd23f';g.font='bold '+Math.round(h*.09)+'px sans-serif';g.textAlign='center';g.fillText('0',-w*.02,-h*.38);
+ /* 排障器（牛角）和大灯 */
+ g.fillStyle=fl?'#fff':'#59636e';g.beginPath();g.moveTo(w*.5,-h*.16);g.lineTo(w*.62,-h*.04);g.lineTo(w*.5,-h*.04);g.closePath();g.fill();g.fillStyle='#ffb73a';g.fillRect(w*.5,-h*.1,w*.05,3);
+ if(!stun){g.fillStyle=ey;ell(g,w*.5,-h*.3,9,9);g.fill();glow(g,w*.5,-h*.3,chg?120:70+(b.horn||0)*60,ey,chg?.9:.6)}else{g.fillStyle='#3a4650';ell(g,w*.5,-h*.3,9,9);g.fill()}
+ /* 目的地牌：字在乱码 */
+ g.fillStyle='#10202e';g.beginPath();g.roundRect(-w*.14,-h*.5,w*.3,h*.1,3);g.fill();g.save();g.scale(face,1);g.fillStyle=ph>1?'#ff8a2a':'#ffd23f';g.font='bold '+Math.round(h*.085)+'px sans-serif';g.textAlign='center';
+ g.fillText(Math.sin(t*7)>.85?'#@%?':ph>1?'无站':'迷途',face*w*.01,-h*.425);g.restore();
+ /* 汽笛：声波圈 */
+ if((b.horn||0)>0){g.strokeStyle='rgba(255,226,122,'+b.horn*.7+')';g.lineWidth=3;for(var rg=0;rg<3;rg++){var rr=(1-b.horn)*220+rg*34;g.beginPath();g.arc(w*.1,-h*.95,rr,-1.2,1.2);g.stroke()}}
+ /* 车钩：脱钩前亮黄 */
+ if((b.hitch||0)>0)glow(g,-w*.52,-h*.2,70,'#ffd23f',b.hitch*.8);
  /* 转向架和车轮 */
  [-w*.34,-w*.12,w*.12,w*.34].forEach(function(wx){g.fillStyle='#1a222b';ell(g,wx,-h*.08,h*.1,h*.1);g.fill();g.strokeStyle='#8a97a3';g.lineWidth=3;var a=t*(chg?30:3);g.beginPath();g.moveTo(wx,-h*.08);g.lineTo(wx+Math.cos(a)*h*.08,-h*.08+Math.sin(a)*h*.08);g.stroke()});
- if(chg){g.fillStyle='#ffe27a';for(var k=0;k<5;k++){ell(g,-w*.2+Math.random()*w*.6,-2+Math.random()*4,2.5,2.5);g.fill()}}
+ if(chg){g.fillStyle='#ffe27a';for(var k2=0;k2<5;k2++){ell(g,-w*.2+Math.random()*w*.6,-2+Math.random()*4,2.5,2.5);g.fill()}}
+ /* 过热：车顶冒蒸汽 */
+ if(stun){for(var sp=0;sp<5;sp++){var ag=(t*1.1+sp/5)%1;g.fillStyle='rgba(235,240,245,'+(1-ag)*.55+')';ell(g,-w*.34+sp*w*.17,-h*.9-ag*70,9+ag*16,9+ag*16);g.fill()}glow(g,w*.3,-h*.55,60,'#ff6a3a',.25)}
  g.restore()}
 var _boss=G.boss;
 G.boss=function(g,b,t){if(b.type==='train')drawTrain(g,b,t);else _boss.apply(this,arguments)};
 
-return {attach:attach,build:build,initEnemy:initEnemy,update:update,drawWorld:drawWorld,drawScreen:drawScreen,get lightsOn(){return M.on}};
+return {attach:attach,build:build,initEnemy:initEnemy,update:update,bossStep:bossStep,drawWorld:drawWorld,drawScreen:drawScreen,get lightsOn(){return M.on}};
 })();

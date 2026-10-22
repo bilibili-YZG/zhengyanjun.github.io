@@ -20,7 +20,7 @@ C.chapters.forEach(function(ch,ci){ch.levels.forEach(function(lv,li){total++;var
  var sp=of('spawn'),ex=of('exit');
  if(!isDLC&&ch.levels.length!==6)out.push('E 本章房间数不是 6');
  if(isDLC&&!isMetro&&ch.levels.length!==4)out.push('E DLC 每个部分应有 4 关');
- var hasBoss=of('boss').length>0,wantBoss=isMetro?false:isDLC?(ci===C.chapters.length-1&&li===ch.levels.length-1):(li===ch.levels.length-1);
+ var hasBoss=of('boss').length>0,wantBoss=isMetro?(ci===2&&li===2):isDLC?(ci===C.chapters.length-1&&li===ch.levels.length-1):(li===ch.levels.length-1);
  if(wantBoss!==hasBoss)out.push('E '+(wantBoss?'这一间应有 Boss':(isDLC?'DLC 只有最后一间才放 Boss':'只有每章最后一间才放 Boss')));
  of('gate').forEach(function(g){if(!lv.links.some(function(k){return k.to===g.id}))out.push('E 闸门没有连开关 @'+g.x+','+g.y)});
  if(sp.length!==1)out.push('E 出生点数量='+sp.length);if(ex.length!==1)out.push('E 出口数量='+ex.length);
@@ -57,6 +57,7 @@ C.chapters.forEach(function(ch,ci){ch.levels.forEach(function(lv,li){total++;var
   if(o.kind==='switch'||o.kind==='plate'){if(!near(o.x,o.y,o.w,o.h,1,1.5,1.5))out.push('E 开关够不着 @'+o.x+','+o.y)}
   if(o.kind==='heart'||o.kind==='checkpoint'){if(!q.some(function(a){return Math.abs(a.x-o.x)<=2&&a.r-o.y<=5&&a.r-o.y>=-3}))out.push('W '+o.kind+' 可能够不着 @'+o.x+','+o.y)}});
  var sh=of(isMetro?'yellowshard':isDLC?'blueshard':'shard').length;
+ if(isMetro&&sh!==12)out.push('E 地铁历险每关应有 12 枚黄色水晶，现在是 '+sh);
  var e=out.filter(function(s){return s[0]==='E'}).length,w=out.length-e;errs+=e;warns+=w;
  console.log((e?'✗ ':w?'△ ':'✓ ')+tag+'  ['+W+'×'+H+'] 碎片'+sh+' 物件'+O.length+' 站点'+list.length+' 可达'+q.length);out.forEach(function(s){console.log('     '+s)})})});
 });

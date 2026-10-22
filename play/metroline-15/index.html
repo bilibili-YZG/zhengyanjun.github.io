@@ -76,7 +76,7 @@
       <button id="settingsBtn" class="btn">设置</button>
     </div>
     <div class="keys" id="keyHints"><span><kbd>A</kbd><kbd>D</kbd>/<kbd>←</kbd><kbd>→</kbd> 移动</span><span><kbd>空格</kbd>/<kbd>W</kbd> 跳（可二段跳）</span><span><kbd>J</kbd> 教鞭</span><span><kbd>L</kbd> 扔粉笔（远程）</span><span><kbd>K</kbd>/<kbd>Shift</kbd> 冲刺</span><span><kbd>↓</kbd>+<kbd>J</kbd> 空中俯冲</span><span><kbd>E</kbd> 互动 / 攀藤</span><span><kbd>Esc</kbd> 暂停</span><span>支持手柄 · 触屏</span></div>
-    <div class="menu-foot"><a href="editor.html">🛠 关卡工坊</a><span style="color:var(--muted)">v1.1.0 <button id="changelogBtn" class="link-btn">更新日志</button></span></div>
+    <div class="menu-foot"><a href="editor.html">🛠 关卡工坊</a><span style="color:var(--muted)">v1.1.1 <button id="changelogBtn" class="link-btn">更新日志</button></span></div>
   </div>
 </div>
 
@@ -164,6 +164,7 @@
 <div id="settings" class="overlay top hidden">
   <div class="panel mid"><button id="closeSettings" class="close">×</button><div class="eyebrow">SETTINGS</div><h2>设置</h2>
     <label class="row"><span>声音</span><input id="setMute" type="checkbox" checked></label>
+    <label class="row"><span>锁血 <small class="muted">受伤也不扣血、不会倒下，过不去的时候用 · 开启后通关不计入「无伤」类成就</small></span><input id="setLockHp" type="checkbox"></label>
     <div class="row col"><span>触屏按钮布局 <small class="muted">当前：<b id="modeNow"></b></small></span>
       <div class="modes">
         <label class="mode"><input type="radio" name="ctlMode" value="auto">
@@ -190,8 +191,7 @@
       <div id="padBinds" class="binds"></div><button id="padReset" class="btn full">恢复默认手柄按键</button></details>
     <div class="row"><span>触屏按钮位置 <small class="muted">拖动摇杆和按钮，摆到顺手的地方</small></span><button id="layoutBtn" class="btn">自定义位置…</button></div>
     <button id="fullBtn" class="btn full">全屏 / 退出全屏</button>
-    <button id="resetBtn" class="btn full danger">清除全部存档</button>
-    <button id="resetMetaBtn" class="btn full danger">清除成就 / 晶体 / 图鉴记录</button>
+    <button id="resetBtn" class="btn full danger">重置游戏（清空存档 / 成就 / 晶体 / DLC 解锁）</button>
   </div>
 </div>
 
@@ -276,6 +276,14 @@
 <script src="js/levels/metro4-02.js"></script>
 <script src="js/levels/metro4-03.js"></script>
 <script src="js/data/dlc-subway.js"></script>
+<script src="js/levels/ny1-01.js"></script>
+<script src="js/levels/ny1-02.js"></script>
+<script src="js/levels/ny1-03.js"></script>
+<script src="js/levels/ny1-04.js"></script>
+<script src="js/levels/ny1-05.js"></script>
+<script src="js/levels/ny1-06.js"></script>
+<script src="js/levels/ny2-01.js"></script>
+<script src="js/data/dlc-newyear.js"></script>
 <script src="js/dlc-registry.js"></script>
 <script src="js/data/codex.js"></script>
 <script src="js/audio.js"></script>
@@ -283,12 +291,14 @@
 <script src="js/gfx2.js"></script>
 <script src="js/gfx3.js"></script>
 <script src="js/gfx4.js"></script>
+<script src="js/gfx5.js"></script>
 <script src="js/assets.js"></script>
 <script src="js/meta.js"></script>
 <script src="js/meta-ui.js"></script>
 <script src="js/dlc.js"></script>
 <script src="js/dlc-engine.js"></script>
 <script src="js/dlc-metro.js"></script>
+<script src="js/dlc-newyear.js"></script>
 <script src="js/savefile.js"></script>
 <script src="js/changelog-data.js"></script>
 <script src="js/changelog.js"></script>

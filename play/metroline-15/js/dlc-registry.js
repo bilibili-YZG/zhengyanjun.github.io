@@ -43,6 +43,23 @@ window.DLC_REGISTRY = [
     releaseDate: '2026-10',
     author: '15号线团队'
   }
+  ,{
+    id: 'newyear_party',
+    name: '雪镇跨年',
+    subtitle: '四班 Forever',
+    description: '元旦联欢会特别篇。雪镇的跨年夜，礼物被弄散了，大钟停在 11 点 59 分。老师穿过彩灯、气球和烟花，登上钟楼，面对不肯让今年结束的零点钟魔。两章各一关，章节之间是带动画的报幕环节，用来串起联欢会的每一个节目。',
+    icon: '🎆',
+    unlockCondition: { type: 'password', hash: 'ntpqy4', hint: '加入四班，向四班要口令' },
+    campaignId: 'CAMPAIGN_NEWYEAR',
+    chapters: 2,
+    levels: 2,
+    features: ['雪镇夜景：彩灯、气球、彩带、礼炮和烟花', '5 种喜庆小怪：雪团怪 · 气球怪 · 玩具鼓兵 · 烟花射手 · 杂耍小丑', '4 种新障碍：彩灯串 · 礼炮阵 · 气球串 · 彩带门；礼花筒可以把你弹上天', '礼物、蛋糕、仙女棒、彩糖等道具', 'Boss「零点钟魔」：三阶段，第三阶段有 5 秒倒数，数到 0 全场炸开', '章节之间是带动画的报幕环节：幕布拉开 · 雪镇 · 报幕 · 钟楼 · 钟魔登场 · 跨年烟花'],
+    difficulty: '轻松',
+    estimatedTime: '15-20分钟',
+    version: '1.0',
+    releaseDate: '2027-01',
+    author: '四班'
+  }
   // 未来可以添加更多DLC
   // {
   //   id: 'second_dlc',
@@ -50,6 +67,23 @@ window.DLC_REGISTRY = [
   //   ...
   // }
 ];
+
+// 口令解锁：输入对的口令后，在本机永久记住（不区分大小写、忽略空格）
+function pwHash(str) {
+  var x = 5381;
+  for (var i = 0; i < str.length; i++) x = ((x * 33) ^ str.charCodeAt(i)) >>> 0;
+  return x.toString(36);
+}
+function pwNorm(str) { return String(str || '').replace(/\s+/g, '').toLowerCase(); }
+function isPasswordUnlocked(dlc) {
+  try { return localStorage.getItem('line15-dlc-unlock-' + dlc.id) === '1'; } catch (e) { return false; }
+}
+window.tryDLCPassword = function(dlc, input) {
+  if (!dlc || !dlc.unlockCondition || dlc.unlockCondition.type !== 'password') return false;
+  if (pwHash(pwNorm(input)) !== dlc.unlockCondition.hash) return false;
+  try { localStorage.setItem('line15-dlc-unlock-' + dlc.id, '1'); } catch (e) {}
+  return true;
+};
 
 // 检查DLC是否解锁
 window.checkDLCUnlock = function(dlc) {
@@ -64,6 +98,10 @@ window.checkDLCUnlock = function(dlc) {
       var summary = Meta.summary(campaign);
       return summary.have >= cond.required;
     }
+  }
+
+  if (cond.type === 'password') {
+    return isPasswordUnlocked(dlc);
   }
 
   if (cond.type === 'complete') {
@@ -92,6 +130,11 @@ window.getDLCUnlockStatus = function(dlc) {
       unlocked: unlocked,
       text: unlocked ? '已解锁' : '需要主线收集 ' + have + ' / ' + cond.required + ' 个晶体'
     };
+  }
+
+  if (cond.type === 'password') {
+    var okp = isPasswordUnlocked(dlc);
+    return { unlocked: okp, text: okp ? '已解锁' : '需要口令（' + (cond.hint || '向老师要') + '）', needPassword: !okp };
   }
 
   if (cond.type === 'complete') {

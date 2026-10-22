@@ -30,8 +30,8 @@ function renderAchv(){var camp=api.campaign(),info=Meta.summary(camp),m=Meta.dat
   h+='<div class="cc" style="--tint:'+bi.accent+'"><div class="cc-h"><b>第'+'一二三四五六七八九十'.charAt(ci)+'章 · '+esc(ch.name)+'</b><span>'+c.have+' / '+c.total+(c.have>=c.total&&c.total?' ✓':'')+'</span></div><div class="bar"><i style="width:'+pct+'%"></i></div><div class="rooms-chips">';
   c.rooms.forEach(function(r){h+='<span class="chip'+(r.total&&r.have>=r.total?' full':'')+'" title="'+esc(r.name)+'">'+esc(r.name.replace(/^(\d+)\s*·.*/,'$1'))+'<em>'+r.have+'/'+r.total+'</em></span>'});
   h+='</div></div>'});
-  var blueBlock='';(window.DLC_REGISTRY||[]).forEach(function(dl){var dc=window.getDLCCampaign&&window.getDLCCampaign(dl);if(!dc||!dc.chapters)return;var bi=Meta.blueShardInfo(dc);if(!bi.total)return;
-  blueBlock+='<div class="crystal-top"><div class="big" style="color:#6db8ff">◆ '+bi.have+' <small>/ '+bi.total+'</small></div><div class="muted">'+esc(dl.name)+' · 蓝色碎片（DLC 专属）</div></div><div class="crystal-ch">';
+  var blueBlock='';(window.DLC_REGISTRY||[]).forEach(function(dl){var dc=window.getDLCCampaign&&window.getDLCCampaign(dl);if(!dc||!dc.chapters)return;var yel=!!dc.requireYellow,bi=yel?Meta.yellowShardInfo(dc):Meta.blueShardInfo(dc);if(!bi.total)return;
+  blueBlock+='<div class="crystal-top"><div class="big" style="color:'+(yel?'#ffd84a':'#6db8ff')+'">◆ '+bi.have+' <small>/ '+bi.total+'</small></div><div class="muted">'+esc(dl.name)+' · '+(yel?'黄色水晶':'蓝色碎片')+'（DLC 专属）</div></div><div class="crystal-ch">';
   dc.chapters.forEach(function(ch,ci){var c=bi.ch[ci]||{have:0,total:0,rooms:[]},pct=c.total?Math.round(c.have/c.total*100):0,bi2=GFX.B(ch.biome);
    blueBlock+='<div class="cc" style="--tint:'+bi2.accent+'"><div class="cc-h"><b>'+esc(ch.name)+'</b><span>'+c.have+' / '+c.total+(c.have>=c.total&&c.total?' ✓':'')+'</span></div><div class="bar"><i style="width:'+pct+'%"></i></div></div>'});
   blueBlock+='</div>'});

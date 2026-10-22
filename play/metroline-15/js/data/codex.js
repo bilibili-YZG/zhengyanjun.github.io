@@ -75,7 +75,26 @@ var CODEX=[
  {k:'scientist',cat:'npc',n:'科学家',d:'实验室的研究员，什么都想用物理定律解释。他的白大褂口袋里永远插着一支笔。'},
  {k:'ai',cat:'npc',n:'AI助手',d:'实验室的人工智能系统，冷静、理性、高效，但似乎缺少了什么。'},
  {k:'shadow',cat:'npc',n:'影子',d:'混沌中的人影，可能是记忆的投影。它总爱用问题开场。'},
- {k:'echo',cat:'npc',n:'回声',d:'冰洞里回荡的声音，来自那些没说完的话。回声测距：s=vt/2。'}, /* 地块 */
+ {k:'echo',cat:'npc',n:'回声',d:'冰洞里回荡的声音，来自那些没说完的话。回声测距：s=vt/2。'},
+ /* 地铁历险：怪物 */
+ {k:'commuter',cat:'creature',n:'赶车族',d:'晚高峰里永远在赶车的人。起跑很猛，可一旦冲出去就收不住脚——惯性：物体总想保持原来的运动状态。等他冲过头、喘着气的时候，正是还手的好时机。'},
+ {k:'luggage',cat:'creature',n:'失控行李箱',d:'没人推也会自己滚的行李箱，加速度一直是正的，越跑越快，撞到墙才掉头。从它头顶跳过去就好。'},
+ {k:'sparkbug',cat:'creature',n:'电火花虫',d:'趴在电线上的小虫，灯亮时老老实实来回爬；灯一灭，它就朝你扑过来——飞蛾扑火的电气版。'},
+ {k:'breaker',cat:'creature',n:'断路器守卫',d:'拉闸、蓄电、砸地——沿着地面向两边放出电击波。电击波贴着地面走，起跳就能躲开。'},
+ {k:'lurker',cat:'creature',n:'潜伏者',d:'隧道里只露出两只眼睛的东西。它不急着动，等你靠近了才蹲下蓄力、扑上来。黑暗里，它的眼睛反而最亮。'},
+ {k:'dripper',cat:'creature',n:'渗水怪',d:'趴在车顶渗水处的水泡，鼓起来就要滴。水滴做自由落体，下落越久越快——别站在正下方发呆。'},
+ {k:'ticketer',cat:'creature',n:'检票员',d:'远远地把车票朝你甩过来。车票走的是抛物线：水平方向匀速，竖直方向匀加速。往前迈一步，或者用教鞭把票拍回去。'},
+ {k:'glitch',cat:'creature',n:'乱码体',d:'信号一抖就换个位置。换位的那一瞬间是“丢包”状态：你打不到它，它也碰不到你。'},
+ {k:'boss_train',cat:'creature',n:'迷途列车',d:'第三章 Boss。一列在隧道里找不到站名的车，汽笛由远及近越来越尖（多普勒效应）。它冲撞时躲到高台上，等它停下来喘气再还击；车灯是黑暗里唯一的光。'},
+ /* 地铁历险：障碍物 */
+ {k:'strap',cat:'hazard',n:'摇晃吊环',d:'车厢里的吊环。单摆的周期只和摆长有关，和摆幅无关——所以它每一次都一样快。看准它回到最低点之后，再过。'},
+ {k:'autodoor',cat:'hazard',n:'车门',d:'一道道自动门，关门前会闪红灯、“嘀嘀”预警。别在门中间发呆，门是不管你有没有过去的。'},
+ {k:'liveplate',cat:'hazard',n:'带电地板',d:'设备车厢里漏电的地板。放电前会闪一下黄光，放电时沿着地面窜蓝色电弧。跳过去，别站在上面。'},
+ {k:'piston',cat:'hazard',n:'液压冲头',d:'帕斯卡定律：加在密闭液体上的压强会大小不变地传递，小活塞加一点力，大活塞就出大力。落下前，地上会出现红色的预警标记。'},
+ {k:'thirdrail',cat:'hazard',n:'第三轨',d:'铺在轨道边的供电钢轨，一直带电。隧道里它是少数会发光的东西——可以当路标，但不能踩。'},
+ {k:'scanner',cat:'hazard',n:'扫描线',d:'贴着地面来回扫的数据光幕，不快，但不会停。跳起来越过去，或者等它扫远。'},
+ {k:'yellowshard',cat:'item',n:'黄色水晶',d:'地铁历险专属收集物，是列车丢掉的站名。每一关有 12 枚，集齐了出口才会打开。收集情况记录在「成就 · 晶体」里。'},
+ /* 地块 */
  {k:'ground',cat:'terrain',n:'地面',d:'最普通的地面，抓地力十足，说停就能停。'},
  {k:'thin',cat:'terrain',n:'薄地板',d:'可以从下面跳上去，也可以按住 ↓ 再跳下穿。'},
  {k:'bounce',cat:'terrain',n:'弹跳菌',d:'踩上去会被弹起，像一团蓬松的弹簧。'},
@@ -84,6 +103,8 @@ var CODEX=[
 ];
 var CATS=[['creature','生物'],['npc','NPC'],['hazard','障碍物'],['mech','机关'],['item','道具'],['terrain','地块']];
 function N(n){return function(m){return m.cnt[n]||0}}
+function yellowCount(m){var ys=m.yellowShards||{},c=0,k,id;for(k in ys)for(id in ys[k])c++;return c}
+function metroCh(n){return function(m){return [m.metroProgress&&m.metroProgress['ch'+n]?1:0,1]}}
 function blueCount(m){var bs=m.blueShards||{},c=0,k,id;for(k in bs)for(id in bs[k])c++;return c}
 var ACH=[
  {id:'shard_1',n:'初见微光',d:'捡到第一枚信标碎片',prog:function(m,i){return [Math.min(1,i.have),1]}},
@@ -125,6 +146,18 @@ var ACH=[
  {id:'quiz_14',n:'满分答卷',d:'答对 DLC 里的全部 14 道物理题',prog:function(m){return [Math.min(14,N('quizOk')(m)),14]}},
  {id:'orb_return',n:'反向冲量',d:'在悖论战里把动量球打回去 8 次（Ft=Δp）',prog:function(m){return [Math.min(8,N('orbReturn')(m)),8]}},
  {id:'lab_explorer',n:'实验室访客',d:'与实验室里的科学家、AI 助手、维修机器人都聊过',prog:function(m){return [(m.cnt.scientist?1:0)+(m.cnt.ai?1:0)+(m.cnt.robot?1:0),3]}},
- {id:'chaos_survivor',n:'矛盾共存',d:'在混沌领域里累计停留 10 分钟',prog:function(m){return [Math.min(600,Math.floor(m.cnt.chaosTime||0)),600]}}];
+ {id:'chaos_survivor',n:'矛盾共存',d:'在混沌领域里累计停留 10 分钟',prog:function(m){return [Math.min(600,Math.floor(m.cnt.chaosTime||0)),600]}},
+ /* 地铁历险成就 */
+ {id:'yellow_1',n:'第一个站名',d:'捡到第一枚黄色水晶',prog:function(m){return [Math.min(1,yellowCount(m)),1]}},
+ {id:'yellow_36',n:'站名收集者',d:'累计收集 36 枚黄色水晶',prog:function(m){return [Math.min(36,yellowCount(m)),36]}},
+ {id:'yellow_all',n:'全站名归位',d:'收集地铁历险的全部黄色水晶',prog:function(m,i){if(!i.yellowTotal)return null;return [i.yellowHave||0,i.yellowTotal]}},
+ {id:'metro_ch1',n:'黄昏站台',d:'走完地铁历险第一章：载客车厢',prog:metroCh(1)},
+ {id:'metro_ch2',n:'闪灯之后',d:'走完地铁历险第二章：设备车厢',prog:metroCh(2)},
+ {id:'metro_ch3',n:'隧道尽头',d:'走完地铁历险第三章：隧道区间',prog:metroCh(3)},
+ {id:'metro_ch4',n:'破晓车头',d:'走完地铁历险第四章：驶向车头',prog:metroCh(4)},
+ {id:'boss_train',n:'终于靠站',d:'击败迷途列车',prog:function(m){return [m.boss.train?1:0,1]}},
+ {id:'metro_clear',n:'末班车到站',d:'通关地铁历险',prog:function(m){return [Math.min(1,m.metroClears||0),1]}},
+ {id:'metro_clean',n:'一路无阻',d:'一次也没倒下就通关地铁历险',prog:function(m){return [Math.min(1,m.metroClean||0),1]}},
+];
 return {CODEX:CODEX,CATS:CATS,ACH:ACH};
 })();

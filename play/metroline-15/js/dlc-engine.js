@@ -4,7 +4,7 @@
    物理知识点都藏在玩法里：抛体、摆锤、摩擦与惯性、动量、电磁阻尼、万有引力、势能…… */
 window.DLCX=(function(){
 var C=null,T=32,G_PEND=900,G_SHELL=700;
-function attach(core){C=core;T=core.T;if(window.METROX)METROX.attach(core)}
+function attach(core){C=core;T=core.T;if(window.METROX)METROX.attach(core);if(window.NYX)NYX.attach(core)}
 function rnd(a,b){return a+Math.random()*(b-a)}
 function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
 function cnt(n,v){var m=C.meta();if(m&&m.cnt)m.cnt(n,v)}
@@ -14,6 +14,7 @@ var ENEMY_KINDS={drone:1,probe:1,sentinel:1,wraith:1,anomaly:1};
 function build(r,d,kind,gs){
  if(!C)return false;
  if(window.METROX&&METROX.build(r,d,kind,gs))return true;
+ if(window.NYX&&NYX.build(r,d,kind,gs))return true;
  switch(kind){
  case'blueshard':case'yellowshard':d.got=!!(gs&&gs[d.id]);r.xblue.push(d);r.xthings.push(d);return true;
  case'emfield':case'gravwell':(r.fields=r.fields||[]).push(d);r.xthings.push(d);return true;
@@ -27,7 +28,7 @@ function initEnemy(e,d){
  else if(k==='sentinel'){e.hp=d.p.hp||4;e.min=d.x-rng/2;e.max=d.x+rng/2;e.vx=d.p.speed||30;e.face=1;e.timer=2.4;e.charge=0}
  else if(k==='wraith'){e.hp=d.p.hp||3;e.alpha=.8}
  else if(k==='anomaly'){e.hp=d.p.hp||3;e.timer=2;e.blink=0;e.tx=d.x;e.ty=d.y}
- else if(window.METROX)METROX.initEnemy(e,d)}
+ else{if(window.METROX)METROX.initEnemy(e,d);if(window.NYX)NYX.initEnemy(e,d)}}
 
 /* ==================== 敌人 AI ==================== */
 function aimShot(e,c,sp,col,r){var a=Math.atan2(c.pcy-c.ecy,c.pcx-c.ecx);C.shoot(c.ecx,c.ecy,Math.cos(a)*sp,Math.sin(a)*sp,{col:col,r:r||7,life:3.2})}
@@ -89,6 +90,7 @@ function update(dt){
  /* 冰霜怨灵触碰：冻结 */
  r.enemies.forEach(function(e){if(e.kind==='wraith'&&!e.dead&&overlap(pr,{x:e.x+8,y:e.y+8,w:e.w-16,h:e.h-16}))freeze(p,.7)});
  if(window.METROX)METROX.update(dt,r,p);
+ if(window.NYX)NYX.update(dt,r,p);
  if(r.dx)updateBossRoom(r,p,dt)}
 
 /* ==================== 物理答题终端 ====================
@@ -298,7 +300,7 @@ function updateBossRoom(r,p,dt){
 
 /* ==================== 渲染（世界坐标系内） ==================== */
 function drawWorld(g,t){
- if(!C)return;var r=C.R;if(!r)return;if(window.METROX)METROX.drawWorld(g,t);if(!r.dx)return;var dx=r.dx,G=window.GFX,cam=C.cam,i;
+ if(!C)return;var r=C.R;if(!r)return;if(window.METROX)METROX.drawWorld(g,t);if(window.NYX)NYX.drawWorld(g,t);if(!r.dx)return;var dx=r.dx,G=window.GFX,cam=C.cam,i;
  if(dx.flood){var fx=dx.flood.x,gr=g.createLinearGradient(fx-260,0,fx,0);gr.addColorStop(0,'rgba(40,10,70,0)');gr.addColorStop(.7,'rgba(70,20,110,.65)');gr.addColorStop(1,'rgba(150,60,210,.9)');g.fillStyle=gr;g.fillRect(fx-260,cam.y-40,260,r.h+80);
   g.fillStyle='#f4eef8';g.globalAlpha=.8;for(i=0;i<9;i++){var py=cam.y+((i*97+t*60)%700),px=fx-30-((i*53+t*140)%170);g.save();g.translate(px,py);g.rotate(Math.sin(t*3+i)*.4);g.fillRect(-14,-9,28,18);g.fillStyle='#d33';g.fillRect(-9,-2,14,3);g.fillStyle='#f4eef8';g.restore()}
   g.globalAlpha=1;g.strokeStyle='#e9b4ff';g.lineWidth=3;g.beginPath();for(var yy=cam.y-40;yy<cam.y+700;yy+=14){g.lineTo(fx+Math.sin(yy*.05+t*6)*7,yy)}g.stroke();G.glow(g,fx,cam.y+260,300,'#b070ff',.35)}
@@ -316,7 +318,7 @@ function drawWorld(g,t){
   if(o.k==='orb'){g.fillStyle='#4a1040';g.font='bold '+Math.round(o.r*.95)+'px sans-serif';g.textAlign='center';g.fillText('p',0,o.r*.33)}g.restore()})}
 
 function drawScreen(g,W,H,t){
- if(!C)return;var p=C.P;if(window.METROX)METROX.drawScreen(g,W,H,t);if(p&&p.frozen>0){g.fillStyle='rgba(150,220,255,'+Math.min(.35,p.frozen*.5)+')';g.fillRect(0,0,W,H);g.strokeStyle='rgba(220,245,255,.5)';g.lineWidth=6;g.strokeRect(6,6,W-12,H-12)}
+ if(!C)return;var p=C.P;if(window.METROX)METROX.drawScreen(g,W,H,t);if(window.NYX)NYX.drawScreen(g,W,H,t);if(p&&p.frozen>0){g.fillStyle='rgba(150,220,255,'+Math.min(.35,p.frozen*.5)+')';g.fillRect(0,0,W,H);g.strokeStyle='rgba(220,245,255,.5)';g.lineWidth=6;g.strokeRect(6,6,W-12,H-12)}
  if(p&&p.gravS>1.05){g.fillStyle='rgba(120,70,200,.12)';g.fillRect(0,0,W,H)}
  if(p&&p.slowF<.99){g.fillStyle='rgba(80,170,255,.09)';g.fillRect(0,0,W,H)}}
 

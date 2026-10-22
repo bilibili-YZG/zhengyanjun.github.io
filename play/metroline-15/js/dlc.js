@@ -152,6 +152,12 @@ function renderDLCDetail(dlc) {
   } else {
     html += '<div class="dlc-unlock-requirement">';
     html += '<p>🔒 ' + escapeHtml(status.text) + '</p>';
+    if (status.needPassword) {
+      html += '<div class="dlc-pw-row" style="display:flex;gap:8px;justify-content:center;margin-top:10px;flex-wrap:wrap">';
+      html += '<input id="dlcPw" type="text" autocomplete="off" placeholder="输入口令" style="padding:9px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.25);background:rgba(8,16,28,.7);color:#fff;font-size:16px;min-width:180px" onkeydown="if(event.key===\'Enter\')window.DLC.tryUnlock(\'' + dlc.id + '\')">';
+      html += '<button class="btn accent" onclick="window.DLC.tryUnlock(\'' + dlc.id + '\')">解锁</button>';
+      html += '</div><p id="dlcPwMsg" style="margin-top:8px;min-height:1.2em;color:#ffb79a"></p>';
+    }
     html += '</div>';
   }
   html += '</div>';
@@ -252,6 +258,19 @@ function launch(mode, ci, li) {
     alert('无法启动，请刷新页面重试');
   }
 }
+function tryUnlock(dlcId) {
+  var dlc = window.DLC_REGISTRY.find(function(d) { return d.id === dlcId; });
+  var el = $('dlcPw'), msg = $('dlcPwMsg');
+  if (!dlc || !el) return;
+  if (window.tryDLCPassword && window.tryDLCPassword(dlc, el.value)) {
+    if (window.AudioFX) AudioFX.sfx('win');
+    currentDLC = dlc;
+    renderDLCDetail(dlc);
+  } else {
+    if (msg) msg.textContent = '口令不对，再想想（提示：' + ((dlc.unlockCondition && dlc.unlockCondition.hint) || '') + '）';
+    if (window.AudioFX) AudioFX.sfx('hurt');
+  }
+}
 function startDLCNew() { launch('new'); }
 function startDLCContinue() { launch('continue'); }
 function startDLCChapter(ci) { launch('chapter', ci, 0); }
@@ -334,6 +353,7 @@ window.DLC = {
   showDLCDetail: showDLCDetail,
   startDLC: startDLC,
   startDLCLevel: startDLCLevel,
+  tryUnlock: tryUnlock,
   startDLCNew: startDLCNew,
   startDLCContinue: startDLCContinue,
   startDLCChapter: startDLCChapter,

@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="zh"><head><meta charset="utf-8"><title>完美存档下载</title>
 <style>body{font-family:sans-serif;text-align:center;padding:60px;background:#10202b;color:#eee}button{font-size:20px;padding:14px 32px;cursor:pointer}</style></head>
-<body><h2>15号线 · 完美存档</h2><p>主线全部章节解锁、全部碎片、已通关。<br>下载后在游戏 存档 → 某个存档位 → 导入覆盖。</p>
+<body><h2>15号线 · 完美存档</h2><p>主线全部章节解锁、全部碎片、已通关；所有 DLC（未竟之梦、地铁历险、雪镇跨年）全部章节和关卡解锁、已通关；成就和图鉴全收集，主线与 DLC 的全部晶体、Boss 记录齐全。<br>下载后在游戏 存档 → 某个存档位 → 导入覆盖。</p>
 <button id="dl">下载完美存档</button>
 <script>
 ['data/defs','data/level-builder','data/dlc-kit'].forEach(function(s){document.write('<script src="js/'+s+'.js"><\/script>')});
@@ -9,22 +9,29 @@
 [4,4,4].forEach(function(n,c){for(var i=1;i<=n;i++)document.write('<script src="js/levels/d'+(c+1)+'-0'+i+'.js"><\/script>')});
 ['data/metro-kit'].forEach(function(s){document.write('<script src="js/'+s+'.js"><\/script>')});
 [1,2,3,4].forEach(function(c){for(var i=1;i<=3;i++)document.write('<script src="js/levels/metro'+c+'-0'+i+'.js"><\/script>')});
-['data/campaign','data/dlc-campaign','data/dlc-subway','dlc-registry','data/codex'].forEach(function(s){document.write('<script src="js/'+s+'.js"><\/script>')});
+['levels/ny1-01','levels/ny1-02','levels/ny1-03','levels/ny1-04','levels/ny1-05','levels/ny1-06','levels/ny2-01'].forEach(function(s){document.write('<script src="js/'+s+'.js"><\/script>')});
+['data/campaign','data/dlc-campaign','data/dlc-subway','data/dlc-newyear','dlc-registry','data/codex'].forEach(function(s){document.write('<script src="js/'+s+'.js"><\/script>')});
 </script>
 <script>
 document.getElementById('dl').onclick=function(){
- var D=L15_META_DATA,now=Date.now(),m={shards:{},blueShards:{},cnt:{},boss:{},seen:{},ach:{},clears:99,clean:99,legacy:1,dlcUnlocked:true,dlcClears:99,dlcProgress:{},paradoxPerfect:true};
- function scan(c,key,kind,store,ci0){c.chapters.forEach(function(ch,ci){ch.levels.forEach(function(lv,li){
-  lv.objects.forEach(function(o){if(o.kind===kind){var k=key+ci+'-'+li;(store[k]||(store[k]={}))[o.id]=1}if(o.kind==='boss')m.boss[(o.props&&o.props.boss)||'lava']=1});
- })})}
- scan(CAMPAIGN_DEFAULT,'','shard',m.shards);
- var dc=window.CAMPAIGN_DLC;
- if(dc){scan(dc,'dlc','blueshard',m.blueShards);dc.chapters.forEach(function(ch,i){m.dlcProgress['ch'+(i+1)]=1})}
- var sw=window.CAMPAIGN_SUBWAY;
- if(sw)scan(sw,'dlc','yellowshard',m.blueShards);
- D.CODEX.forEach(function(e){m.seen[e.k]=now});D.ACH.forEach(function(a){m.ach[a.id]=now});
- var got={},n=0;Object.keys(m.shards).forEach(function(k){got[k]=m.shards[k];n+=Object.keys(m.shards[k]).length});
- var s={ci:CAMPAIGN_DEFAULT.chapters.length-1,li:0,unlocked:CAMPAIGN_DEFAULT.chapters.length-1,shards:n,got:got,stats:{deaths:0,kills:0,time:0},sig:CAMPAIGN_DEFAULT.chapters.map(function(c){return c.levels.length}).join('-'),t:now,cleared:true};
+ var D=L15_META_DATA,now=Date.now(),m={shards:{},blueShards:{},yellowShards:{},seen:{},ach:{},boss:{},dlcProgress:{},metroProgress:{}},dlcSave={},dlcUnlock={};
+ /* 扫描一个战役里的某类物件，记进 store（键 前缀+章-关），顺便把 Boss 记上；返回每关收集物 id（给 DLC 自己的存档用） */
+ function scan(c,key,kinds,store){var got={},n=0;c.chapters.forEach(function(ch,ci){ch.levels.forEach(function(lv,li){
+  lv.objects.forEach(function(o){if(kinds.indexOf(o.kind)>=0){var k=key+ci+'-'+li;(store[k]||(store[k]={}))[o.id]=1;(got['d'+ci+'-'+li]||(got['d'+ci+'-'+li]={}))[o.id]=1;n++}
+   if(o.kind==='boss')m.boss[(o.props&&o.props.boss)||'lava']=1});
+ })});return {got:got,n:n}}
+ function mkSave(c,r){return {ci:c.chapters.length-1,li:0,unlocked:c.chapters.length-1,blue:r.n,got:r.got,stats:{deaths:0,kills:0,time:0},t:now,cleared:true}}
+ var main=scan(CAMPAIGN_DEFAULT,'',['shard'],m.shards);
+ var dc=window.CAMPAIGN_DLC,sw=window.CAMPAIGN_SUBWAY,ny=window.CAMPAIGN_NEWYEAR;
+ if(dc){var r1=scan(dc,'dlc',['blueshard'],m.blueShards);dc.chapters.forEach(function(ch,i){m.dlcProgress['ch'+(i+1)]=1});dlcSave.unfinished_dream=mkSave(dc,r1)}
+ if(sw){var r2=scan(sw,'dlc',['yellowshard'],m.yellowShards);sw.chapters.forEach(function(ch,i){m.metroProgress['ch'+(i+1)]=1});dlcSave.subway_adventure=mkSave(sw,r2)}
+ if(ny){var r3=scan(ny,'dlc',['gift'],{});dlcSave.newyear_party=mkSave(ny,r3)}
+ (window.DLC_REGISTRY||[]).forEach(function(d){dlcUnlock[d.id]=1}); /* 所有 DLC 的口令解锁标记 */
+ D.CODEX.forEach(function(e){m.seen[e.k]=now}); /* 图鉴全收集 */
+ D.ACH.forEach(function(a){m.ach[a.id]=now});   /* 成就全收集 */
+ var s={ci:CAMPAIGN_DEFAULT.chapters.length-1,li:0,unlocked:CAMPAIGN_DEFAULT.chapters.length-1,shards:main.n,stats:{deaths:0,kills:0,time:0},sig:CAMPAIGN_DEFAULT.chapters.map(function(c){return c.levels.length}).join('-'),t:now,cleared:true,
+  dlcUnlock:dlcUnlock,prog:{ach:m.ach,seen:m.seen,boss:m.boss,dlcProgress:m.dlcProgress,metroProgress:m.metroProgress,shards:m.shards,blueShards:m.blueShards,yellowShards:m.yellowShards,clears:99,clean:99,dlcClears:99,metroClears:99,metroClean:99,dlcUnlocked:true,paradoxPerfect:true,dlcSave:dlcSave}};
+ s.got=m.shards;
  var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify({game:'metroline-15',slot:s})],{type:'application/json'}));
  a.download='metroline15-perfect-save.json';a.click()};
 </script></body></html>
