@@ -8,7 +8,7 @@
 ['c1','c2','c3','c4','c5'].forEach(function(c){for(var i=1;i<=(c==='c5'?2:6);i++)document.write('<script src="js/levels/'+c+'-0'+i+'.js"><\/script>')});
 [4,4,4].forEach(function(n,c){for(var i=1;i<=n;i++)document.write('<script src="js/levels/d'+(c+1)+'-0'+i+'.js"><\/script>')});
 ['data/metro-kit'].forEach(function(s){document.write('<script src="js/'+s+'.js"><\/script>')});
-for(var i=1;i<=4;i++)document.write('<script src="js/levels/metro1-0'+i+'.js"><\/script>');
+[1,2,3,4].forEach(function(c){for(var i=1;i<=3;i++)document.write('<script src="js/levels/metro'+c+'-0'+i+'.js"><\/script>')});
 ['data/campaign','data/dlc-campaign','data/dlc-subway','dlc-registry','data/codex'].forEach(function(s){document.write('<script src="js/'+s+'.js"><\/script>')});
 </script>
 <script>

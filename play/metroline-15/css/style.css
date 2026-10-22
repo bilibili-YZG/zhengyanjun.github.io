@@ -259,3 +259,6 @@ body.lay-cluster .joy-tip{display:none}
 .le-bar .btn{padding:8px 14px;font-size:calc(13px*var(--ui))}
 .le-ghost{position:fixed;display:grid;place-items:center;border-radius:50%;background:rgba(127,227,230,.22);border:2px dashed rgba(190,240,250,.75);color:#e9fbff;font-weight:800;font-size:14px;touch-action:none;cursor:grab;user-select:none}
 .le-ghost.sel{background:rgba(255,210,122,.3);border-color:#ffd27a;box-shadow:0 0 0 4px rgba(255,210,122,.25)}
+
+/* 手机性能：实时模糊(backdrop-filter)在触屏设备上非常吃 GPU（HUD、5 个按钮、标题卡、答题终端各一层），直接关掉 */
+body.fx-blur-off .hud-title,body.fx-blur-off .pad button,body.fx-blur-off .title-card,body.fx-blur-off .quiz-box{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}

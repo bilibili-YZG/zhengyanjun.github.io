@@ -64,7 +64,7 @@ function audStage(m){
   if(list){list.forEach(function(f){var k=f.split('/').pop().replace(AEXT,'');if(!aud[k])aud[k]=/^(assets\/|https?:|\/)/.test(f)?f:AUD+f});return}
   var keys=Object.keys(B).map(function(b){return 'bgm_'+b}).concat('bgm_boss',SFX.map(function(n){return 'sfx_'+n}));
   return Promise.all(keys.map(function(k){return ['mp3','ogg','wav'].reduce(function(pr,e){return pr.then(function(ok){if(ok)return ok;return probeAudio(AUD+k+'.'+e).then(function(v){if(v){aud[k]=AUD+k+'.'+e}return v})})},Promise.resolve(false))}))})}
-function finish(){if(done)return;done=true;ver++;rd.splice(0).forEach(function(f){try{f()}catch(e){}});cbs.forEach(function(f){try{f()}catch(e){}})}
+function finish(){if(done)return;done=true;ver++;rd.splice(0).forEach(function(f){try{f()}catch(e){console.error(e)}});cbs.forEach(function(f){try{f()}catch(e){}})}
 fetchText(BASE+'assets.json').then(function(t){var m=null;try{m=t?JSON.parse(t):null}catch(e){}m=m||{};if(m.meta)for(var k in m.meta)meta[k]=m.meta[k];
  return Promise.all([texStage(m),audStage(m)])}).then(finish,finish);
 setTimeout(finish,4500);
@@ -106,7 +106,7 @@ G.drawBg=function(g,key,W,H,camX,camY,sc,time){
  var one=pick(['bg_'+key]),far=pick(['bg_'+key+'_far']),mid=pick(['bg_'+key+'_mid']),near=pick(['bg_'+key+'_near']);
  if(!one&&!far&&!mid&&!near)return _bg.apply(this,arguments);
  var b=G.B(key),gr=g.createLinearGradient(0,0,0,H);gr.addColorStop(0,b.sky[0]);gr.addColorStop(1,b.sky[1]);g.fillStyle=gr;g.fillRect(0,0,W,H);
- [[one,.1],[far,.12],[mid,.28],[near,.55]].forEach(function(l){if(!l[0])return;var im=imgs[l[0]].img,w=Math.max(1,im.naturalWidth*H/im.naturalHeight),off=-((camX*sc*l[1])%w);if(off>0)off-=w;for(var x=off;x<W;x+=w)g.drawImage(im,x,0,w,H)})};
+ [[one,.1],[far,.12],[mid,.28],[near,.55]].forEach(function(l){if(!l[0])return;var im=imgs[l[0]].img,w=Math.max(64,im.naturalWidth*H/im.naturalHeight),off=-((camX*sc*l[1])%w);if(off>0)off-=w;for(var x=off;x<W;x+=w)g.drawImage(im,x,0,w,H)})};
 
 var _th=G.thing,ITEM={shard:1,heart:1,dashgem:1};
 G.thing=function(g,o,t,biome,lvlH){

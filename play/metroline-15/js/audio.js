@@ -12,7 +12,7 @@ function init(){
   musicBus.connect(master);sfxBus.connect(master);master.connect(comp);comp.connect(ctx.destination);
   noiseBuf=ctx.createBuffer(1,ctx.sampleRate,ctx.sampleRate);var d=noiseBuf.getChannelData(0);for(var i=0;i<d.length;i++)d[i]=Math.random()*2-1}
  if(ctx.state==='suspended')ctx.resume();
- if(pending){var pf=pending;pending=null;if(curEl===pf){var pr=pf.play();if(pr&&pr.then)pr.then(function(){fadeEl(pf,vt(),700)},function(){})}}
+ if(pending){var pf=pending;if(curEl===pf){var pr=pf.play();if(pr&&pr.then)pr.then(function(){if(pending===pf)pending=null;fadeEl(pf,vt(),700)},function(){/* 仍被浏览器拦截：保留 pending，等下一次真正的点击/按键再试 */})}else pending=null}
  return ctx}
 function osc(type,f0,f1,t,dur,g,dest,att){var o=ctx.createOscillator(),a=ctx.createGain();o.type=type;o.frequency.setValueAtTime(f0,t);
  if(f1&&f1!==f0)o.frequency.exponentialRampToValueAtTime(Math.max(20,f1),t+dur);
@@ -92,10 +92,10 @@ function startFile(name,tk,restart){var n=++reqN,a=getEl(name);a._tk=tk;
  var p=a.play();
  if(p&&p.then)p.then(function(){if(n===reqN&&curEl===a)fadeEl(a,vt(),700)},function(){if(n===reqN&&curEl===a&&!a._bad)pending=a});
  else fadeEl(a,vt(),700);
- setTimeout(function(){if(n===reqN&&curEl===a&&a.readyState<2&&!pending){curEl=null;a._bad=true;synth(tk)}},8000)}
+ setTimeout(function(){if(n===reqN&&curEl===a&&a.readyState<2&&!pending){curEl=null;a._bad=true;synth(tk)}},30000)}
 /* key：生物群系名（snow/forest/underground/lava/station/night）或 'boss'。同一首曲子重复请求 = 什么都不做。 */
 function play(key){
- wantKey=key;var isF=key.indexOf('file:')===0,cu=!isF&&window.Assets&&Assets.music?Assets.music(key):null,name=isF?key.slice(5):(cu||(key==='boss'?((L15.BIOMES[L15.curBiome]||{}).bossMusic||L15.BOSS_MUSIC):(L15.BIOMES[key]||{}).music)),tk=isF?TRACKS.boss:(TRACKS[key]||TRACKS.snow),id=name?('f:'+name):('s:'+trackId(tk));
+ wantKey=key;var isF=key.indexOf('file:')===0,cu=!isF&&window.Assets&&Assets.music?Assets.music(key):null,name=isF?key.slice(5):(cu||(key==='boss'?((L15.BIOMES[L15.curBiome]||{}).bossMusic||L15.BOSS_MUSIC):(L15.BIOMES[key]||{}).music)),tk=isF?(name==='OLD TITLE THEME 75'?TRACKS.snow:TRACKS.boss):(TRACKS[key]||TRACKS.snow),id=name?('f:'+name):('s:'+trackId(tk));
  if(id===curId&&(curEl||tr))return;
  stopCur();curId=id;if(muted)return;
  if(name)startFile(name,tk,key==='boss'||isF);else synth(tk)}

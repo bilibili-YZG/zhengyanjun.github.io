@@ -4,14 +4,14 @@
    （这是近似检查，真正的手感以游戏内试玩为准） */
 global.window=global;
 var fs=require('fs'),path=require('path');
-require('../js/data/defs.js');require('../js/data/level-builder.js');require('../js/data/dlc-kit.js');
+require('../js/data/defs.js');require('../js/data/level-builder.js');require('../js/data/dlc-kit.js');require('../js/data/metro-kit.js');
 fs.readdirSync(path.join(__dirname,'../js/levels')).filter(function(f){return /\.js$/.test(f)}).sort().forEach(function(f){require('../js/levels/'+f)});
 require('../js/data/campaign.js');
-require('../js/data/dlc-campaign.js');
+require('../js/data/dlc-campaign.js');require('../js/data/dlc-subway.js');
 var L=window.L15,T=L.T,warns=0,errs=0,total=0;
 function solid(v){return v===1||v===3||v===4||v===5}
 /* 主线 + DLC（未竟之梦）；DLC 的规则略有不同：不要求每章 6 间，Boss 只在最后一章最后一间，收集物是 blueshard */
-[[window.CAMPAIGN_DEFAULT,false],[window.CAMPAIGN_DLC,true]].forEach(function(pair){var C=pair[0],isDLC=pair[1];
+[[window.CAMPAIGN_DEFAULT,false],[window.CAMPAIGN_DLC,true],[window.CAMPAIGN_SUBWAY,true,'metro']].forEach(function(pair){var C=pair[0],isDLC=pair[1],isMetro=pair[2]==='metro';
 if(isDLC)console.log('\n—— DLC：'+C.name+' ——');
 C.chapters.forEach(function(ch,ci){ch.levels.forEach(function(lv,li){total++;var tag=(isDLC?'D':'')+(ci+1)+'-'+(li+1)+' '+lv.name,out=[];
  var W=lv.width,H=lv.height;function cell(x,y){if(x<0||x>=W)return 1;if(y<0||y>=H)return 0;return lv.cells[y][x]||0}
@@ -19,15 +19,15 @@ C.chapters.forEach(function(ch,ci){ch.levels.forEach(function(lv,li){total++;var
  function of(k){return O.filter(function(o){return o.kind===k})}
  var sp=of('spawn'),ex=of('exit');
  if(!isDLC&&ch.levels.length!==6)out.push('E 本章房间数不是 6');
- if(isDLC&&ch.levels.length!==4)out.push('E DLC 每个部分应有 4 关');
- var hasBoss=of('boss').length>0,wantBoss=isDLC?(ci===C.chapters.length-1&&li===ch.levels.length-1):(li===ch.levels.length-1);
+ if(isDLC&&!isMetro&&ch.levels.length!==4)out.push('E DLC 每个部分应有 4 关');
+ var hasBoss=of('boss').length>0,wantBoss=isMetro?false:isDLC?(ci===C.chapters.length-1&&li===ch.levels.length-1):(li===ch.levels.length-1);
  if(wantBoss!==hasBoss)out.push('E '+(wantBoss?'这一间应有 Boss':(isDLC?'DLC 只有最后一间才放 Boss':'只有每章最后一间才放 Boss')));
  of('gate').forEach(function(g){if(!lv.links.some(function(k){return k.to===g.id}))out.push('E 闸门没有连开关 @'+g.x+','+g.y)});
  if(sp.length!==1)out.push('E 出生点数量='+sp.length);if(ex.length!==1)out.push('E 出口数量='+ex.length);
  if(of('boss').length>1)out.push('E 多个 Boss');
  O.forEach(function(o){var inf=L.INFO[o.kind];if(!inf){out.push('E 未知物件 '+o.kind);return}
   if(o.x<0||o.y<0||o.x+o.w>W||o.y+o.h>H)out.push('W 越界 '+o.kind+'@'+o.x+','+o.y);
-  if(o.kind==='shard'||o.kind==='blueshard'||o.kind==='heart'||o.kind==='dashgem'){if(solid(cell(o.x,o.y)))out.push('E '+o.kind+' 嵌在地块里 @'+o.x+','+o.y)}
+  if(o.kind==='shard'||o.kind==='blueshard'||o.kind==='yellowshard'||o.kind==='heart'||o.kind==='dashgem'){if(solid(cell(o.x,o.y)))out.push('E '+o.kind+' 嵌在地块里 @'+o.x+','+o.y)}
   if(inf.g==='enemy'||inf.g==='npc'){for(var yy=o.y;yy<o.y+o.h;yy++)for(var xx=o.x;xx<o.x+o.w;xx++)if(solid(cell(xx,yy))){out.push('W '+o.kind+' 与地块重叠 @'+o.x+','+o.y);yy=999;break}}
  });
  lv.links.forEach(function(k){if(!by[k.from]||!by[k.to])out.push('E 连线指向不存在的物件')});
@@ -53,10 +53,10 @@ C.chapters.forEach(function(ch,ci){ch.levels.forEach(function(lv,li){total++;var
  function near(px,py,rw,rh,mx,mUp,mDown){return q.some(function(a){return a.x>=px-mx&&a.x<=px+rw-1+mx&&Math.abs(a.r-(py+rh))<=Math.max(mUp,mDown)})}
  ex.forEach(function(e){if(start&&!near(e.x,e.y,e.w,e.h,1,1.5,1.5))out.push('E 出口够不着 @'+e.x+','+e.y)});
  var unreachShards=0;O.forEach(function(o){if(!start)return;
-  if(o.kind==='shard'||o.kind==='blueshard'){if(!q.some(function(a){return Math.abs(a.x-o.x)<=2&&a.r-o.y<=4.6&&a.r-o.y>=-3}))out.push('W 碎片可能够不着 @'+o.x+','+o.y)}
+  if(o.kind==='shard'||o.kind==='blueshard'||o.kind==='yellowshard'){if(!q.some(function(a){return Math.abs(a.x-o.x)<=2&&a.r-o.y<=4.6&&a.r-o.y>=-3}))out.push('W 碎片可能够不着 @'+o.x+','+o.y)}
   if(o.kind==='switch'||o.kind==='plate'){if(!near(o.x,o.y,o.w,o.h,1,1.5,1.5))out.push('E 开关够不着 @'+o.x+','+o.y)}
   if(o.kind==='heart'||o.kind==='checkpoint'){if(!q.some(function(a){return Math.abs(a.x-o.x)<=2&&a.r-o.y<=5&&a.r-o.y>=-3}))out.push('W '+o.kind+' 可能够不着 @'+o.x+','+o.y)}});
- var sh=of(isDLC?'blueshard':'shard').length;
+ var sh=of(isMetro?'yellowshard':isDLC?'blueshard':'shard').length;
  var e=out.filter(function(s){return s[0]==='E'}).length,w=out.length-e;errs+=e;warns+=w;
  console.log((e?'✗ ':w?'△ ':'✓ ')+tag+'  ['+W+'×'+H+'] 碎片'+sh+' 物件'+O.length+' 站点'+list.length+' 可达'+q.length);out.forEach(function(s){console.log('     '+s)})})});
 });

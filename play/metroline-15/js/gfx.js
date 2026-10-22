@@ -11,7 +11,8 @@ function hash(x,y){return (((x*73856093)^(y*19349663))>>>0)%3}
 
 /* ---------- 发光精灵 ---------- */
 function glowSprite(color){var k='g'+color;if(cache[k])return cache[k];var c=mk(128,128),g=c.getContext('2d'),r=g.createRadialGradient(64,64,0,64,64,64);r.addColorStop(0,color);r.addColorStop(.35,color+'88');r.addColorStop(1,color+'00');g.fillStyle=r;g.fillRect(0,0,128,128);return cache[k]=c}
-function glow(g,x,y,r,color,a){g.save();g.globalCompositeOperation='lighter';g.globalAlpha=a==null?.6:a;g.drawImage(glowSprite(color.length===7?color:'#ffffff'),x-r,y-r,r*2,r*2);g.restore()}
+var fx={on:true};
+function glow(g,x,y,r,color,a){if(!fx.on)return;g.save();g.globalCompositeOperation='lighter';g.globalAlpha=a==null?.6:a;g.drawImage(glowSprite(color.length===7?color:'#ffffff'),x-r,y-r,r*2,r*2);g.restore()}
 
 /* ---------- 地块贴图 ---------- */
 function tiles(key){
@@ -95,8 +96,9 @@ function bgLayers(key){
  }
  return cache['b'+key]=L}
 function drawBg(g,key,W,H,camX,camY,sc,time){
+ if(!(W>0&&H>0&&sc>0))return;
  var b=B(key),sk=b.custom?b.base:key,gr=g.createLinearGradient(0,0,0,H);gr.addColorStop(0,b.sky[0]);gr.addColorStop(1,b.sky[1]);g.fillStyle=gr;g.fillRect(0,0,W,H);
- var L=bgLayers(key),f=[.12,.28,.55],ds=H/576,w=1024*ds,i;
+ var L=bgLayers(key),f=[.12,.28,.55],ds=H/576,w=Math.max(64,1024*ds),i;
  if(sk==='lava'||sk==='night'||sk==='station'){glow(g,W*.5,H*.85,H*.8,b.glow,.22+Math.sin(time*1.5)*.04)}
  if(sk==='dawn'){var sx=W*.7,sy=H*.6,sr=H*.15;glow(g,sx,sy,H*1.1,b.glow,.5+Math.sin(time*.8)*.04);glow(g,sx,sy,sr*2.4,'#fff0b0',.55);var sg=g.createRadialGradient(sx,sy,0,sx,sy,sr);sg.addColorStop(0,'#fffbe0');sg.addColorStop(.7,'#ffe28a');sg.addColorStop(1,'#ffb347');g.fillStyle=sg;g.beginPath();g.arc(sx,sy,sr,0,Math.PI*2);g.fill()}
  for(i=0;i<3;i++){var off=-((camX*sc*f[i]+(sk==='metro'?time*ds*[14,60,240][i]:0))%w);if(off>0)off-=w;g.globalAlpha=i===2?.92:1;for(var x=off;x<W;x+=w)g.drawImage(L[i],x,i===2?(-camY*sc*.12):(-camY*sc*f[i]*.5)+(i===0?-8:0),w,H);}
@@ -162,5 +164,5 @@ function npc(g,kind,x,y,w,h,time,face){
  else person('#8b9da8','#445');
  g.restore()}
 
-window.GFX={T:T,mk:mk,prng:prng,ell:ell,poly:poly,glow:glow,B:B,tiles:tiles,drawTile:drawTile,drawBg:drawBg,hero:hero,npc:npc,limb:limb,cache:cache,faceImg:faceImg,flushTheme:function(key){delete cache['t'+key];delete cache['b'+key]}};
+window.GFX={fx:fx,T:T,mk:mk,prng:prng,ell:ell,poly:poly,glow:glow,B:B,tiles:tiles,drawTile:drawTile,drawBg:drawBg,hero:hero,npc:npc,limb:limb,cache:cache,faceImg:faceImg,flushTheme:function(key){delete cache['t'+key];delete cache['b'+key]}};
 })();
