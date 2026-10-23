@@ -163,17 +163,20 @@
 <!-- 设置 -->
 <div id="settings" class="overlay top hidden">
   <div class="panel mid"><button id="closeSettings" class="close">×</button><div class="eyebrow">SETTINGS</div><h2>设置</h2>
+    <h3 class="set-h">声音与显示</h3>
     <label class="row"><span>声音</span><input id="setMute" type="checkbox" checked></label>
-    <label class="row"><span>锁血 <small class="muted">受伤也不扣血、不会倒下，过不去的时候用 · 开启后通关不计入「无伤」类成就</small></span><input id="setLockHp" type="checkbox"></label>
-    <label class="row"><span>触屏按键透明度 <b id="ctlOpVal"></b></span><input id="setCtlOp" type="range" min="15" max="100" step="5"></label>
-    <label class="row"><span>手柄选择 <small class="muted">接了多个手柄时用哪一个</small></span><select id="setPadSel"></select></label>
+    <label class="row"><span>音乐音量 <b id="volMusicVal"></b></span><input id="setVolMusic" type="range" min="0" max="100" step="5"></label>
+    <label class="row"><span>音效音量 <b id="volSfxVal"></b></span><input id="setVolSfx" type="range" min="0" max="100" step="5"></label>
     <label class="row"><span>血量位置 <small class="muted">默认：触屏在顶部居中，其他在左上</small></span><select id="setHpPos"><option value="auto">默认</option><option value="tl">左上</option><option value="tc">顶部居中</option><option value="tr">右上</option><option value="bl">左下</option></select></label>
-    <div class="row col"><span>作弊 <small class="muted">只为过不去的时候救急 · 开启任意一项后，本次通关不计入「无伤」类成就</small></span>
-      <label class="row"><span>无限跳（空中随便跳）</span><input id="setCh_infJump" type="checkbox"></label>
-      <label class="row"><span>无限冲刺（不耗体力）</span><input id="setCh_infDash" type="checkbox"></label>
-      <label class="row"><span>疾风（移速 ×1.5）</span><input id="setCh_speed" type="checkbox"></label>
-      <label class="row"><span>Boss 易伤（普通挥击伤害 ×5）</span><input id="setCh_bossWeak" type="checkbox"></label>
-    </div>
+    <details class="row col fold"><summary>画面特效 <small class="muted">自动＝电脑开、触屏设备关 · 卡顿或加载失败就关掉</small></summary>
+      <div class="row"><span>发光<small class="muted"> 当前：<b id="fxNow_glow"></b></small></span><div class="seg"><label><input type="radio" name="fx_glow" value="auto">自动</label><label><input type="radio" name="fx_glow" value="on">开</label><label><input type="radio" name="fx_glow" value="off">关</label></div></div>
+      <div class="row"><span>天气粒子<small class="muted"> 当前：<b id="fxNow_weather"></b></small></span><div class="seg"><label><input type="radio" name="fx_weather" value="auto">自动</label><label><input type="radio" name="fx_weather" value="on">开</label><label><input type="radio" name="fx_weather" value="off">关</label></div></div>
+      <div class="row"><span>暗角<small class="muted"> 当前：<b id="fxNow_vig"></b></small></span><div class="seg"><label><input type="radio" name="fx_vig" value="auto">自动</label><label><input type="radio" name="fx_vig" value="on">开</label><label><input type="radio" name="fx_vig" value="off">关</label></div></div>
+      <div class="row"><span>界面模糊<small class="muted"> 当前：<b id="fxNow_blur"></b></small></span><div class="seg"><label><input type="radio" name="fx_blur" value="auto">自动</label><label><input type="radio" name="fx_blur" value="on">开</label><label><input type="radio" name="fx_blur" value="off">关</label></div></div>
+      <div class="row"><span>地铁氛围<small class="muted"> 闪灯 / 黑暗 / 信号干扰 · 当前：<b id="fxNow_atmo"></b></small></span><div class="seg"><label><input type="radio" name="fx_atmo" value="auto">自动</label><label><input type="radio" name="fx_atmo" value="on">开</label><label><input type="radio" name="fx_atmo" value="off">关</label></div></div>
+    </details>
+    <button id="fullBtn" class="btn full">全屏 / 退出全屏</button>
+    <h3 class="set-h">触屏操作</h3>
     <div class="row col"><span>触屏按钮布局 <small class="muted">当前：<b id="modeNow"></b></small></span>
       <div class="modes">
         <label class="mode"><input type="radio" name="ctlMode" value="auto">
@@ -185,21 +188,24 @@
         <label class="mode"><input type="radio" name="ctlMode" value="hidden">
           <svg viewBox="0 0 80 48" aria-hidden="true"><rect x="2" y="2" width="76" height="44" rx="5"/><rect x="20" y="28" width="40" height="12" rx="2" class="line"/><path d="M26 34h28" class="line"/></svg><b>隐藏</b><small>适合电脑</small></label>
       </div></div>
-    <details class="row col fold"><summary>画面特效 <small class="muted">自动＝电脑开、触屏设备关 · 卡顿或加载失败就关掉</small></summary>
-      <div class="row"><span>发光<small class="muted"> 当前：<b id="fxNow_glow"></b></small></span><div class="seg"><label><input type="radio" name="fx_glow" value="auto">自动</label><label><input type="radio" name="fx_glow" value="on">开</label><label><input type="radio" name="fx_glow" value="off">关</label></div></div>
-      <div class="row"><span>天气粒子<small class="muted"> 当前：<b id="fxNow_weather"></b></small></span><div class="seg"><label><input type="radio" name="fx_weather" value="auto">自动</label><label><input type="radio" name="fx_weather" value="on">开</label><label><input type="radio" name="fx_weather" value="off">关</label></div></div>
-      <div class="row"><span>暗角<small class="muted"> 当前：<b id="fxNow_vig"></b></small></span><div class="seg"><label><input type="radio" name="fx_vig" value="auto">自动</label><label><input type="radio" name="fx_vig" value="on">开</label><label><input type="radio" name="fx_vig" value="off">关</label></div></div>
-      <div class="row"><span>界面模糊<small class="muted"> 当前：<b id="fxNow_blur"></b></small></span><div class="seg"><label><input type="radio" name="fx_blur" value="auto">自动</label><label><input type="radio" name="fx_blur" value="on">开</label><label><input type="radio" name="fx_blur" value="off">关</label></div></div>
-      <div class="row"><span>地铁氛围<small class="muted"> 闪灯 / 黑暗 / 信号干扰 · 当前：<b id="fxNow_atmo"></b></small></span><div class="seg"><label><input type="radio" name="fx_atmo" value="auto">自动</label><label><input type="radio" name="fx_atmo" value="on">开</label><label><input type="radio" name="fx_atmo" value="off">关</label></div></div>
-    </details>
     <div class="row"><span>按钮大小</span><div class="seg"><label><input type="radio" name="ctlSize" value="1">小</label><label><input type="radio" name="ctlSize" value="2">中</label><label><input type="radio" name="ctlSize" value="3">大</label></div></div>
+    <label class="row"><span>触屏按键透明度 <b id="ctlOpVal"></b></span><input id="setCtlOp" type="range" min="15" max="100" step="5"></label>
+    <div class="row"><span>触屏按钮位置 <small class="muted">拖动摇杆和按钮，摆到顺手的地方</small></span><button id="layoutBtn" class="btn">自定义位置…</button></div>
+    <h3 class="set-h">手柄与键盘</h3>
+    <label class="row"><span>手柄选择 <small class="muted">接了多个手柄时用哪一个</small></span><select id="setPadSel"></select></label>
     <details class="row col fold"><summary>键盘按键 <small class="muted">点一格后按下想用的键 · ⌫ 清除 · Esc 取消</small></summary>
       <div id="keyBinds" class="binds"></div><button id="keyReset" class="btn full">恢复默认键位</button></details>
     <details class="row col fold"><summary>手柄按键 <small class="muted">移动固定为左摇杆 / 十字键</small></summary>
       <p class="muted" style="margin:4px 0 8px;font-size:12px">点一格后按下手柄上的按钮；键盘 ⌫ 清除，Esc 取消。</p>
       <div id="padBinds" class="binds"></div><button id="padReset" class="btn full">恢复默认手柄按键</button></details>
-    <div class="row"><span>触屏按钮位置 <small class="muted">拖动摇杆和按钮，摆到顺手的地方</small></span><button id="layoutBtn" class="btn">自定义位置…</button></div>
-    <button id="fullBtn" class="btn full">全屏 / 退出全屏</button>
+    <h3 class="set-h">进阶</h3>
+    <details class="row col fold"><summary>作弊 <small class="muted">过不去的时候救急 · 开启任意一项后，本次通关不计入「无伤」类成就</small></summary>
+      <label class="row"><span>锁血 <small class="muted">受伤也不扣血、不会倒下</small></span><input id="setLockHp" type="checkbox"></label>
+      <label class="row"><span>无限跳（空中随便跳）</span><input id="setCh_infJump" type="checkbox"></label>
+      <label class="row"><span>无限冲刺（不耗体力）</span><input id="setCh_infDash" type="checkbox"></label>
+      <label class="row"><span>疾风（移速 ×1.5）</span><input id="setCh_speed" type="checkbox"></label>
+      <label class="row"><span>Boss 易伤（普通挥击伤害 ×5）</span><input id="setCh_bossWeak" type="checkbox"></label>
+    </details>
     <button id="resetBtn" class="btn full danger">重置游戏（清空存档 / 成就 / 晶体 / DLC 解锁）</button>
   </div>
 </div>

@@ -12,7 +12,7 @@ html, body { touch-action: none; -webkit-user-select: none; user-select: none; -
 .tb-left, .tb-right, .tb-down { border-radius: 22%; }
 #tc.editing .tb { outline: 2px dashed #ffe27a; outline-offset: 3px; cursor: move; background: rgba(60, 40, 120, .75); }
 
-#ctl-pill { position: fixed; left: 50%; margin-left: -66px; bottom: 10px; z-index: 30; display: flex; gap: 6px; }
+#ctl-pill { position: fixed; left: 50%; margin-left: 226px; top: 6px; z-index: 30; display: flex; gap: 6px; }   /* 放在顶部（小地图右侧），不会和手机按键重叠 */
 #ctl-pill button {
   width: 40px; height: 40px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, .5);
   background: rgba(14, 22, 48, .6); color: #fff; font-size: 20px; line-height: 1; padding: 0; cursor: pointer; opacity: .9;

@@ -5,7 +5,7 @@ var canvas=$('game'),g=canvas.getContext('2d');
 var LS={get:function(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}},set:function(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}},del:function(k){try{localStorage.removeItem(k)}catch(e){}}};
 var params=new URLSearchParams(location.search),TEST=params.get('test')==='1';
 var FX_KEYS=['glow','weather','vig','blur','atmo'],FX_NAMES={glow:'发光',weather:'天气粒子',vig:'暗角',blur:'界面模糊',atmo:'地铁氛围'};
-var prefs=Object.assign({mute:false,size:2,controls:'auto',lockHp:false,fx:{},cheat:{},hpPos:'auto',padIdx:null},LS.get(L15.STORAGE.prefs)||{});
+var prefs=Object.assign({mute:false,size:2,controls:'auto',lockHp:false,fx:{},cheat:{},hpPos:'auto',padIdx:null,volMusic:55,volSfx:85},LS.get(L15.STORAGE.prefs)||{});
 if(!prefs.fx||typeof prefs.fx!=='object')prefs.fx={};
 if(!prefs.cheat||typeof prefs.cheat!=='object')prefs.cheat={};
 function CH(k){return !!prefs.cheat[k]}
@@ -57,8 +57,9 @@ function isTouchy(){return ('ontouchstart' in window)||navigator.maxTouchPoints>
 /* 特效（发光 / 天气粒子 / 暗角 / 界面模糊）各自独立：auto＝触屏设备默认关、其余默认开；on / off＝手动指定 */
 function fxOn(k){var v=prefs.fx[k];return v==='on'||(v!=='off'&&!isTouchy())}
 function uiMode(){var m=prefs.controls;if(m!=='auto')return m;if(!isTouchy())return 'hidden';return (Math.min(W,H)>=760&&Math.max(W,H)>=1180)?'cluster':'split'}
+function applyVol(){var m=prefs.volMusic!=null?prefs.volMusic:55,f=prefs.volSfx!=null?prefs.volSfx:85;AudioFX.setVolume('music',m/100);AudioFX.setVolume('sfx',f/100);var a=$('volMusicVal'),b=$('volSfxVal');if(a)a.textContent=m+'%';if(b)b.textContent=f+'%'}
 function applyCtlOp(){var v=prefs.ctlOp!=null?prefs.ctlOp:70;document.documentElement.style.setProperty('--ctlop',(v/100).toFixed(2));var e=$('ctlOpVal');if(e)e.textContent=v+'%'}
-function applyPrefs(){applyCtlOp();applyHpPos();var mode=uiMode(),show=mode!=='hidden',mult=[.85,1,1.2][prefs.size-1]||1,m=Math.min(W,H),base=mode==='cluster'?Math.max(1.15,Math.min(1.9,m/560)):Math.max(.72,Math.min(1.3,m/400));
+function applyPrefs(){applyVol();applyCtlOp();applyHpPos();var mode=uiMode(),show=mode!=='hidden',mult=[.85,1,1.2][prefs.size-1]||1,m=Math.min(W,H),base=mode==='cluster'?Math.max(1.15,Math.min(1.9,m/560)):Math.max(.72,Math.min(1.3,m/400));
  ctlScale=base*mult;var rs=document.documentElement.style;rs.setProperty('--ctl',ctlScale.toFixed(3));rs.setProperty('--ui',Math.max(1,Math.min(1.75,m/700)).toFixed(3));
  var c=$('controls');c.classList.toggle('hidden',!show);c.classList.toggle('cluster',mode==='cluster');c.classList.toggle('split',mode==='split');
  document.body.classList.toggle('touch',show);document.body.classList.toggle('ui-cluster',mode==='cluster');document.body.classList.toggle('ui-split',mode==='split');
@@ -651,7 +652,7 @@ function openChapters(){var box=$('chapterList');box.innerHTML='';campaign.chapt
   box.appendChild(d)});show('chapters',true)}
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
 function qa(sel){return Array.prototype.slice.call(document.querySelectorAll(sel))}
-function syncSettings(){fillPadSel();$('setHpPos').value=prefs.hpPos||'auto';['infJump','infDash','speed','bossWeak'].forEach(function(k){$('setCh_'+k).checked=CH(k)});$('setCtlOp').value=prefs.ctlOp!=null?prefs.ctlOp:70;applyCtlOp();renderBinds();$('setLockHp').checked=!!prefs.lockHp;$('setMute').checked=!prefs.mute;qa('[name=ctlSize]').forEach(function(r){r.checked=+r.value===prefs.size});qa('[name=ctlMode]').forEach(function(r){r.checked=r.value===prefs.controls});FX_KEYS.forEach(function(k){qa('[name=fx_'+k+']').forEach(function(r){r.checked=r.value===(prefs.fx[k]||'auto')});$('fxNow_'+k).textContent=fxOn(k)?'开':'关'});$('modeNow').textContent=({split:'分开',cluster:'聚集',hidden:'隐藏'})[uiMode()]||''}
+function syncSettings(){$('setVolMusic').value=prefs.volMusic!=null?prefs.volMusic:55;$('setVolSfx').value=prefs.volSfx!=null?prefs.volSfx:85;applyVol();fillPadSel();$('setHpPos').value=prefs.hpPos||'auto';['infJump','infDash','speed','bossWeak'].forEach(function(k){$('setCh_'+k).checked=CH(k)});$('setCtlOp').value=prefs.ctlOp!=null?prefs.ctlOp:70;applyCtlOp();renderBinds();$('setLockHp').checked=!!prefs.lockHp;$('setMute').checked=!prefs.mute;qa('[name=ctlSize]').forEach(function(r){r.checked=+r.value===prefs.size});qa('[name=ctlMode]').forEach(function(r){r.checked=r.value===prefs.controls});FX_KEYS.forEach(function(k){qa('[name=fx_'+k+']').forEach(function(r){r.checked=r.value===(prefs.fx[k]||'auto')});$('fxNow_'+k).textContent=fxOn(k)?'开':'关'});$('modeNow').textContent=({split:'分开',cluster:'聚集',hidden:'隐藏'})[uiMode()]||''}
 /* 按钮 */
 function on(id,fn){var el=$(id);if(el)el.addEventListener('click',function(e){AudioFX.init();AudioFX.sfx('select');fn(e)})}
 on('newBtn',function(){openSaves('new')});
@@ -682,6 +683,8 @@ on('tdBack',function(){location.href='editor.html'});
 $('setPadSel').onchange=function(e){prefs.padIdx=e.target.value==='auto'?null:+e.target.value;padPrevAll=[];savePrefs();toast(prefs.padIdx==null?'手柄：自动选择':'已选择 '+(prefs.padIdx+1)+' 号手柄',1400)};
 $('setHpPos').onchange=function(e){prefs.hpPos=e.target.value;applyHpPos();savePrefs()};
 ['infJump','infDash','speed','bossWeak'].forEach(function(k){$('setCh_'+k).onchange=function(e){prefs.cheat[k]=e.target.checked;applyCheat();savePrefs();if(cheatOn)toast('作弊已开启：本次通关不计入「无伤」成就',2200)}});
+$('setVolMusic').oninput=function(e){prefs.volMusic=+e.target.value;applyVol();savePrefs()};
+$('setVolSfx').oninput=function(e){prefs.volSfx=+e.target.value;applyVol();savePrefs();AudioFX.sfx('select')};
 $('setCtlOp').oninput=function(e){prefs.ctlOp=+e.target.value;applyCtlOp();savePrefs()};
 $('setLockHp').onchange=function(e){prefs.lockHp=e.target.checked;savePrefs();toast(prefs.lockHp?'锁血已开启：受伤不再扣血（通关不计入「无伤」成就）':'锁血已关闭',2400)};
 $('setMute').onchange=function(e){prefs.mute=!e.target.checked;savePrefs();applyPrefs()};

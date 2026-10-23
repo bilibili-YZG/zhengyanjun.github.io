@@ -40,7 +40,7 @@
     if (w) d.style.width = w + 'px'; if (h) d.style.height = h + 'px';
     (parent || world).appendChild(d); return d;
   }
-  box('ground', 0, M.groundY, M.width, 120);
+  box('ground', 0, M.groundY, M.width, 600);
   M.platforms.forEach(function (p) { box('platform', p.x, p.y, p.w, 28); });
   M.signs.forEach(function (s) { var d = box('sign', s.x - 48, M.groundY - 120); d.appendChild(document.createElement('span')).textContent = s.text; });
   box('flag', M.goal.x - 14, M.groundY - 214);
@@ -615,8 +615,13 @@
     shake = Math.max(0, shake - dt);
     var sx = shake ? (Math.random() - .5) * 7 : 0, sy = shake ? (Math.random() - .5) * 5 : 0;
     world.style.transform = 'translate(' + (-camX + sx).toFixed(1) + 'px,' + (sy - camY).toFixed(1) + 'px)';
-    $('far').style.backgroundPosition = (-camX * .12).toFixed(1) + 'px ' + (-camY * .1).toFixed(1) + 'px';
-    $('near').style.backgroundPosition = (-camX * .35).toFixed(1) + 'px ' + (-camY * .25).toFixed(1) + 'px';
+    /* 远近景山丘跟着地面一起下沉（否则地面出画后山丘下面会露出一条白天空），天空随高度变深 */
+    var lift = Math.max(0, -camY);
+    $('far').style.backgroundPosition = (-camX * .12).toFixed(1) + 'px 0';
+    $('near').style.backgroundPosition = (-camX * .35).toFixed(1) + 'px 0';
+    $('far').style.transform = 'translateY(' + (lift * .9).toFixed(1) + 'px)';
+    $('near').style.transform = 'translateY(' + lift.toFixed(1) + 'px)';
+    $('sky').style.backgroundPositionY = (100 - Math.min(100, lift / 12)).toFixed(1) + '%';
   }
 
   /* ---------- 主循环 ---------- */

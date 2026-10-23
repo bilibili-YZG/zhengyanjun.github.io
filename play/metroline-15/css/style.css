@@ -271,3 +271,4 @@ body.hp-tr #hpRow{right:calc(14px + var(--sa-r));top:calc(62px + var(--sa-t))}
 body.hp-bl #hpRow{left:calc(14px + var(--sa-l));bottom:calc(14px + var(--sa-b))}
 body.touch.hp-bl #hpRow{bottom:calc(190px*var(--ctl) + 26px + var(--sa-b))}
 #settings select{padding:6px 10px;border-radius:10px;background:rgba(8,16,28,.8);color:#e9fbff;border:1px solid var(--edge);max-width:55%}
+.set-h{margin:18px 0 0;padding-bottom:4px;font-size:calc(12px*var(--ui));letter-spacing:.18em;color:var(--accent);border-bottom:1px solid rgba(127,227,230,.25)}.set-h:first-of-type{margin-top:6px}

@@ -14,7 +14,8 @@ body { font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif; user-select: 
 }
 
 /* 天空与视差背景（background-position 由 JS 随镜头移动） */
-#sky { position: absolute; inset: 0; background: linear-gradient(#4f6fae 0%, #9db6e0 45%, #e6eefb 75%, #f6f9ff 100%); }
+/* 天空做成 3 倍高的渐变，镜头升高时往上滑：越高越蓝，不会在地面消失后露出一条白边 */
+#sky { position: absolute; inset: 0; background: linear-gradient(#0f1f4a 0%, #1f3a7a 22%, #4f6fae 45%, #9db6e0 70%, #e6eefb 90%, #f6f9ff 100%) 0 100% / 100% 300% no-repeat; }
 .par { position: absolute; left: 0; right: 0; background-repeat: repeat-x; }
 #far  { bottom: 100px; height: 360px; background-image: url(../svg/world/bg_far.svg); background-size: 800px 360px; }
 #near { bottom: 100px; height: 300px; background-image: url(../svg/world/bg_near.svg); background-size: 600px 300px; }
@@ -23,7 +24,7 @@ body { font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif; user-select: 
 #world { position: absolute; left: 0; top: 0; width: 100%; height: 100%; will-change: transform; }
 #world > * { position: absolute; }
 
-.ground { background: url(../svg/world/ground.svg) repeat-x 0 0 / 64px 120px; }
+.ground { background: url(../svg/world/ground.svg) repeat-x 0 0 / 64px 120px, linear-gradient(#4d4234, #3a3024) 0 119px / 100% 481px no-repeat; }
 .platform { height: 28px; background: url(../svg/world/platform.svg) repeat-x 0 0 / 64px 28px; filter: drop-shadow(0 4px 3px rgba(20, 30, 60, .35)); }
 
 .dummy { width: 90px; height: 130px; background: url(../svg/world/dummy.svg) no-repeat 0 0 / 90px 130px; transform-origin: 50% 100%; }

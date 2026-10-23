@@ -109,5 +109,10 @@ function play(key){
 function setMuted(m){muted=!!m;if(master)master.gain.value=muted?0:.8;Object.keys(pool).forEach(function(k){pool[k].muted=muted});
  if(muted){stopCur()}else if(wantKey&&!curEl&&!tr){var k=wantKey;curId='';play(k)}}
 function duck(on){duckOn=!!on;if(musicBus&&ctx)musicBus.gain.setTargetAtTime(on?vol.music*.35:vol.music,ctx.currentTime,.1);if(curEl)fadeEl(curEl,vt(),250)}
-return {init:init,sfx:sfx,play:play,stop:function(){stopAll()},setMuted:setMuted,isMuted:function(){return muted},duck:duck,current:function(){return curId}}
+/* 音乐 / 音效音量分开调：kind='music'|'sfx'，v 为 0~1 */
+function setVolume(kind,v){if(kind!=='music'&&kind!=='sfx')return;vol[kind]=Math.max(0,Math.min(1,v));
+ if(kind==='music'){if(musicBus&&ctx)musicBus.gain.setTargetAtTime(duckOn?vol.music*.35:vol.music,ctx.currentTime,.05);if(curEl)fadeEl(curEl,vt(),120)}
+ else if(sfxBus&&ctx)sfxBus.gain.setTargetAtTime(vol.sfx,ctx.currentTime,.05)}
+function getVolume(kind){return vol[kind]}
+return {setVolume:setVolume,getVolume:getVolume,init:init,sfx:sfx,play:play,stop:function(){stopAll()},setMuted:setMuted,isMuted:function(){return muted},duck:duck,current:function(){return curId}}
 })();

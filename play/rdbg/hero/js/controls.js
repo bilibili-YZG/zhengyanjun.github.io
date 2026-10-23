@@ -271,16 +271,16 @@
     clearTimeout(toastT); toastT = setTimeout(function () { toastEl.classList.remove('show'); }, 2600);
   }
   function setLayout(m) { S.layout = m; save(); layoutButtons(); updateHelp(); renderPanel(); }
+  function toggleTouchVisible() {
+    if (touchMode() === 'off') setLayout(innerWidth < 900 ? 'phone' : 'compact');
+    else setLayout('off');
+  }
   function buildPill() {
     var pill = document.createElement('div'); pill.id = 'ctl-pill';
-    pill.innerHTML = '<button data-a="set" title="设置">⚙</button><button data-a="eye" title="显示/隐藏触屏按键">👁</button><button data-a="fs" title="全屏">⛶</button>';
+    pill.innerHTML = '<button data-a="set" title="设置">⚙</button>';        // 只留设置；小眼睛（显示/隐藏触屏按键）和全屏都在设置面板里
     pill.addEventListener('click', function (e) {
       var a = e.target.getAttribute && e.target.getAttribute('data-a');
       if (a === 'set') togglePanel();
-      else if (a === 'eye') {
-        if (touchMode() === 'off') setLayout(innerWidth < 900 ? 'phone' : 'compact');
-        else setLayout('off');
-      } else if (a === 'fs') toggleFullscreen();
     });
     document.body.appendChild(pill);
     toastEl = document.createElement('div'); toastEl.id = 'ctl-toast'; document.body.appendChild(toastEl);
@@ -333,6 +333,7 @@
     h += '</div><p class="note">自动：触屏设备显示（小屏用手机布局，大屏用紧凑布局），电脑不显示。</p>';
     h += '<label class="row">按键大小 <input type="range" id="c-size" min="0.6" max="1.8" step="0.05" value="' + S.size + '"></label>';
     h += '<label class="row">按键透明度 <input type="range" id="c-op" min="0.25" max="1" step="0.05" value="' + S.opacity + '"></label>';
+    h += '<div class="row"><button data-a="eye">👁 ' + (touchMode() === 'off' ? '显示' : '隐藏') + '触屏按键</button></div>';
     h += '<div class="row"><button data-a="edit">调整按键位置</button><button data-a="resetpos">重置当前布局位置</button></div>';
     h += '<h3>声音 / 全屏</h3><label class="row">音量 <input type="range" id="c-vol" min="0" max="1" step="0.05" value="' + S.volume + '"></label>';
     h += '<div class="row"><label class="chk"><input type="checkbox" id="c-mute"' + (S.muted ? ' checked' : '') + '> 静音</label><button data-a="fs">全屏 / 退出全屏（F）</button></div>';
@@ -341,6 +342,7 @@
     ACTIONS.forEach(function (a) { h += '<tr><td>' + a.name + '</td><td>' + slots('key', a.id) + '</td><td>' + slots('pad', a.id) + '</td></tr>'; });
     h += '</table><div class="row"><button data-a="resetkeys">恢复默认键位</button></div>';
     h += '<p class="note">🎮 手柄：' + (padId ? '已连接 ' + padId.replace(/\(.*$/, '').slice(0, 40) : '未检测到（连接后按任意键）') + '。左摇杆固定控制 左 / 右 / 下。</p>';
+    h += '<p class="note"><a href="viewer.html" style="color:#9fd0ff">← 动画浏览器</a></p>';
     h += '</div></div>';
     panel.innerHTML = h;
   }
@@ -353,6 +355,7 @@
       else if (a === 'layout') setLayout(t.getAttribute('data-v'));
       else if (a === 'edit') startEdit();
       else if (a === 'fs') toggleFullscreen();
+      else if (a === 'eye') { toggleTouchVisible(); renderPanel(); }
       else if (a === 'resetpos') { resetPos(); say('已重置'); }
       else if (a === 'resetkeys') { S.keys = clone(DEF_KEYS); S.pad = clone(DEF_PAD); capture = null; rebuildKeymap(); save(); renderPanel(); updateHelp(); }
       else if (t.classList.contains('chip')) { capture = { type: t.getAttribute('data-t'), action: a, idx: +t.getAttribute('data-i') }; renderPanel(); }
