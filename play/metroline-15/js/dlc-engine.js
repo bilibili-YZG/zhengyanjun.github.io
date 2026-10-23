@@ -101,18 +101,23 @@ function update(dt){
 function isQuiz(s){return typeof s==='string'&&s.indexOf('Q#')===0}
 var quizEl=null,quizObj=null,quizKey=null;
 function ensureQuiz(){if(quizEl)return quizEl;quizEl=document.createElement('div');quizEl.id='quizBox';quizEl.className='quiz-box hidden';
- quizEl.innerHTML='<div class="quiz-card"><div class="quiz-eye">物理小测 · 答对才能通过</div><h3 id="quizQ"></h3><div id="quizOpts" class="quiz-opts"></div><p id="quizMsg" class="quiz-msg"></p><div class="quiz-foot"><button id="quizClose" class="btn">先不答了 (Esc)</button></div></div>';
+ quizEl.innerHTML='<div class="quiz-card"><div class="quiz-eye">物理小测 · 答对才能通过</div><h3 id="quizQ"></h3><div id="quizOpts" class="quiz-opts"></div><p id="quizMsg" class="quiz-msg"></p><div class="quiz-foot"><button id="quizClose" class="btn">先不答了 (Esc / 手柄B)</button></div></div>';
  document.body.appendChild(quizEl);quizEl.querySelector('#quizClose').onclick=closeQuiz;return quizEl}
-function closeQuiz(){if(!quizObj)return;quizObj=null;quizEl.classList.add('hidden');document.removeEventListener('keydown',quizKey,true);C.setState('play')}
+var quizSel=0,quizPoll=0;
+function quizMove(d){var bs=quizEl.querySelectorAll('.quiz-opt');if(!bs.length)return;quizSel=(quizSel+d+bs.length)%bs.length;Array.prototype.forEach.call(bs,function(b,i){b.style.outline=i===quizSel?'2px solid #7fe3e6':''})}
+/* 手柄 / 键盘方向键：上下选，跳跃·互动确认，冲刺·暂停退出；返回 true 表示这个操作被答题吃掉了 */
+function quizAct(k){if(!quizObj)return false;if(k==='jump'||k==='interact'||k==='attack'){var b=quizEl.querySelectorAll('.quiz-opt')[quizSel];if(b&&!b.disabled)b.click()}else if(k==='dash'||k==='pause')closeQuiz();return true}
+function closeQuiz(){if(!quizObj)return;clearInterval(quizPoll);quizObj=null;quizEl.classList.add('hidden');document.removeEventListener('keydown',quizKey,true);C.setState('play')}
 function quiz(d){var parts=String(d.say).split('#');var q=parts[1],opts=[parts[2],parts[3],parts[4]],ans=+parts[5]||1,exp=parts[6]||'',hint=parts[7]||exp,el=ensureQuiz();
  if(d.solved){C.startDialog(C.parseDialog('已解答：'+exp,'sign'),null);return}
  quizObj=d;C.setState('dialog');el.classList.remove('hidden');el.querySelector('#quizQ').textContent=q;var box=el.querySelector('#quizOpts'),msg=el.querySelector('#quizMsg');box.innerHTML='';msg.textContent='';msg.className='quiz-msg';
  opts.forEach(function(t,i){var b=document.createElement('button');b.className='btn quiz-opt';b.textContent=(i+1)+'. '+t;b.onclick=function(){pick(i+1)};box.appendChild(b)});
  function pick(n){if(!quizObj)return;if(n===ans){d.solved=true;var mq=C.meta();if(mq&&mq.seen&&mq.seen('q'+C.ci+'-'+C.li+'-'+d.id))cnt('quizOk');msg.className='quiz-msg ok';msg.textContent='✔ 回答正确！'+exp;Array.prototype.forEach.call(box.children,function(b){b.disabled=true});
-   C.toast('✔ 答对了：机关接通',1800);C.emit(d.x+d.w/2,d.y,'#6db8ff',20,220);setTimeout(closeQuiz,2600)}
-  else{cnt('quizWrong');msg.className='quiz-msg bad';msg.textContent='✘ 再想想。提示：'+hint}}
+   window.AudioFX&&AudioFX.sfx('ok');C.toast('✔ 答对了：机关接通',1800);C.emit(d.x+d.w/2,d.y,'#6db8ff',20,220);setTimeout(closeQuiz,2600)}
+  else{window.AudioFX&&AudioFX.sfx('bad');cnt('quizWrong');msg.className='quiz-msg bad';msg.textContent='✘ 再想想。提示：'+hint}}
  quizKey=function(e){var k=e.key;if(k==='Escape'){e.preventDefault();e.stopPropagation();closeQuiz()}else if(k==='1'||k==='2'||k==='3'){e.preventDefault();e.stopPropagation();pick(+k)}else if(k===' '||k==='Enter'){e.preventDefault();e.stopPropagation()}};
- document.addEventListener('keydown',quizKey,true)}
+ document.addEventListener('keydown',quizKey,true);
+ quizSel=0;quizMove(0);var pu=false,pd=false;clearInterval(quizPoll);quizPoll=setInterval(function(){var u=C.held('up'),dn=C.held('down');if(u&&!pu)quizMove(-1);if(dn&&!pd)quizMove(1);pu=u;pd=dn},50)}
 function onTalk(n){cnt(n.kind)}
 function leaveRoom(){if(quizObj)closeQuiz()}
 
@@ -325,7 +330,7 @@ function drawScreen(g,W,H,t){
  if(p&&p.slowF<.99){g.fillStyle='rgba(80,170,255,.09)';g.fillRect(0,0,W,H)}}
 
 function drawBossHud(g,b,W,H){
- var touch=document.body.classList.contains('touch'),bw=Math.min(580,W*.72),bx=(W-bw)/2,by=H-(touch?Math.min(200,H*.32):58),tot=b.hpP[0]+b.hpP[1]+b.hpP[2],x=bx,i;
+ var touch=document.body.classList.contains('touch'),bw=Math.min(580,W*(touch?.42:.72)),bx=(W-bw)/2,by=touch?84:H-58,tot=b.hpP[0]+b.hpP[1]+b.hpP[2],x=bx,i;
  g.fillStyle='rgba(6,14,24,.78)';g.beginPath();g.roundRect(bx-12,by-30,bw+24,50,12);g.fill();
  g.fillStyle='#f3e4ff';g.font='bold 13px "Noto Sans SC",sans-serif';g.textAlign='left';g.fillText('悖论',bx,by-12);g.textAlign='right';g.fillStyle='#d9b0ff';g.fillText(PH_NAME[b.ph]+(b.state==='runout'?'（冲向竖井！）':''),bx+bw,by-12);
  for(i=0;i<3;i++){var w=(bw-12)*b.hpP[i]/tot,fill=i<b.ph?0:i===b.ph?Math.max(0,b.cur/b.hpP[i]):1;
@@ -334,6 +339,6 @@ function drawBossHud(g,b,W,H){
   x+=w+6}
  g.textAlign='start'}
 
-return {ENEMY_KINDS:ENEMY_KINDS,attach:attach,build:build,initEnemy:initEnemy,ENEMY:ENEMY,update:update,isQuiz:isQuiz,quiz:quiz,onTalk:onTalk,leaveRoom:leaveRoom,
+return {ENEMY_KINDS:ENEMY_KINDS,attach:attach,build:build,initEnemy:initEnemy,ENEMY:ENEMY,update:update,isQuiz:isQuiz,quizAct:quizAct,quiz:quiz,onTalk:onTalk,leaveRoom:leaveRoom,
  initBoss:initBoss,resetRoom:resetRoom,updateBoss:updateBoss,hitBoss:hitBoss,drawWorld:drawWorld,drawScreen:drawScreen,drawBossHud:drawBossHud,PH_NAME:PH_NAME,debugPhase:function(ph){var b=C.R.boss;b.started=true;b.state='fight';b.hurt0=C.hurtCount();startPhase(b,ph,false)}};
 })();

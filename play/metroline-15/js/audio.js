@@ -47,6 +47,13 @@ function sfx(n,arg){
  case'win':[523,659,784,1047,1319].forEach(function(f,i){osc('triangle',f,0,t+i*.12,.5,.14);osc('sine',f/2,0,t+i*.12,.5,.08)});break;
  case'talk':osc('square',arg||300,(arg||300)*1.05,t,.045,.04);break;
  case'select':osc('triangle',660,990,t,.09,.1);break;
+ case'bell':[1].forEach(function(){osc('sine',880,860,t,.9,.2);osc('sine',1320,1300,t,.7,.1);osc('triangle',2217,2200,t,.4,.05);noise(t,.04,.12,'highpass',3000,6000)});break;
+ case'parry':noise(t,.1,.25,'highpass',3000,7000);osc('square',1500,2400,t,.09,.1);osc('sine',2400,1800,t+.05,.25,.1);break;
+ case'paper':noise(t,.18,.14,'bandpass',3500,1500,.8);noise(t+.07,.12,.1,'bandpass',4500,2500,.8);break;
+ case'glide':osc('sine',400,1100,t,.35,.12);noise(t,.3,.08,'highpass',2000,5000);break;
+ case'seize':osc('sawtooth',500,90,t,.45,.16);noise(t,.3,.2,'lowpass',1800,150);break;
+ case'ok':osc('sine',660,0,t,.18,.14);osc('sine',990,0,t+.1,.3,.14);osc('triangle',1320,0,t+.1,.2,.05);break;
+ case'bad':osc('square',180,120,t,.25,.12);osc('square',150,90,t+.12,.3,.12);break;
  case'rumble':noise(t,.9,.18,'lowpass',300,60);break}
 }
 /* 程序合成音乐 */

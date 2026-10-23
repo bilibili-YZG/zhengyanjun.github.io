@@ -58,7 +58,7 @@ var AI={
   if(e.cs==='batted'){e.bt-=dt;e.x+=e.vx*dt;e.y+=e.vy*dt;e.vy+=380*dt;
    if(Math.random()<.8)C.emit(e.x+e.w/2,e.y+e.h/2,'#ffb35a',1,50,.35);
    r.enemies.forEach(function(o){if(o===e||o.dead||o.kind==='hoop')return;if(ov(e,o)){C.damageEnemy(o,3,e.vx>0?1:-1);e.vx*=.75;cnt('hoopKills');sfx('hit');C.shake(3);paper(o.x+o.w/2,o.y+o.h/2,10)}});
-   (r.c5b||[]).forEach(function(b){if(!b.solved&&ov(e,b))ring(b,'ball')});
+   (r.c5b||[]).forEach(function(b){if(!b.solved&&ov(e,b))ringBell(b,'ball')});
    if(C.solidAt(e.x+(e.vx>0?e.w:0),e.y+e.h*.5)){e.vx=-e.vx*.6;e.x+=e.vx*dt*2;sfx('bounce')}
    if(e.vy>0&&C.groundAt(e.x+e.w/2,e.y+e.h)){e.y=Math.floor((e.y+e.h)/T)*T-e.h;e.vy=-220;sfx('bounce')}
    if(e.bt<=0){e.cs='idle';e.phased=false;e.hx=e.x;e.min=e.x-80;e.max=e.x+80}return}
@@ -83,17 +83,17 @@ var AI={
 if(window.DLCX&&DLCX.ENEMY_KINDS)ENEMIES.forEach(function(k){DLCX.ENEMY_KINDS[k]=1;DLCX.ENEMY[k]=AI[k]});
 
 /* ==================== 机关 / 障碍 ==================== */
-function ring(b,by){if(b.solved&&b.rt>4.5)return;b.solved=true;b.rt=6;b.ring=1;sfx('check');sfx('boom');C.shake(3);paper(b.x+b.w/2,b.y+b.h/2,16);C.emit(b.x+b.w/2,b.y+b.h/2,'#ffd27a',18,260,.6);cnt('bells');C.toast(by==='ball'?'球敲响了放学铃！':'放学铃响了——闸门打开 6 秒',1500)}
+function ringBell(b,by){if(b.solved&&b.rt>4.5)return;b.solved=true;b.rt=6;b.ring=1;sfx('bell');C.shake(3);paper(b.x+b.w/2,b.y+b.h/2,16);C.emit(b.x+b.w/2,b.y+b.h/2,'#ffd27a',18,260,.6);cnt('bells');C.toast(by==='ball'?'球敲响了放学铃！':'放学铃响了——闸门打开 6 秒',1500)}
 function update(dt,r,p){
  if(!p)return;
  /* 玩家走过的路（给「影子」用） */
  var hh=r.c5hist=r.c5hist||[];hh.push({t:C.time,x:p.x,y:p.y,f:p.face});while(hh.length&&hh[0].t<C.time-2.6)hh.shift();
  var cx=p.x+p.w/2,cy=p.y+p.h/2,pr={x:p.x+3,y:p.y+4,w:p.w-6,h:p.h-6},sl=slashRect(p),hurtOK=p.inv<=0&&p.dash<=0;
  function hurt(dir){if(hurtOK){C.damagePlayer(1,{dir:dir});hurtOK=false}}
- (r.c5p||[]).forEach(function(d){if(d.got||Math.abs(cx-(d.x+d.w/2))>28||Math.abs(cy-(d.y+d.h/2))>34)return;d.got=true;p.glideT=8;sfx('check');paper(d.x+16,d.y+16,20);C.toast('纸飞机！8 秒内，空中按住跳跃可以滑翔',2200)});
+ (r.c5p||[]).forEach(function(d){if(d.got||Math.abs(cx-(d.x+d.w/2))>28||Math.abs(cy-(d.y+d.h/2))>34)return;d.got=true;p.glideT=8;sfx('glide');paper(d.x+16,d.y+16,20);C.toast('纸飞机！8 秒内，空中按住跳跃可以滑翔',2200)});
  if(p.glideT>0){p.glideT-=dt;if(!p.ground&&p.vy>40&&C.held&&C.held('jump')){p.vy=Math.min(p.vy,34);p.gliding=true;if(Math.random()<.5)C.emit(p.x+p.w/2-p.face*8,p.y+p.h*.6,'#fff1c8',1,30,.4,20)}else p.gliding=false}else p.gliding=false;
  (r.c5b||[]).forEach(function(b){b.ring=Math.max(0,b.ring-dt*1.6);if(b.solved){b.rt-=dt;if(b.rt<=0)b.solved=false}
-  if(sl&&b.hitSw!==p.swing&&ov(sl,{x:b.x-10,y:b.y-6,w:b.w+20,h:b.h+12})){b.hitSw=p.swing;ring(b,'slash')}});
+  if(sl&&b.hitSw!==p.swing&&ov(sl,{x:b.x-10,y:b.y-6,w:b.w+20,h:b.h+12})){b.hitSw=p.swing;ringBell(b,'slash')}});
  (r.c5h||[]).forEach(function(d){var per=d.p.period||4.5,u=((C.time+(d.p.phase||0)*per)%per)/per,dir=d.p.dir<0?-1:1,L=d.w+90,rushT=.62/per;
   d.warn=u<.3;d.rush=u>=.3&&u<.3+rushT;
   if(d.warn&&!d.beeped&&u>.04){d.beeped=true;sfx('switch')}if(!d.warn)d.beeped=false;
@@ -132,9 +132,10 @@ function ring(x,y,r,col,life){var k=C.R.kn;if(k&&k.rings)k.rings.push({x:x,y:y,r
 function bcx(b){return b.x+b.w/2}function bcy(b){return b.y+b.h/2}
 function say(k,text,secs){k.cap=text;k.capT=secs||2}
 function breakWorld(level){ /* 世界越劈越碎：改地块 + 重烘焙（四个周期同时改，保持周期性） */
- var r=C.R,k=r.kn,G=r.ch-2,P=P_TILES,n,x,y,pr;
- function clr(x0,w,y0,h){for(var q=0;q<4;q++)for(y=y0;y<y0+h;y++)for(x=x0;x<x0+w;x++){var xx=q*P+x;if(r.cells[y]&&xx<r.cw)r.cells[y][xx]=0}}
- function put(x0,w,y,v){for(var q=0;q<4;q++)for(x=x0;x<x0+w;x++){var xx=q*P+x;if(r.cells[y]&&xx<r.cw)r.cells[y][xx]=v}}
+ var r=C.R,k=r.kn,G=r.ch-2,P=P_TILES,n,x,y,pr,pt=Math.floor((C.P.x+C.P.w/2)/T); /* 玩家脚下 ±4 格不动手脚：否则弹反一刀把地劈没，人直接掉坑里死了重进房间 */
+ function near(xx){return Math.abs(xx-pt)<=4}
+ function clr(x0,w,y0,h){for(var q=0;q<4;q++)for(y=y0;y<y0+h;y++)for(x=x0;x<x0+w;x++){var xx=q*P+x;if(r.cells[y]&&xx<r.cw&&!near(xx))r.cells[y][xx]=0}}
+ function put(x0,w,y,v){for(var q=0;q<4;q++)for(x=x0;x<x0+w;x++){var xx=q*P+x;if(r.cells[y]&&xx<r.cw&&!near(xx))r.cells[y][xx]=v}}
  if(level===1){clr(18,2,G,2);clr(26,2,G,2);clr(42,2,G,2);clr(50,2,G,2);put(20,2,G-3,2);put(24,2,G-4,2);put(44,2,G-3,2);put(48,2,G-4,2)}
  else if(level===2){clr(30,8,G-5,1);put(30,2,G-5,2);put(35,2,G-6,2);put(39,2,G-5,2);clr(54,6,G-6,1);put(55,2,G-6,2);put(59,2,G-7,2)}
  k.broken=level;C.rebake()}
@@ -221,7 +222,7 @@ var FX={flip:0,seize:0,blank:0,pop:null,strike:null};
 function $(id){return document.getElementById(id)}
 function cutHud(){ /* HUD 被震得抖一下（不再切开界面） */
  var h=$('hud');if(!h)return;h.style.transition='none';h.style.transform='translateX(10px)';setTimeout(function(){h.style.transition='transform .55s cubic-bezier(.2,2,.4,1)';h.style.transform=''},60)}
-function doSeize(b){var k=C.R.kn,p=C.P;b.timer=.7;FX.seize=7;k.noDash=7;p.stam=0;cutHud();sfx('boom');C.shake(10);C.flash(.25);
+function doSeize(b){var k=C.R.kn,p=C.P;b.timer=.7;FX.seize=7;k.noDash=7;p.stam=0;cutHud();sfx('seize');C.shake(10);C.flash(.25);
  var bar=$('dashBar');if(bar){if(!FX.strike){var s=document.createElement('div');s.style.cssText='position:absolute;left:-6px;right:-6px;top:50%;height:4px;background:#ff3a4a;box-shadow:0 0 8px #ff3a4a;transform:rotate(-4deg);pointer-events:none;z-index:5';var tag=document.createElement('b');tag.textContent='已没收';tag.style.cssText='position:absolute;right:-4px;top:-18px;color:#ff6a6a;font-size:12px;font-weight:900';s.appendChild(tag);bar.style.position='relative';bar.appendChild(s);FX.strike=s}FX.strike.style.display='block'}
  say(k,'冲刺，没收了。弹反一刀才能要回来。',2.4);C.toast('冲刺被没收！弹反白色的刀可以夺回来',2200)}
 function doFlip(b){var k=C.R.kn;b.timer=.6;FX.flip=4.2;sfx('roar');C.shake(8);var g=$('game');if(g){g.style.transition='transform .35s cubic-bezier(.3,1.6,.5,1)';g.style.transform='scaleX(-1)'}say(k,'翻页——世界，反过来了。',2.2);C.toast('画面被翻过去了（4 秒）',1600)}
@@ -253,7 +254,7 @@ function hazards(b,dt,pr,pcx,pcy){var r=C.R,k=r.kn,p=C.P,i,sl=slashRect(p),hurtO
   q.x+=q.vx*dt;q.y+=q.vy*dt;q.a=Math.atan2(q.vy,q.vx);
   if(!q.rev){
    if(sl&&ov(sl,{x:q.x-q.r-6,y:q.y-q.r-6,w:q.r*2+12,h:q.r*2+12})){
-    if(q.white){q.rev=true;if(k.noDash>0){restoreDash();C.toast('冲刺夺回来了！',1200)}q.life=3;q.vx=-q.vx*.4;q.vy=-q.vy*.4;sfx('hit');sfx('check');C.hitstop(.08);C.shake(5);C.flash(.12);C.emit(q.x,q.y,'#ffffff',18,300,.4);ring(q.x,q.y,80,'255,255,255',.4);cnt('parries');C.toast('弹反！',700)}
+    if(q.white){q.rev=true;if(k.noDash>0){restoreDash();C.toast('冲刺夺回来了！',1200)}q.life=3;q.vx=-q.vx*.4;q.vy=-q.vy*.4;sfx('parry');C.hitstop(.08);C.shake(5);C.flash(.12);C.emit(q.x,q.y,'#ffffff',18,300,.4);ring(q.x,q.y,80,'255,255,255',.4);cnt('parries');C.toast('弹反！',700)}
     /* 红色的刀：教鞭挡不住，只能躲 */}
    else if(hurtOK&&Math.hypot(q.x-pcx,q.y-pcy)<q.r+13){hurt(q.vx>0?-1:1);k.blades.splice(i,1);continue}}
   if(q.life<=0||q.y>r.h+80)k.blades.splice(i,1)}

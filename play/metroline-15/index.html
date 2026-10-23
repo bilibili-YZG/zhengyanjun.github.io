@@ -19,7 +19,7 @@
 <div id="hud" class="hud hidden">
   <div class="hud-left">
     <div class="hud-title"><span class="line-badge">15</span><div><b id="hudChapter">第一章</b><small id="hudRoom">01</small></div></div>
-    <div class="hud-row"><span id="hearts" class="hearts"></span><span class="shards">◇ <b id="shardNum">0</b></span></div>
+    <div id="hpRow" class="hud-row"><span id="hearts" class="hearts"></span><span class="shards">◇ <b id="shardNum">0</b></span></div>
     <div id="dashBar" class="dashbar" title="冲刺体力"></div>
     <div id="objective" class="objective">目标：找到出口</div>
   </div>
@@ -76,7 +76,7 @@
       <button id="settingsBtn" class="btn">设置</button>
     </div>
     <div class="keys" id="keyHints"><span><kbd>A</kbd><kbd>D</kbd>/<kbd>←</kbd><kbd>→</kbd> 移动</span><span><kbd>空格</kbd>/<kbd>W</kbd> 跳（可二段跳）</span><span><kbd>J</kbd> 教鞭</span><span><kbd>L</kbd> 扔粉笔（远程）</span><span><kbd>K</kbd>/<kbd>Shift</kbd> 冲刺</span><span><kbd>↓</kbd>+<kbd>J</kbd> 空中俯冲</span><span><kbd>E</kbd> 互动 / 攀藤</span><span><kbd>Esc</kbd> 暂停</span><span>支持手柄 · 触屏</span></div>
-    <div class="menu-foot"><a href="editor.html">🛠 关卡工坊</a><span style="color:var(--muted)">v1.2.1 <button id="changelogBtn" class="link-btn">更新日志</button></span></div>
+    <div class="menu-foot"><a href="editor.html">🛠 关卡工坊</a><span style="color:var(--muted)">v1.2.2 <button id="changelogBtn" class="link-btn">更新日志</button></span></div>
   </div>
 </div>
 
@@ -165,6 +165,15 @@
   <div class="panel mid"><button id="closeSettings" class="close">×</button><div class="eyebrow">SETTINGS</div><h2>设置</h2>
     <label class="row"><span>声音</span><input id="setMute" type="checkbox" checked></label>
     <label class="row"><span>锁血 <small class="muted">受伤也不扣血、不会倒下，过不去的时候用 · 开启后通关不计入「无伤」类成就</small></span><input id="setLockHp" type="checkbox"></label>
+    <label class="row"><span>触屏按键透明度 <b id="ctlOpVal"></b></span><input id="setCtlOp" type="range" min="15" max="100" step="5"></label>
+    <label class="row"><span>手柄选择 <small class="muted">接了多个手柄时用哪一个</small></span><select id="setPadSel"></select></label>
+    <label class="row"><span>血量位置 <small class="muted">默认：触屏在顶部居中，其他在左上</small></span><select id="setHpPos"><option value="auto">默认</option><option value="tl">左上</option><option value="tc">顶部居中</option><option value="tr">右上</option><option value="bl">左下</option></select></label>
+    <div class="row col"><span>作弊 <small class="muted">只为过不去的时候救急 · 开启任意一项后，本次通关不计入「无伤」类成就</small></span>
+      <label class="row"><span>无限跳（空中随便跳）</span><input id="setCh_infJump" type="checkbox"></label>
+      <label class="row"><span>无限冲刺（不耗体力）</span><input id="setCh_infDash" type="checkbox"></label>
+      <label class="row"><span>疾风（移速 ×1.5）</span><input id="setCh_speed" type="checkbox"></label>
+      <label class="row"><span>Boss 易伤（普通挥击伤害 ×5）</span><input id="setCh_bossWeak" type="checkbox"></label>
+    </div>
     <div class="row col"><span>触屏按钮布局 <small class="muted">当前：<b id="modeNow"></b></small></span>
       <div class="modes">
         <label class="mode"><input type="radio" name="ctlMode" value="auto">

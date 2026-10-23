@@ -48,11 +48,11 @@ button{cursor:pointer;border:0;background:none}
    cluster 聚集：摇杆和按钮一起收拢到屏幕底部中间（教室大屏，不用伸手去够屏幕两侧）
    hidden  隐藏：不显示按钮（电脑键盘 / 手柄） */
 .controls{position:absolute;z-index:6;left:0;right:0;bottom:0;height:0;pointer-events:none;--js:calc(150px*var(--ctl));--pw:calc(220px*var(--ctl));--ph:calc(190px*var(--ctl));--gap:calc(46px*var(--ctl))}
-.joy{position:absolute;left:calc(18px + var(--sa-l));bottom:calc(18px + var(--sa-b));width:var(--js);height:var(--js);pointer-events:auto;touch-action:none;display:grid;place-items:center}
+.joy{position:absolute;left:calc(18px + var(--sa-l));bottom:calc(18px + var(--sa-b));width:var(--js);height:var(--js);pointer-events:auto;touch-action:none;display:grid;place-items:center;opacity:var(--ctlop,.7)}
 .joy-ring{width:86%;height:86%;border-radius:50%;background:radial-gradient(circle,rgba(30,58,78,.55),rgba(6,16,28,.6));border:2px solid rgba(170,230,245,.3);display:grid;place-items:center;box-shadow:inset 0 0 24px rgba(127,227,230,.15)}
 .joy-thumb{width:42%;height:42%;border-radius:50%;background:linear-gradient(145deg,#b3fff2,#6ab9ea);border:2px solid rgba(255,255,255,.7);box-shadow:0 6px 16px rgba(0,0,0,.4);pointer-events:none;transition:transform .05s}
 .joy-tip{position:absolute;bottom:-4px;font-size:calc(10px*var(--ctl));color:rgba(220,240,250,.55);white-space:nowrap;transform:translateY(100%)}
-.pad{position:absolute;right:calc(18px + var(--sa-r));bottom:calc(18px + var(--sa-b));width:var(--pw);height:var(--ph);pointer-events:none}
+.pad{position:absolute;right:calc(18px + var(--sa-r));bottom:calc(18px + var(--sa-b));width:var(--pw);height:var(--ph);pointer-events:none;opacity:var(--ctlop,.7)}
 .controls.cluster .joy{left:calc(50% - var(--js) - var(--gap));bottom:calc(22px + var(--sa-b))}
 .controls.cluster .pad{right:auto;left:calc(50% + var(--gap));bottom:calc(22px + var(--sa-b))}
 .pad button{position:absolute;pointer-events:auto;touch-action:none;border-radius:50%;background:rgba(9,20,34,.62);border:2px solid rgba(170,230,245,.32);color:#e9fbff;font-weight:800;font-size:calc(14px*var(--ctl));box-shadow:0 8px 20px rgba(0,0,0,.35);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);transition:transform .06s,background .1s}
@@ -262,3 +262,12 @@ body.lay-cluster .joy-tip{display:none}
 
 /* 手机性能：实时模糊(backdrop-filter)在触屏设备上非常吃 GPU（HUD、5 个按钮、标题卡、答题终端各一层），直接关掉 */
 body.fx-blur-off .hud-title,body.fx-blur-off .pad button,body.fx-blur-off .title-card,body.fx-blur-off .quiz-box{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+
+.padfocus{outline:3px solid #7fe3e6!important;outline-offset:2px;box-shadow:0 0 16px rgba(127,227,230,.65)!important}
+.hud-row{pointer-events:none}
+body.hp-tc #hpRow,body.hp-tr #hpRow,body.hp-bl #hpRow{position:fixed}
+body.hp-tc #hpRow{left:50%;top:calc(12px + var(--sa-t));transform:translateX(-50%)}
+body.hp-tr #hpRow{right:calc(14px + var(--sa-r));top:calc(62px + var(--sa-t))}
+body.hp-bl #hpRow{left:calc(14px + var(--sa-l));bottom:calc(14px + var(--sa-b))}
+body.touch.hp-bl #hpRow{bottom:calc(190px*var(--ctl) + 26px + var(--sa-b))}
+#settings select{padding:6px 10px;border-radius:10px;background:rgba(8,16,28,.8);color:#e9fbff;border:1px solid var(--edge);max-width:55%}

@@ -340,7 +340,7 @@ function crowdScreen(g,W,H,t){
 
 /* 两段血条 + 应援槽 */
 function drawBossHud(g,b,W,H){
- var cl=document.body.classList.contains('ui-cluster'),bw=Math.min(cl?600:520,W*(cl?.42:.6)),bx=(W-bw)/2,by=cl?Math.round(70*Math.max(1,Math.min(1.75,Math.min(W,H)/700))):H-(document.body.classList.contains('touch')?Math.min(200,H*.32):56);
+ var cl=document.body.classList.contains('ui-cluster'),bw=Math.min(cl?600:520,W*(cl?.42:document.body.classList.contains('touch')?.42:.6)),bx=(W-bw)/2,by=cl?Math.round(70*Math.max(1,Math.min(1.75,Math.min(W,H)/700))):(document.body.classList.contains('touch')?84:H-56);
  var s2=b.stage===2,t=C.time;
  g.fillStyle='rgba(6,14,24,.75)';g.beginPath();g.roundRect(bx-12,by-26,bw+24,44,12);g.fill();
  g.fillStyle='#ffe9d9';g.font='bold 13px "Noto Sans SC",sans-serif';g.textAlign='left';g.fillText(b.label+(s2?' · 迪斯科形态':''),bx,by-8);
