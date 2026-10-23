@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>15号线大冒险 · 末班车 22:40</title>
+<style>
+:root{--ink:#e9fbff;--muted:#9db8c8;--accent:#7fe3e6;--warm:#ffd27a;--red:#ff5a6a;--glass:rgba(10,22,38,.62);--edge:rgba(170,225,240,.2)}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;color:var(--ink);font-family:"Noto Sans SC","Microsoft YaHei",system-ui,sans-serif;background:#05090f;overflow-x:hidden;line-height:1.7}
+a{color:inherit;text-decoration:none}
+
+/* ---------- 背景：夜空 + 雪 + 远山 ---------- */
+.bg{position:fixed;inset:0;z-index:-2;background:
+  radial-gradient(90% 60% at 50% 105%,rgba(255,150,90,.35),transparent 60%),
+  radial-gradient(70% 50% at 80% 0%,rgba(90,130,255,.22),transparent 60%),
+  linear-gradient(#07101e,#0d1c33 55%,#1c2c4a)}
+.hills{position:fixed;left:0;right:0;bottom:0;height:34vh;z-index:-1;pointer-events:none;opacity:.9}
+canvas#snow{position:fixed;inset:0;z-index:-1;pointer-events:none}
+
+/* ---------- 通用 ---------- */
+.wrap{max-width:1040px;margin:0 auto;padding:0 22px}
+section{padding:84px 0 24px}
+.eyebrow{font-size:12px;letter-spacing:.32em;color:var(--accent);font-weight:800;text-transform:uppercase}
+h2{margin:6px 0 26px;font-size:clamp(26px,4.6vw,38px);letter-spacing:.04em}
+h2 em{font-style:normal;background:linear-gradient(90deg,var(--accent),var(--warm));-webkit-background-clip:text;background-clip:text;color:transparent}
+.card{background:var(--glass);border:1px solid var(--edge);border-radius:22px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);box-shadow:0 18px 50px rgba(0,0,0,.35)}
+.reveal{opacity:0;transform:translateY(26px);transition:opacity .7s ease,transform .7s ease}
+.reveal.in{opacity:1;transform:none}
+
+/* ---------- 首屏 ---------- */
+.hero{min-height:100vh;display:grid;place-items:center;text-align:center;padding:40px 22px 90px;position:relative}
+.badge{display:inline-grid;place-items:center;width:clamp(86px,14vw,128px);aspect-ratio:1;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%,#ffe9a8,#ffb24a 60%,#e8781a);color:#3a1d00;font-weight:900;font-size:clamp(40px,7vw,64px);
+  box-shadow:0 0 0 6px rgba(255,210,122,.18),0 0 60px rgba(255,170,70,.55);animation:glow 3.2s ease-in-out infinite}
+@keyframes glow{50%{box-shadow:0 0 0 12px rgba(255,210,122,.08),0 0 90px rgba(255,170,70,.8)}}
+.hero h1{margin:22px 0 4px;font-size:clamp(40px,9vw,92px);line-height:1.08;letter-spacing:.06em;font-weight:900}
+.hero h1 em{font-style:normal;background:linear-gradient(100deg,#9ff6f0,#ffe9a8 55%,#ff9a6a);-webkit-background-clip:text;background-clip:text;color:transparent}
+.slogan{font-size:clamp(17px,2.6vw,24px);color:#dcecf5;margin:10px 0 30px}
+.slogan b{color:var(--warm)}
+.clock{display:inline-flex;align-items:center;gap:12px;padding:10px 22px;border-radius:999px;background:rgba(0,0,0,.4);border:1px solid var(--edge);
+  font:800 clamp(22px,4vw,34px) ui-monospace,Consolas,monospace;letter-spacing:.14em;color:var(--red);text-shadow:0 0 14px rgba(255,90,106,.7)}
+.clock small{font:600 12px "Noto Sans SC",sans-serif;letter-spacing:.2em;color:var(--muted);text-shadow:none}
+.clock i{width:8px;height:8px;border-radius:50%;background:var(--red);animation:blink 1s steps(2) infinite}
+@keyframes blink{50%{opacity:.15}}
+.cta{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-top:34px}
+.btn{padding:14px 30px;border-radius:16px;font-weight:900;font-size:17px;letter-spacing:.08em;border:1px solid var(--edge);transition:.2s}
+.btn.p{background:linear-gradient(135deg,#97f2e2,#83c6ff);color:#082433;border:0;box-shadow:0 10px 30px rgba(127,227,230,.35)}
+.btn.g{background:rgba(255,255,255,.06)}
+.btn:hover{transform:translateY(-3px)}
+.scroll{position:absolute;bottom:26px;left:50%;transform:translateX(-50%);color:var(--muted);font-size:12px;letter-spacing:.3em;animation:bob 2s ease-in-out infinite}
+@keyframes bob{50%{transform:translate(-50%,8px)}}
+
+/* ---------- 故事 ---------- */
+.story{padding:34px clamp(22px,5vw,52px);font-size:clamp(16px,2.2vw,19px);color:#d3e6f0;position:relative;overflow:hidden}
+.story::before{content:"“";position:absolute;right:26px;top:-30px;font-size:200px;color:rgba(127,227,230,.1);font-family:Georgia,serif}
+.story b{color:var(--warm)}
+
+/* ---------- 玩法卡片 ---------- */
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px}
+.feat{padding:26px 24px;transition:.25s}
+.feat:hover{transform:translateY(-6px);border-color:rgba(127,227,230,.55)}
+.feat .ico{font-size:34px;line-height:1;margin-bottom:10px}
+.feat h3{margin:0 0 6px;font-size:20px}
+.feat p{margin:0;color:var(--muted);font-size:15px}
+.feat p b{color:var(--ink)}
+
+/* ---------- 世界 ---------- */
+.worlds{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px}
+.world{padding:0;overflow:hidden}
+.world .art{height:120px;display:grid;place-items:center;font-size:46px}
+.world .body{padding:18px 22px 24px}
+.world h3{margin:0 0 4px;font-size:19px}
+.world .tag{font-size:11px;letter-spacing:.2em;color:var(--accent);font-weight:800}
+.world p{margin:8px 0 0;color:var(--muted);font-size:14.5px}
+.w1 .art{background:linear-gradient(135deg,#dfeaff,#8fb4ee 55%,#4a6aa8)}
+.w2 .art{background:linear-gradient(135deg,#2a1858,#7a3ad0 55%,#2ad0e6)}
+.w3 .art{background:linear-gradient(135deg,#1b2740,#e2a23a 70%,#3a2a18)}
+.w4 .art{background:linear-gradient(135deg,#ff9a6a,#c2335a 60%,#3a1530)}
+.w5 .art{background:linear-gradient(135deg,#112a5a,#ff7ac0 55%,#ffd23f)}
+
+/* ---------- Boss ---------- */
+.boss{display:grid;grid-template-columns:1.1fr 1fr;gap:0;overflow:hidden}
+.boss .l{padding:36px clamp(22px,4vw,44px)}
+.boss .r{background:radial-gradient(circle at 50% 60%,rgba(255,58,74,.35),transparent 65%),linear-gradient(#14080f,#3a0f1c);display:grid;place-items:center;min-height:260px;position:relative}
+.boss .r b{font-size:clamp(60px,10vw,110px);color:var(--red);font-family:"Noto Sans SC",sans-serif;font-weight:900;border:6px solid var(--red);border-radius:16px;padding:0 22px;transform:rotate(-8deg);text-shadow:0 0 24px rgba(255,58,74,.8);box-shadow:0 0 40px rgba(255,58,74,.4)}
+.boss ul{margin:12px 0 0;padding-left:20px;color:#d7c3c8}
+.boss li{margin:5px 0}
+.boss li b{color:#ffb0b8}
+@media(max-width:720px){.boss{grid-template-columns:1fr}.boss .r{min-height:200px}}
+
+/* ---------- 数据条 ---------- */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px}
+.stat{padding:22px 12px;text-align:center}
+.stat b{display:block;font-size:clamp(30px,5vw,44px);background:linear-gradient(90deg,var(--accent),var(--warm));-webkit-background-clip:text;background-clip:text;color:transparent}
+.stat span{color:var(--muted);font-size:13px;letter-spacing:.12em}
+
+/* ---------- 平台 ---------- */
+.chips{display:flex;flex-wrap:wrap;gap:10px}
+.chip{padding:9px 18px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid var(--edge);font-size:14.5px}
+.chip b{color:var(--accent)}
+
+/* ---------- 结尾 ---------- */
+.end{text-align:center;padding:110px 0 120px}
+.end q{display:block;quotes:none;font-size:clamp(24px,5vw,46px);font-weight:900;letter-spacing:.08em;line-height:1.5;background:linear-gradient(100deg,#9ff6f0,#ffe9a8 60%,#ff9a6a);-webkit-background-clip:text;background-clip:text;color:transparent}
+.end p{color:var(--muted);margin:14px 0 0}
+footer{text-align:center;color:#5d7486;font-size:12px;padding:0 0 36px;letter-spacing:.12em}
+</style>
+</head>
+<body>
+<div class="bg"></div>
+<canvas id="snow"></canvas>
+<svg class="hills" viewBox="0 0 1200 300" preserveAspectRatio="none" aria-hidden="true">
+  <defs><linearGradient id="h1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2a4066"/><stop offset="1" stop-color="#0c1626"/></linearGradient>
+  <linearGradient id="h2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#16243d"/><stop offset="1" stop-color="#070d18"/></linearGradient></defs>
+  <path d="M0 150 L130 80 L240 140 L380 50 L520 150 L650 90 L800 160 L930 70 L1070 140 L1200 100 L1200 300 L0 300Z" fill="url(#h1)" opacity=".75"/>
+  <path d="M0 220 L160 160 L300 215 L470 140 L620 220 L780 170 L930 225 L1090 160 L1200 200 L1200 300 L0 300Z" fill="url(#h2)"/>
+</svg>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="badge">15</div>
+    <h1>号线<em>大冒险</em></h1>
+    <p class="slogan">末班车迟迟不来，站台尽头多出一道通向风雪的楼梯。<br>想回家，就<b>一路往前跑</b>。</p>
+    <div class="clock"><i></i>22:40<small>末班车</small></div>
+    <div class="cta">
+      <a class="btn p" href="index.html">▶ 开始旅程</a>
+      <a class="btn g" href="#world">看看有什么</a>
+    </div>
+  </div>
+  <div class="scroll">SCROLL ▾</div>
+</header>
+
+<main class="wrap">
+
+  <section class="reveal">
+    <div class="eyebrow">Story</div>
+    <h2>一个物理老师的<em>回家路</em></h2>
+    <div class="card story">
+      晚自习后，一名中学<b>物理老师</b>把最后一摞没批完的作业塞进背包，别好讲课用的教鞭，赶到 15 号线地铁站等末班车。<br><br>
+      车迟迟不来，站台尽头却多出一道通向风雪的楼梯——想回家，只能一路往前，把沿途熄灭的<b>信标</b>一盏一盏点亮。
+    </div>
+  </section>
+
+  <section class="reveal" id="world">
+    <div class="eyebrow">Gameplay</div>
+    <h2>怎么玩？<em>一根教鞭就够了</em></h2>
+    <div class="grid">
+      <div class="card feat"><div class="ico">🪄</div><h3>教鞭 · 粉笔</h3><p>挥击、<b>弹反子弹</b>、空中俯冲重击；够不着的怪，扔一支粉笔过去。</p></div>
+      <div class="card feat"><div class="ico">🧪</div><h3>真会考物理</h3><p>惯性、浮力、电磁……知识点直接做进机关里，<b>物理答题终端答对才开门</b>。</p></div>
+      <div class="card feat"><div class="ico">⚡</div><h3>二段跳 · 冲刺</h3><p>冰面、风口、传送带、旋转锯、碎裂木板……手感干脆，冲刺还带短暂无敌。</p></div>
+      <div class="card feat"><div class="ico">👾</div><h3>一章一个 Boss</h3><p>每章终点都有一场 Boss 战，拼的是观察和节奏，不是肝。</p></div>
+    </div>
+  </section>
+
+  <section class="reveal">
+    <div class="eyebrow">Worlds</div>
+    <h2>不止一条<em>回家的路</em></h2>
+    <div class="worlds">
+      <div class="card world w1"><div class="art">❄️</div><div class="body"><div class="tag">主线 · 前四章</div><h3>风雪 · 森林 · 洞窟 · 熔岩</h3><p>4 章 × 6 关，每章一个 Boss，结尾是守线者。</p></div></div>
+      <div class="card world w4"><div class="art">🌇</div><div class="body"><div class="tag">主线 · 第五章</div><h3>黎明的曙光</h3><p>回到任教的中学，顺着一轮不肯落下的夕阳，一路赶向站台。</p></div></div>
+      <div class="card world w2"><div class="art">🌀</div><div class="body"><div class="tag">DLC</div><h3>未竟之梦 · 深渊回响</h3><p>冰洞、实验室、混沌领域，三阶段 Boss「悖论」。</p></div></div>
+      <div class="card world w3"><div class="art">🚇</div><div class="body"><div class="tag">DLC</div><h3>地铁历险</h3><p>末班车弄丢了自己的站名。一节一节往车头走，把黄色水晶找回来。</p></div></div>
+      <div class="card world w5"><div class="art">🎆</div><div class="body"><div class="tag">新年联欢</div><h3>零点钟声</h3><p>彩灯、礼炮、烟花，Boss「零点钟魔」的第三阶段，会数到 0。</p></div></div>
+    </div>
+  </section>
+
+  <section class="reveal">
+    <div class="eyebrow">Boss</div>
+    <h2>第五章 Boss<em>「倦怠骑士」</em></h2>
+    <div class="card boss">
+      <div class="l">
+        <p style="margin:0;color:#e6d3d8">他拿一支红笔当剑，身后追着一堵叫“截止时间”的擦除墙。<br>他想说的只有一句：<b style="color:#ffb0b8">你已经很累了，停下来吧。</b></p>
+        <ul>
+          <li><b>弹反</b>白色的刀，把它打回去</li>
+          <li><b>冲刺会被没收</b>，弹反一刀才能要回来</li>
+          <li>他会<b>把整个画面翻过去</b>，还会弹出一个两个按钮都是“退出”的系统提示</li>
+          <li>必杀「终审判决」：全屏盖上“不及格”，躲进<b>及格线</b>的光柱里</li>
+        </ul>
+      </div>
+      <div class="r"><b>不及格</b></div>
+    </div>
+  </section>
+
+  <section class="reveal">
+    <div class="eyebrow">Features</div>
+    <h2>该有的，<em>都有</em></h2>
+    <div class="stats">
+      <div class="card stat"><b>5</b><span>主线章节</span></div>
+      <div class="card stat"><b>3</b><span>存档位</span></div>
+      <div class="card stat"><b>3</b><span>DLC 世界</span></div>
+      <div class="card stat"><b>∞</b><span>自己出关卡</span></div>
+    </div>
+    <div class="grid" style="margin-top:18px">
+      <div class="card feat"><div class="ico">🛠</div><h3>关卡工坊</h3><p>拖物件、连机关、一键试玩，做一关给朋友玩。</p></div>
+      <div class="card feat"><div class="ico">🎧</div><h3>音乐音效分开调</h3><p>一整章用同一首曲子，换关不重播，Boss 房才换 Boss 曲。</p></div>
+      <div class="card feat"><div class="ico">🤝</div><h3>过不去也不怕</h3><p>设置里有<b>锁血</b>、无限跳、无限冲刺、疾风、Boss 易伤。</p></div>
+    </div>
+  </section>
+
+  <section class="reveal">
+    <div class="eyebrow">Platforms</div>
+    <h2>什么设备，<em>打开就玩</em></h2>
+    <div class="chips">
+      <span class="chip">📱 <b>手机</b> 摇杆与按键可调大小 / 位置 / 透明度</span>
+      <span class="chip">🖥 <b>电脑</b> 键盘按键可自定义</span>
+      <span class="chip">🎮 <b>手柄</b> 连菜单也能用手柄操作</span>
+      <span class="chip">🏫 <b>教室一体机</b> 聚集布局专为大屏设计</span>
+      <span class="chip">🌐 <b>纯网页</b> 不用安装，存档在浏览器里</span>
+    </div>
+  </section>
+
+  <section class="end reveal">
+    <q>不必完美，<br>只要灯还亮着。</q>
+    <p>—— 守线者</p>
+    <div class="cta"><a class="btn p" href="index.html">▶ 现在就出发</a></div>
+  </section>
+</main>
+<footer>15号线大冒险 · 物理老师篇</footer>
+
+<script>
+/* 雪 */
+(function(){
+  var cv=document.getElementById('snow'),g=cv.getContext('2d'),W,H,fl=[],reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function size(){W=cv.width=innerWidth;H=cv.height=innerHeight;fl=[];var n=Math.min(150,Math.round(W*H/12000));for(var i=0;i<n;i++)fl.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*2.2+.6,v:Math.random()*40+20,s:Math.random()*Math.PI*2,a:Math.random()*.5+.3})}
+  addEventListener('resize',size);size();
+  var last=performance.now();
+  function frame(now){var dt=Math.min(.05,(now-last)/1000);last=now;g.clearRect(0,0,W,H);
+    fl.forEach(function(f){if(!reduce){f.y+=f.v*dt;f.s+=dt*1.2;f.x+=Math.sin(f.s)*14*dt}
+      if(f.y>H+4){f.y=-4;f.x=Math.random()*W}
+      g.globalAlpha=f.a;g.fillStyle='#fff';g.beginPath();g.arc(f.x,f.y,f.r,0,6.2832);g.fill()});
+    requestAnimationFrame(frame)}
+  requestAnimationFrame(frame);
+})();
+/* 滚动出现 */
+(function(){
+  var els=document.querySelectorAll('.reveal');
+  if(!('IntersectionObserver' in window)){els.forEach(function(e){e.classList.add('in')});return}
+  var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}})},{threshold:.12});
+  els.forEach(function(e){io.observe(e)});
+})();
+</script>
+</body>
+</html>

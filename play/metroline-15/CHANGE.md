@@ -47,6 +47,10 @@
 | `README.md` | 面向玩家/部署者的说明：运行方式、操作键位、合并版内容、音乐清单。 |
 | `changelog.txt` | **玩家可见更新日志**（Markdown）。游戏主菜单"更新日志"读取它。 |
 | `open-local.bat` | Windows 一键启动：先运行 `node tools\build-changelog.js`，再用浏览器打开 `index.html`。需要装有 Node.js。 |
+| `promo.html` | **宣传页**：单文件、不依赖外部资源（雪花画布 + 滚动渐显），文案对应 `README.md` 的功能描述；功能有变化时同步改它。 |
+| `egg-test.html` / `strong.html` | 调试入口，仅做跳转：`index.html?egg=1`（彩蛋房）/ `index.html?boss=1&strong=1`（完全体倦怠骑士战）。 |
+| `第五章剧情.txt` / `v1.1.0更新总章.txt` | 第五章的设计稿；v1.1.0 的发布放置说明（历史文档）。 |
+| `old/` | 旧版（单文件时代）归档，不再维护，新功能不要往里加。 |
 | `CHANGE.md` | 本文件。 |
 
 ### `css/`
@@ -65,7 +69,9 @@
 | `data/metro-kit.js` | 「地铁历险」专用积木 `L15.metroLevel(...)`：用"车厢列表"拼出 6 节车厢的长关；车厢类型 `plain/spikes/laser/belt/saw/mix`。 |
 | `levels/c1-01.js … c4-06.js` | **主线 24 个房间**，一间一个文件。`c1` 雪原、`c2` 森林、`c3` 地下洞窟、`c4` 熔岩（最短，用 `R()` 手写）。每章第 6 关是 Boss。 |
 | `levels/d1-01.js … d3-04.js` | **「未竟之梦」12 个房间**（工坊发布后导出的整块 JSON 数据，文件很大）。`d1` 冰洞、`d2` 实验室、`d3` 混沌（含 Boss「悖论」）。 |
-| `levels/metro1-01.js … metro1-04.js` | **「地铁历险」4 个关卡**，每个只有几行：调用 `L15.metroLevel` 并给出车厢列表和 NPC 台词。 |
+| `levels/metro1-01.js … metro4-03.js` | **「地铁历险」4 章 12 关**（`metro1-04.js` 是已弃用的空壳），每个只有几行：调用 `L15.metroLevel` 并给出车厢列表和 NPC 台词。 |
+| `levels/c5-01.js … c5-06.js`、`c5-egg.js` | **主线第 5 章**（`c5-06` 是倦怠骑士战，无限公路）和彩蛋房。 |
+| `levels/ny1-01.js … ny2-01.js` | **「雪镇跨年」**两章（`ny2-01` 是 Boss「零点钟魔」）。 |
 | `data/campaign.js` | **主线战役** `CAMPAIGN_DEFAULT`：4 章的名称/副标题/背景/章节剧情，序章、结局。 |
 | `data/dlc-campaign.js` | **「未竟之梦」战役** `CAMPAIGN_DLC`：3 个部分的剧情、序章、结局。 |
 | `data/dlc-subway.js` | **「地铁历险」战役** `CAMPAIGN_SUBWAY`：自定义主题 `t_m1…t_m4`（黄昏/夜郊/隧道/黎明）、剧情、结局文案、黄色水晶命名。 |
@@ -78,8 +84,15 @@
 | `gfx2.js` | 画面（二）：基础敌人 `GFX.enemy`、Boss `GFX.boss`、机关/障碍/装饰物 `GFX.thing`、剧情场景 `GFX.scene`。 |
 | `gfx3.js` | 画面（三）：黑板（物理公式）、横幅旗装饰；"同事老师"NPC；粉笔弹道。 |
 | `gfx4.js` | 画面（四）：DLC 的物件（`X`）、敌人（`E`）、Boss「悖论」、NPC（`NPCX`）。**它重写了 `G.thing / G.enemy / G.boss / G.npc`：先查 DLC 表，查不到才回落到前面 gfx 里的旧实现。** |
+| `gfx5.js` | 画面（五）：「雪镇跨年」的物件、怪物、Boss「零点钟魔」、NPC，以及报幕环节的剧情动画。 |
+| `gfx6.js` | 画面（六）：第五章「黎明的曙光」的物件、怪物、Boss「倦怠骑士」及破败世界背景。 |
+| `gfx7.js` | 画面（七）：倦怠骑士的新造型、破败背景 `t_ruin`、黄昏光柱；晚于 `gfx6.js` 加载，包装 `G.boss / G.drawBg`。 |
+| `dlc-metro.js` | **`METROX`**：「地铁历险」专用玩法（车厢、灯光、迷途列车 Boss 等），由 `dlc-engine.js` 转发调用。 |
+| `dlc-newyear.js` | **`NYX`**：「雪镇跨年」专用玩法（气球、彩带、礼炮、烟花、彩灯、Boss「零点钟魔」），由 `dlc-engine.js` 转发调用。 |
+| `dlc-ch5.js` | **`CH5X`**：第五章玩法（纸飞机怪、失控的篮球、值日扫帚、影子、放学铃、电动车道）与 Boss「倦怠骑士」全部逻辑（含 `?strong=1` 加强版）。 |
+| `data/dlc-newyear.js` | 「雪镇跨年」战役（报幕动画页、剧情、结局）。 |
 | `assets.js` | 素材覆盖系统：自动识别 `assets/textures`、`assets/audio`，用外部图片/音频替换程序绘制/合成。命名规则写在文件头注释里。 |
-| `audio.js` | 音乐与音效（`window.AudioFX`）：按文件名播放 mp3，缺失则合成；音乐以文件名为身份，同一首跨关不重播。 |
+| `audio.js` | 音乐与音效（`window.AudioFX`）：按文件名播放 mp3，缺失则合成；音乐以文件名为身份，同一首跨关不重播。`AudioFX.setVolume(kind, v)` / `getVolume(kind)`：`kind` 为 `'music'` 或 `'sfx'`，音乐与音效音量分开调。 |
 | `meta.js` | 元数据（纯逻辑）：3 个存档槽、碎片/蓝色碎片统计、图鉴"已见过"、成就判定。 |
 | `meta-ui.js` | 存档页/成就·晶体页/图鉴页的界面渲染。 |
 | `savefile.js` | 单个存档位的导出/导入 `.json`。 |
@@ -227,6 +240,19 @@
 2. 运行 `node tools/build-changelog.js`（或用 `open-local.bat`）重新生成 `js/changelog-data.js`。
 3. 改了数据格式则增加 `defs.js` 的 `REV`。
 
+### 3.14 加一个设置项
+1. `index.html` 的 `#settings` 里，放进对应分组（`声音与显示 / 触屏操作 / 手柄与键盘 / 进阶`，分组标题是 `<h3 class="set-h">`）；内容多就用 `<details class="row col fold">`（自带 ▸ 小三角）。
+2. `js/game.js`：`prefs` 的默认值（文件开头 `var prefs=Object.assign({...})`）里加字段；写一个 `applyXxx()` 把值应用出去，并挂进 `applyPrefs()`；`syncSettings()` 里把值回填到控件；在控件的 `oninput / onchange` 里改 `prefs.xxx` 并 `savePrefs()`。
+3. 已有的字段：`mute, size, controls, lockHp, fx, cheat{infJump,infDash,speed,bossWeak}, hpPos, padIdx, volMusic, volSfx, ctlOp, layout, keys, pad`。作弊项在 `updatePlayer` 里通过 `CH('名字')` 读取；任意作弊开启（含锁血受击）都会置 `stats.assist=1`，该次通关不计「无伤」类成就。
+4. 改了玩家可见行为，记得写进 `changelog.txt`。
+
+### 3.15 手柄（含菜单）
+- `game.js` 的 `pollPad()` 每帧读取手柄：按钮绑定表 `prefs.pad`（动作 → 按钮号），`padAct(k)` 在「菜单界面」与「游戏中」之间分流。
+- **菜单导航**（`topOverlay / navItems / navStep / navAct / navBack / padNavTick`）：取最上层可见的 `.overlay`，在其中的按钮 / 复选框 / 单选项 / 滑块 / 下拉框之间按方向就近跳焦点（高亮类 `.padfocus`）；确认 = 跳跃 / 互动 / 教鞭键；返回 = 冲刺 / 暂停键（点该界面的 `.close`，暂停菜单则继续游戏）。新增界面只要用 `.overlay` 容器、可点元素用 `button / input / select / a[href]`，就自动支持手柄，不用另写。
+- 文本输入框（DLC 口令）被排除在导航外，需要键盘。
+- DLC 答题（`dlc-engine.js` 的 `quiz`）通过 `DLCX.quizAct(k)` 接管手柄：上下选、确认作答、冲刺 / 暂停退出。
+- 多个手柄时，设置里的「手柄选择」写入 `prefs.padIdx`。
+
 ---
 
 ## 4. localStorage 键（排查存档问题用）
@@ -236,7 +262,7 @@
 | `line15-campaign-v3` | 工坊发布的主线（覆盖源码默认主线） |
 | `line15-test-level-v3` | 工坊"试玩本关"的临时关卡 |
 | `line15-save-v3` | 旧版单存档（会被迁移到存档位 1） |
-| `line15-prefs-v3` | 设置（触屏布局、音量等） |
+| `line15-prefs-v3` | 设置（触屏布局 / 透明度、音乐·音效音量、血量位置、手柄选择、作弊项、键位、画面特效等，字段见 3.14） |
 | `line15-slots-v4` | 3 个存档位 |
 | `line15-meta-v4` | 全局元数据（碎片、图鉴、成就、DLC 进度） |
 | `line15-dlc-campaign-<dlcId>` | 工坊发布的某个 DLC 战役（优先于源码） |
@@ -249,10 +275,10 @@
 ## 5. 已知问题 / 注意事项（接手前先看）
 
 - 已清理：删除了没有任何 HTML 引用的 `js/dlc-logic.js`、`editor/editor-dlc-new.js` 和空壳的顶层 `levels/` 文件夹（均可从 git 历史恢复）。
-- `README.md` 里"5 首音乐""24 个房间"等描述是合并版时写的，没有反映后来加入的 DLC 与更多音乐文件。
+- `README.md` 已在 v1.2.2 更新（5 章、三个 DLC、音乐对照表、设置与手柄）；以后加内容请同步它、`promo.html` 和 `changelog.txt`。
 - `tools/validate.js` 不覆盖「地铁历险」；新增关卡后记得自己检查。
 - 蓝色碎片/黄色水晶的存档键是 `'dlc'+章序号+'-'+关序号`（`game.js` 的 `collectBlue`、`meta.js` 的 `blueShardInfo`），**不区分是哪个 DLC**，所以「未竟之梦」和「地铁历险」会共用同一批键（物件 id 不同所以暂时不冲突）。再加 DLC 时要注意，必要时给键加上 DLC id。
 - **第五章 / 跨年 Boss 的新增文件与入口**：`js/gfx7.js`（倦怠骑士造型、破败背景 `t_ruin`、黄昏光柱、钟魔迪斯科形态的墨镜叠加；晚于 `gfx6.js` 加载，包装 `G.boss` / `G.drawBg`）；骑士逻辑全在 `js/dlc-ch5.js`（`CH5X`），钟魔两段血 / 应援 / 滑板 / 镭射在 `js/dlc-newyear.js`（`NYX`，`hitBoss` / `drawBossHud` 由 `game.js` 转调）。
-- **调试入口**：`egg-test.html`（`?egg=1` 进彩蛋房）、`boss-test.html`（`?boss=1` 进骑士战）、`strong.html`（`?boss=1&strong=1` 完全体骑士：三阶段全招式、死亡回 25%、攻速 ×1.5、剥夺冲刺）。`?egg` / `?boss` 钩子在 `game.js` 末尾，发布前可删。
+- **调试入口**：`egg-test.html`（`?egg=1` 进彩蛋房）、`index.html?boss=1`（直接进骑士战）、`strong.html`（`?boss=1&strong=1` 完全体骑士：三阶段全招式、死亡回 25%、攻速 ×1.5、剥夺冲刺）。`?egg` / `?boss` 钩子在 `game.js` 末尾，发布前可删。
 - 骑士战里 `game.js` 对主角限速（普通 330 / 冲刺 520）；骑士相关成就计数键：`parries`、`verdicts`、`knightwin`、`knightclean`、`strongwin`。
 - 项目没有自动化测试；验证方式 = `node tools/validate.js` + 浏览器实际试玩。

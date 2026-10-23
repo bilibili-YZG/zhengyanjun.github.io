@@ -1,13 +1,17 @@
-# 15号线大冒险 · 合并版（物理老师篇）
+# 15号线大冒险 · 合并版（物理老师篇） · v1.2.2
 
 一名中学**物理老师**放学途中的奇遇：晚自习后，在 15 号线地铁站等末班车，站台尽头的楼梯通向风雪——想回家，只能一路往前，把沿途熄灭的信标重新点亮。
 
 ## 运行
-直接双击 `index.html`（无需联网）。关卡工坊是 `editor.html`。
-**资源文件没有包含在这里，请自己放回去：** `assets/zyj.png`（主角的脸）和 `assets/audio/` 里的 5 首音乐（见下）。缺音乐时自动用同 BPM 的合成音乐，缺头像时用默认脸，都不会报错。
+直接双击 `index.html`（无需联网）。关卡工坊是 `editor.html`，宣传页是 `promo.html`。
+资源放在 `assets/`：`zyj.png`（主角的脸）和 `audio/` 里的背景音乐（见下）。缺音乐时自动用同 BPM 的合成音乐，缺头像时用默认脸，都不会报错。
 
 ## 这一版合并了什么
-- **主线 5 章**：前 4 章 × 6 关共 24 个房间，每章最后一关是 Boss；第 4 章房间最短，结尾是守线者 Boss 战。第 5 章「黎明的曙光」（`c5-NN`）制作中，剧情见 `第五章剧情.txt`。
+- **主线 5 章**：前 4 章 × 6 关共 24 个房间，每章最后一关是 Boss；第 4 章房间最短，结尾是守线者 Boss 战。第 5 章「黎明的曙光」（`c5-NN`）是真正的终章，回到任教的中学赶最后一班车，Boss 是「倦怠骑士」，剧情见 `第五章剧情.txt`。
+- **三个 DLC**（`js/dlc-registry.js` 注册）：「未竟之梦 · 深渊回响」（冰洞 / 实验室 / 混沌，Boss「悖论」，主线收集 100 枚碎片解锁）、「地铁历险」（4 章 12 关，找回黄色水晶，主线收集 150 枚碎片解锁）、「雪镇跨年」（口令解锁，Boss「零点钟魔」）。
+- **设置页**（v1.2.2 重新分组）：声音与显示（静音、音乐 / 音效音量分开调、血量位置、画面特效、全屏）· 触屏操作（按钮布局 / 大小 / 透明度 / 自定义位置）· 手柄与键盘（手柄选择、键盘与手柄改键）· 进阶（作弊区、重置游戏）。
+- **作弊区**（设置 → 进阶，可折叠）：锁血、无限跳、无限冲刺、疾风（移速 ×1.5）、Boss 易伤（普通挥击 ×5）。开启任意一项后，本次通关不计入「无伤」类成就。
+- **手柄可以完整操作**：游戏内按下表；菜单里十字键 / 摇杆移动焦点，跳跃·互动键确认，冲刺·暂停键返回，滑块和下拉框用左右键调；DLC 答题上下选、确认作答。唯一例外：DLC 口令输入框需要键盘。
 - **三个存档位**：开始新旅程 / 读取 / 覆盖 / 删除；暂停菜单里也能存档。
 - **成就 · 晶体页**、**图鉴页**（记录见过的生物、NPC、障碍物、机关、道具）。
 - **手感**：冰面和空中不再那么滑；新增**远程攻击——扔粉笔（L 键 / 触屏「粉笔」按钮）**，Boss 好打很多。
@@ -20,24 +24,45 @@
 ## 目录
 ```
 index.html / editor.html     游戏 / 关卡工坊
-css/style.css                游戏界面
-editor/                      工坊的样式与脚本
-js/data/defs.js              共享定义：物件图鉴、主题、存储键、站名线路名
-js/data/level-builder.js     关卡构建辅助
-js/levels/cN-NN.js           主线所有房间（一间一个文件）
-js/data/campaign.js          把房间拼成各章 + 开场/章节/结局剧情
-js/data/codex.js             图鉴与成就的条目文案
+promo.html                   宣传页
+perfect.html                 生成「完美存档」的测试辅助页
+egg-test.html / strong.html  调试入口：彩蛋房 / 「完全体」倦怠骑士战（?boss=1&strong=1）
+changelog.txt                玩家可见更新日志（改完运行 node tools/build-changelog.js）
+CHANGE.md                    项目结构与扩展指南（给维护者，更详细）
+css/style.css dlc-styles.css 游戏界面 / DLC 界面
+editor/                      工坊的样式与脚本（含 DLC 管理）
+js/game.js                   引擎（物理、战斗、Boss、设置与输入、手柄菜单导航）
 js/audio.js                  音乐与音效
-js/gfx.js gfx2.js gfx3.js    全部贴图与角色（程序化绘制）
+js/gfx.js … gfx7.js          全部贴图与角色（程序化绘制）
+js/dlc-*.js                  DLC / 第五章玩法扩展（dlc-engine 为入口，metro / newyear / ch5 为子扩展）
 js/meta.js meta-ui.js        存档位、成就、图鉴
-js/game.js                   引擎
-tools/validate.js            关卡静态检查：在项目根目录运行 node tools/validate.js
-assets/zyj.png               ← 放回主角的脸
-assets/audio/                ← 放回 5 首音乐
+js/data/defs.js              共享定义：物件图鉴、主题、存储键、站名线路名
+js/data/*.js                 关卡构建器、各战役、图鉴与成就文案、关卡积木
+js/levels/                   所有房间，一间一个文件（c1-01 … c5-06、d1-01 … d3-04、metro、ny）
+tools/validate.js            关卡静态检查：node tools/validate.js
+assets/zyj.png               主角的脸
+assets/audio/                背景音乐
+old/                         旧版归档，不再维护
 ```
 
 ## 音乐（文件名里的数字 = BPM）
-`Foothills 105.mp3` 雪原 · `Canopy 98.mp3` 森林 · `Forest Floor 115.mp3` 地下洞窟 · `Red Cave 152.mp3` 熔岩 · `Troth Boss 150.mp3` 所有 Boss 房。
+放在 `assets/audio/`，文件名即曲名，`js/data/defs.js` 的 `BIOMES[x].music` 与 `BOSS_MUSIC` 用文件名（不含扩展名）引用。同一章只用同一首，换关不重播；Boss 房才切到 Boss 曲。
+
+| 文件 | 用在 |
+|---|---|
+| `Foothills 105` · `Canopy 98` · `Forest Floor 115` · `Red Cave 152` | 主线第 1~4 章（雪原 / 森林 / 地下洞窟 / 熔岩）；`Foothills 105` 也用于地铁站、夜色城市主题 |
+| `Troth Boss 150` | 主线 Boss 房 |
+| `Northern Overseer 82` | 第五章「黎明的曙光」 |
+| `Black Knife` | 倦怠骑士战 |
+| `Ice Cave 115` · `Lab 158` · `Cyprus Two Theme 143` | 「未竟之梦」的冰洞 / 实验室 / 混沌领域 |
+| `Flower Castle` | 「飞驰列车」主题（地铁场景） |
+| `Final Boss Phase One 160` · `Final Boss Phase Three 96` | Boss「悖论」的阶段曲 |
+| `sunset` | 「地铁历险」 |
+| `SnowdinTown` · `fresh` | 「雪镇跨年」 |
+| `OLD TITLE THEME 75` | 标题页 |
+| `egg` | 「红色森林」主题 |
+
+音乐与音效的音量在设置里分开调（`AudioFX.setVolume('music'|'sfx', 0~1)`）。
 
 ## 操作
 | | 键盘 | 手柄 | 触屏 |
@@ -50,6 +75,7 @@ assets/audio/                ← 放回 5 首音乐
 | 空中俯冲 | ↓ + J | ↓ + X | 摇杆下 + 教鞭 |
 | 互动 / 攀藤 | E / ↑ | Y | 互动 |
 | 暂停 | Esc / P | Start | ❚❚ |
+| 菜单 | 鼠标 / 键盘 | 十字键·摇杆移动，A 确认，B / Start 返回 | 点按 |
 
 ## 关卡工坊
 首次打开设一个密码（只存本机）。左侧改章节与剧情，中间画布放置物件 / 连线机关，右侧图鉴 / 属性 / 检查；「▶ 试玩本关」直接在游戏里试玩，「⬆ 发布到游戏」让游戏使用你编辑的主线，「⋯」里可恢复默认。草稿自动保存；用「导出全部」存成文件，换电脑再「导入」。
