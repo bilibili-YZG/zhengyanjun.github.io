@@ -10,6 +10,7 @@
   var SU = 3.125, ZOOM = .4, VW = 1280, VH = 720;     // 1 单位 = 3.125 px；镜头缩放 0.4 → 每单位 1.25 屏幕像素（和原版一致）
   var A = null, R = null, b = null, k = null, cv = null, g = null, dm = null;
   var proxy = { x: 0, y: 0, w: 22, h: 40, vx: 0, vy: 0, inv: 0, dash: 0, dashCd: 0, stam: 2, frozen: 0, face: 1, ground: true, hp: 100, safe: null };
+  var combo = 0, comboT = 0, comboEl = null;
   var parts = [], flashA = 0, knInv = 0, wrapAcc = 0, baseHoles = null, basePlats = null, savedHoles = null, savedPlats = null, won = false, tNow = 0;
 
   /* ---------- 骑士看到的「核心接口」 ---------- */
@@ -104,7 +105,7 @@
     cv = document.getElementById('fx'); g = cv.getContext('2d');
     A.world.style.transformOrigin = '0 0';
     newFight(true);
-    A.toast('Boss 测试 · 向右走一段，倦怠骑士（strong 版）会出现——车和飞机就在身边');
+    A.toast(A.fun ? 'Boss 测试 · 爽版 · 向右走一段，骑士（strong 版）就会出现——车和飞机在身边，路上还会刷新载具和补给' : 'Boss 测试 · 原生版 · 向右走一段，倦怠骑士（strong 版）会出现——车和飞机就在身边');
   }
   function newFight(first) {
     var M = A.M, bx = 3328;
@@ -139,15 +140,29 @@
     dm.hp = (b.started && !b.dead && b.hp > 0 && ['wait', 'intro', 'dying'].indexOf(b.state) < 0) ? b.hp : 0;
     for (var i = parts.length - 1; i >= 0; i--) { var p = parts[i]; p.t += dt; p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 120 * dt; if (p.t >= p.life) parts.splice(i, 1); }
     flashA = Math.max(0, flashA - dt * 1.6);
+    if (combo > 0 && (comboT -= dt) <= 0) { combo = 0; if (comboEl) comboEl.className = ''; }
   }
   /* 玩家打骑士：n 直接用 rdbg 里的数值（教鞭 1 / 机枪 1 / 俯冲 2 / 撞击 3 / 炸弹 3），不做平衡 */
   function hurt(d, n, fx) {
     if (!b || b.dead) return;
-    if (Knight.hitBoss(b, n || 1, false, false)) A.pop(d.x, d.y - d.h - 20, '-' + (n || 1));
+    if (Knight.hitBoss(b, n || 1, false, false)) {
+      A.pop(d.x, d.y - d.h - 20, '-' + (n || 1));
+      if (A.fun) {                                              // 爽版：命中火花 + 连击 + 奖励
+        emit(b.x + b.w / 2, b.y + b.h / 2, '#ffe27a', 14, 260, .5); emit(b.x + b.w / 2, b.y + b.h / 2, '#ffffff', 8, 180, .35);
+        combo++; comboT = 2.4; A.reward(combo % 5 === 0); showCombo(combo % 5 === 0);
+      }
+    }
+  }
+  function showCombo(big) {
+    if (!comboEl) { comboEl = document.createElement('div'); comboEl.id = 'combo'; comboEl.innerHTML = '<b></b><span>连击</span>'; document.getElementById('hud').appendChild(comboEl); }
+    if (combo < 2) return;
+    comboEl.firstChild.textContent = '×' + combo;
+    comboEl.className = 'on' + (big ? ' big' : '');
+    void comboEl.offsetWidth;
   }
   /* 玩家倒下：骑士回血 25%，战斗从头来（骑士的血量和阶段保留），玩家回出生点 */
   function onPlayerDeath() {
-    Knight.onPlayerDeath(b); Knight.cleanup(); won = false;
+    Knight.onPlayerDeath(b); Knight.cleanup(); won = false; combo = 0; if (comboEl) comboEl.className = '';
     knInv = 0;
     newFight(false);
     return A.M.spawn.x;

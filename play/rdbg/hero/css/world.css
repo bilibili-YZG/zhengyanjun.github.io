@@ -129,3 +129,12 @@ body.ruin .ground, body.ruin .platform { filter: grayscale(.5) brightness(.7) se
 
 /* 坑：黑漆漆的深渊（不然会露出发白的天空） */
 .pit { background: linear-gradient(#2a2233, #07050c 40%, #000); z-index: -2; }
+
+.pickup.fix { background: radial-gradient(#ffe9a0, #d99a1a); font-size: 17px; }
+/* 连击提示（Boss 测试 · 爽版） */
+#combo { position: absolute; right: 30px; top: 150px; text-align: right; opacity: 0; transform: scale(.8); transition: opacity .2s, transform .15s; pointer-events: none; }
+#combo.on { opacity: 1; transform: none; }
+#combo b { display: block; font-size: 54px; line-height: 1; font-style: italic; color: #ffe27a; text-shadow: 0 3px 0 #7a3a00, 0 0 18px rgba(255, 150, 40, .9); }
+#combo.big b { color: #fff3a8; font-size: 66px; animation: comboPop .25s; }
+#combo span { font-size: 14px; letter-spacing: .3em; font-weight: 800; color: #fff; }
+@keyframes comboPop { 0% { transform: scale(1.5) rotate(-4deg); } 100% { transform: none; } }

@@ -16,10 +16,14 @@
   /* 载具 */
   var SLAM_V = 1500, SLAM_R = 190;
   /* 战机：巡航速度恒定向前，按住前进方向加速，反方向 = 掉头；升降直接控制高度 */
-  var PL_CRUISE = 380, PL_FAST = 800, PL_BOOST = 1150, PL_CLIMB = 340, PL_DIVE = 400, PL_CEIL = -520, PL_GUN_R = 820, PL_GUN_RATE = .075, BOMB_CD = .5, BOMB_G = 1500, BOMB_R = 175;
-  var V_MAX = 520, V_BOOST = 900, GUN_R = 620, GUN_RATE = .085, BOARD_R = 130;
+  var PL_CRUISE = 250, PL_FAST = 540, PL_BOOST = 800, PL_CLIMB = 340, PL_DIVE = 400, PL_CEIL = -520, PL_GUN_R = 820, PL_GUN_RATE = .075, BOMB_CD = .5, BOMB_G = 1500, BOMB_R = 175;
+  var V_MAX = 330, V_BOOST = 560, GUN_R = 620, GUN_RATE = .085, BOARD_R = 130;
 
-  var BOSS = !!(window.WORLD_MAP && window.WORLD_MAP.boss && window.BossMode), ZOOM = BOSS ? BossMode.zoom : 1;     // Boss 测试：镜头缩小，让骑士的招式在屏幕里的大小和原版一致
+  var BOSS = !!(window.WORLD_MAP && window.WORLD_MAP.boss && window.BossMode), ZOOM = BOSS ? BossMode.zoom : 1;
+  /* Boss 测试有两个版本：默认的「爽版」（载具更快更硬、路上随机刷载具和道具、连击奖励、手感加强）和 ?native=1 的「原生版」（全部是原来的数值） */
+  var NATIVE = /[?&]native=1/.test(location.search), FUN = BOSS && !NATIVE;
+  if (FUN) { PL_CRUISE = 380; PL_FAST = 800; PL_BOOST = 1150; V_MAX = 520; V_BOOST = 900; WALK_V = 360; RUN_V = 640; JUMP_V = 900; DJUMP_V = 830; }
+     // Boss 测试：镜头缩小，让骑士的招式在屏幕里的大小和原版一致
   var q = {};
   location.search.replace(/^\?/, '').split('&').forEach(function (kv) { var a = kv.split('='); if (a[0]) q[a[0]] = decodeURIComponent(a[1] || ''); });
 
@@ -85,7 +89,7 @@
   var orbs = [], pickups = [];
   function addPickup(x, y, type, persist) {
     var el = box('pickup ' + type, x - 17, y - 58, 34, 34);
-    el.textContent = type === 'heal' ? '✚' : '盾';
+    el.textContent = type === 'heal' ? '✚' : type === 'fix' ? '🔧' : '盾';
     pickups.push({ x: x, y: y, type: type, el: el, persist: persist, taken: false, t: 25, respawn: 0 });
   }
   (M.pickups || []).forEach(function (p) { addPickup(p.x, p.y == null ? M.groundY : p.y, p.type, true); });
@@ -94,8 +98,8 @@
   var planes = (M.planes || []).map(function (p) { return new Plane(world, p.x, M.groundY - Plane.GEAR, 'svg/world/'); });
   var vprompt = box('vprompt', 0, 0); vprompt.style.display = 'none';
 
-  /* ---------- 载具韧性条：被打到 0 就爆炸（车 80、飞机 48；骑士的招式是 1~3 点，数值不做平衡） ---------- */
-  var TOUGH = { car: 80, plane: 48 };
+  /* ---------- 载具韧性条：被打到 0 就爆炸（原生版：车 20、飞机 12；爽版 ×4：车 80、飞机 48。骑士的招式是 1~3 点，数值不做平衡） ---------- */
+  var TOUGH = FUN ? { car: 80, plane: 48 } : { car: 20, plane: 12 };
   function toughUpdate(v) {
     var f = Math.max(0, v.hp / v.max);
     v.bar.firstChild.style.width = (f * 100).toFixed(1) + '%';
@@ -111,8 +115,20 @@
   /* ---------- 路上随机刷新载具（地图数据里 vehSpawn: true 才开启）：同时最多 3 台没人开的，炸了会补 ---------- */
   var spawnT = 6;
   function parkedCount() { return vehicles.concat(planes).filter(function (v) { return !v.dead && v !== driving && v !== piloting; }).length; }
+  var itemT = 5;
+  function itemStep(dt) {                                      // 路上随机掉血包 / 护盾 / 维修包
+    itemT -= dt;
+    if (itemT > 0) return;
+    itemT = 7 + Math.random() * 5;
+    if (pickups.filter(function (o) { return !o.persist && !o.taken; }).length >= 4) return;
+    var dir = Math.random() < .75 ? (hero.facing || 1) : -(hero.facing || 1), x = P.x + dir * (450 + Math.random() * 800);
+    if (x < 120 || x > M.width - 120 || inHole(x - 60) || inHole(x) || inHole(x + 60)) return;
+    var r = Math.random();
+    addPickup(x, M.groundY, r < .34 ? 'heal' : r < .64 ? 'shield' : 'fix', false);
+  }
   function spawnVehicleStep(dt) {
-    if (!M.vehSpawn) return;
+    if (!M.vehSpawn || !FUN) return;
+    itemStep(dt);
     spawnT -= dt;
     if (spawnT > 0) return;
     spawnT = 9 + Math.random() * 7;
@@ -131,6 +147,9 @@
     for (j = 0; j < 8; j++) Vehicle.puff(world, x + (Math.random() - .5) * 220, M.groundY - 10 - Math.random() * 40, 18 + Math.random() * 20, (Math.random() - .5) * 120);
     Sfx.play('board');
     toast((dir > 0 ? '前方' : '后方') + '出现了一' + (plane ? '架战机' : '辆装甲车') + '！');
+  }
+  function repairAll(f) {                                       // 维修：所有还活着的载具恢复 f × 最大韧性
+    vehicles.concat(planes).forEach(function (v) { if (!v.dead) { v.hp = Math.min(v.max, v.hp + v.max * f); toughUpdate(v); } });
   }
   function damageVehicle(v, n) {
     if (!v || v.dead || v.hurtT > 0) return;
@@ -247,9 +266,10 @@
   function endDash() { if (dashT > 0) { dashT = 0; hero.setDash(false); } }
   function startDash() {
     if (mount || P.slam || dashT > 0 || driveBoost > 0) return;
-    if (dashCharge < 1) { Sfx.play('tired'); return; }
+    var free = FUN && (driving || piloting);                   // 爽版：开车 / 开飞机时涡轮加速不耗体力
+    if (dashCharge < 1 && !free) { Sfx.play('tired'); return; }
     var dir = (keys.right ? 1 : 0) - (keys.left ? 1 : 0);
-    dashCharge -= 1; Sfx.play('dash');
+    if (!free) dashCharge -= 1; Sfx.play('dash');
     if (driving || piloting) { driveBoost = .9; if (driving) driving.kick(-.4); return; }       // 开车 / 开飞机时：冲刺 = 短时间涡轮加速
     dashDir = dir || hero.facing; dashT = DASH_T; ghostT = 0;
     hero.setDash(true); hero.setFacing(dashDir); hero.kick(-.25);
@@ -650,6 +670,7 @@
       if (!o.persist && (o.t -= dt) <= 0) { o.el.remove(); pickups.splice(i, 1); continue; }
       if (Math.abs(P.x - o.x) < 44 && P.y > o.y - 150 && P.y < o.y + 30) {
         if (o.type === 'heal') { if (hp >= HP_MAX) continue; hp = Math.min(HP_MAX, hp + 30); pop(P.x, P.y - 200, '+30 血', 'green'); }
+        else if (o.type === 'fix') { repairAll(.5); pop(P.x, P.y - 200, '维修 +50%', 'green'); }
         else { if (shield >= SH_MAX) continue; shield = Math.min(SH_MAX, shield + 25); pop(P.x, P.y - 200, '+25 盾', 'green'); }
         Sfx.play('pickup'); hero.kick(-.12);
         if (o.persist) { o.taken = true; o.respawn = 25; o.el.style.display = 'none'; } else { o.el.remove(); pickups.splice(i, 1); }
@@ -761,7 +782,17 @@
     invuln: function () { return invuln; }, vehInv: function () { var r = driving || piloting; return r ? r.hurtT : 0; },
     dashCharge: function () { return dashCharge; }, setDashCharge: function (v) { dashCharge = v; }, dashing: function () { return dashT > 0; },
     setFrozen: function (f) { frozen = f; },
+    fun: FUN,
     hurtPlayer: hurtPlayer, damageVehicle: damageVehicle, blowVehicle: blowVehicle,
+    /* 命中奖励（爽版）：回盾；连击到 5 的倍数时回血并修载具 */
+    reward: function (bigCombo) {
+      shield = Math.min(SH_MAX, shield + 2);
+      if (bigCombo) {
+        hp = Math.min(HP_MAX, hp + 10); pop(P.x, P.y - 200, '+10 血', 'green');
+        var r = driving || piloting; if (r) { r.hp = Math.min(r.max, r.hp + r.max * .1); toughUpdate(r); }
+        Sfx.play('ready');
+      }
+    },
     rebuildTerrain: buildTerrain,
     /* 骑士「无限公路」的接缝：整个世界平移 sh 像素 */
     shiftWorld: function (sh) {
