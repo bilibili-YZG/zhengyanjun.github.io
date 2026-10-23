@@ -121,7 +121,7 @@
     if (itemT > 0) return;
     itemT = 7 + Math.random() * 5;
     if (pickups.filter(function (o) { return !o.persist && !o.taken; }).length >= 4) return;
-    var dir = Math.random() < .75 ? (hero.facing || 1) : -(hero.facing || 1), x = P.x + dir * (450 + Math.random() * 800);
+    var dir = BOSS && BossMode.wallActive() ? 1 : Math.random() < .75 ? (hero.facing || 1) : -(hero.facing || 1), x = P.x + dir * (450 + Math.random() * 800);
     if (x < 120 || x > M.width - 120 || inHole(x - 60) || inHole(x) || inHole(x + 60)) return;
     var r = Math.random();
     addPickup(x, M.groundY, r < .34 ? 'heal' : r < .64 ? 'shield' : 'fix', false);
@@ -133,7 +133,7 @@
     if (spawnT > 0) return;
     spawnT = 9 + Math.random() * 7;
     if (parkedCount() >= 3 || driving || piloting || mount) return;
-    var plane = Math.random() < .42, dir = Math.random() < .72 ? (hero.facing || 1) : -(hero.facing || 1), x = 0, ok = false, i, j;
+    var plane = Math.random() < .42, dir = BOSS && BossMode.wallActive() ? 1 : Math.random() < .72 ? (hero.facing || 1) : -(hero.facing || 1), x = 0, ok = false, i, j;   // 骑士的擦除墙从左边追来，只往前（右）刷
     for (i = 0; i < 12 && !ok; i++) {
       x = P.x + dir * (650 + Math.random() * 900);
       if (x < 160 || x > M.width - 160 || inHole(x - 200) || inHole(x) || inHole(x + 200)) continue;

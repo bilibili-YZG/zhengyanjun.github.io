@@ -188,6 +188,7 @@
   window.BossMode = {
     zoom: ZOOM, init: init, update: update, draw: draw, hurt: hurt, onPlayerDeath: onPlayerDeath,
     frozen: function () { return proxy.frozen > 0; },
-    started: function () { return !!(b && b.started); }
+    started: function () { return !!(b && b.started); },
+    wallActive: function () { return !!(k && k.wall && !b.dead); }
   };
 })();
