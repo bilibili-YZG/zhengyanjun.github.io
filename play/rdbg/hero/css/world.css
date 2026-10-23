@@ -106,3 +106,26 @@ body { font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif; user-select: 
 @keyframes sway { from { transform: rotate(-4deg); } to { transform: rotate(4deg); } }
 .mob.lock::after { content: ""; position: absolute; left: -10px; right: -10px; top: -10px; bottom: -10px; border: 2px dashed #ff4a4a; border-radius: 50%; animation: lock .5s linear infinite; pointer-events: none; }
 @keyframes lock { to { transform: rotate(360deg); } }
+
+/* ---- 地形层级：重建地形时新元素追加在最后，用负 z-index 保证始终垫在角色 / 载具下面 ---- */
+.ground, .platform { z-index: -1; }
+
+/* ---- 载具韧性条：被打到 0 就爆炸 ---- */
+.tough { position: absolute; left: 30px; top: -22px; width: 180px; height: 12px; border-radius: 6px; background: rgba(14, 22, 48, .7); border: 1px solid rgba(255, 255, 255, .55); pointer-events: none; }
+.tough i { display: block; height: 100%; width: 100%; border-radius: 5px; background: linear-gradient(90deg, #4cd37b, #b8f08a); transition: width .15s; }
+.tough.mid i { background: linear-gradient(90deg, #f0b13a, #ffe27a); }
+.tough.low i { background: linear-gradient(90deg, #e0453a, #ff8a6a); animation: toughLow .5s steps(2) infinite; }
+.tough span { position: absolute; left: 0; right: 0; top: 14px; text-align: center; font-size: 11px; font-weight: 800; color: #fff; text-shadow: 0 1px 2px #000; white-space: nowrap; }
+.plane .tough { left: 10px; top: -20px; width: 180px; }
+@keyframes toughLow { 50% { opacity: .55; } }
+.veh.vhit, .plane.vhit { animation: vhit .25s; }
+@keyframes vhit { 25% { filter: brightness(2.2) saturate(.4); } }
+
+/* ---- Boss 测试：画布特效层 + 「破败的夕阳」主题（骑士一刀劈开世界之后） ---- */
+#fx { position: absolute; left: 0; top: 0; width: 1280px; height: 720px; pointer-events: none; }
+body.ruin #sky { background: linear-gradient(#14080f 0%, #5a1a22 60%, #8a2a26 100%) !important; }
+body.ruin #far, body.ruin #near { filter: grayscale(.6) brightness(.45) sepia(.6) hue-rotate(-30deg); }
+body.ruin .ground, body.ruin .platform { filter: grayscale(.5) brightness(.7) sepia(.3) hue-rotate(-20deg); }
+
+/* 坑：黑漆漆的深渊（不然会露出发白的天空） */
+.pit { background: linear-gradient(#2a2233, #07050c 40%, #000); z-index: -2; }

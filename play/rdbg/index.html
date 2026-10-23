@@ -12,12 +12,37 @@ body{font-family:"Noto Sans SC","Microsoft YaHei",sans-serif;color:#2b3350;min-h
 h1{margin:0;font-size:28px;letter-spacing:6px}
 p.sub{margin:6px 0 0;text-align:center;font-size:13px;color:#5b6684}
 .cards{display:flex;gap:22px;flex-wrap:wrap;justify-content:center}
-a.card{width:280px;padding:26px 22px;border-radius:18px;background:#fff;border:1px solid #aab6d4;text-decoration:none;color:inherit;
+.card{display:block;width:280px;font-family:inherit;padding:26px 22px;border-radius:18px;background:#fff;border:1px solid #aab6d4;text-decoration:none;color:inherit;
  box-shadow:0 6px 18px rgba(60,80,130,.15);transition:.18s;text-align:center}
-a.card:hover{transform:translateY(-5px);box-shadow:0 12px 26px rgba(60,80,130,.25);border-color:#5a4a9a}
-a.card .ico{font-size:46px;line-height:1}
-a.card h2{margin:12px 0 6px;font-size:20px}
-a.card p{margin:0;font-size:13px;line-height:1.6;color:#5b6684}
+.card:hover{transform:translateY(-5px);box-shadow:0 12px 26px rgba(60,80,130,.25);border-color:#5a4a9a}
+.card .ico{font-size:46px;line-height:1}
+.card h2{margin:12px 0 6px;font-size:20px}
+button.card{font:inherit;cursor:pointer;border:1px solid #aab6d4;background:#fff}
+/* 地图测试菜单 */
+.modal{position:fixed;inset:0;z-index:10;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(14,20,44,.0);backdrop-filter:blur(0);visibility:hidden;transition:background .25s,backdrop-filter .25s,visibility 0s .25s}
+.modal.on{background:rgba(14,20,44,.62);backdrop-filter:blur(6px);visibility:visible;transition:background .25s,backdrop-filter .25s}
+.panel{width:min(760px,100%);padding:28px 26px 22px;border-radius:24px;background:linear-gradient(#fbfcff,#eef2fb);border:1px solid #c3cde6;box-shadow:0 30px 70px rgba(10,16,40,.5);position:relative;transform:translateY(24px) scale(.94);opacity:0;transition:transform .32s cubic-bezier(.2,1.4,.4,1),opacity .2s}
+.modal.on .panel{transform:none;opacity:1}
+.panel h3{margin:0;font-size:26px;text-align:center;letter-spacing:6px}
+.panel .hint{margin:4px 0 20px;text-align:center;font-size:13px;color:#5b6684}
+.panel .x{position:absolute;right:14px;top:12px;width:34px;height:34px;border:0;border-radius:50%;background:rgba(90,100,140,.1);font-size:18px;color:#5b6684;cursor:pointer;transition:.15s}
+.panel .x:hover{background:rgba(200,60,80,.15);color:#c0394a;transform:rotate(90deg)}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.opt{position:relative;display:block;border-radius:20px;overflow:hidden;text-decoration:none;color:#fff;min-height:230px;border:2px solid transparent;box-shadow:0 10px 24px rgba(40,60,110,.28);transition:transform .22s cubic-bezier(.2,1.5,.4,1),box-shadow .22s,border-color .22s}
+.opt:hover,.opt:focus-visible{transform:translateY(-8px) scale(1.03);box-shadow:0 22px 40px rgba(40,60,110,.4);border-color:#fff;outline:0}
+.opt .art{position:absolute;inset:0;transition:transform .5s}
+.opt:hover .art{transform:scale(1.08)}
+.opt.veh .art{background:radial-gradient(circle at 70% 25%,rgba(255,255,255,.45),transparent 45%),linear-gradient(150deg,#3aa7ff,#1c56c9 60%,#12306e)}
+.opt.boss .art{background:radial-gradient(circle at 70% 25%,rgba(255,120,120,.5),transparent 45%),linear-gradient(150deg,#ff6a4a,#a0213f 60%,#2a0a1c)}
+.opt .big{position:absolute;right:14px;top:8px;font-size:92px;line-height:1;opacity:.95;filter:drop-shadow(0 6px 10px rgba(0,0,0,.35));transition:transform .4s}
+.opt:hover .big{transform:rotate(-8deg) scale(1.12)}
+.opt .txt{position:absolute;left:0;right:0;bottom:0;padding:18px 18px 16px;background:linear-gradient(transparent,rgba(0,0,0,.62) 55%)}
+.opt .tag{display:inline-block;padding:2px 10px;margin-bottom:6px;border-radius:999px;background:rgba(255,255,255,.22);font-size:11px;letter-spacing:2px;font-weight:700}
+.opt h2{margin:0 0 4px;font-size:22px;letter-spacing:2px}
+.opt p{margin:0;font-size:12.5px;line-height:1.55;opacity:.92}
+.opt kbd{position:absolute;left:12px;top:12px;min-width:26px;padding:2px 8px;border-radius:8px;background:rgba(0,0,0,.35);font:700 13px ui-monospace,Consolas,monospace;text-align:center}
+.foot{margin:16px 0 0;text-align:center;font-size:12px;color:#7a86a6}
+@media(max-width:620px){.opts{grid-template-columns:1fr}.opt{min-height:170px}}
 </style>
 </head>
 <body>
@@ -31,11 +56,56 @@ a.card p{margin:0;font-size:13px;line-height:1.6;color:#5b6684}
   <h2>查看动画</h2>
   <p>待机 / 行走 / 奔跑 / 跳跃 / 二段跳<br>教鞭 / 粉笔，可看判定框与时间轴</p>
  </a>
- <a class="card" href="hero/world.html">
+ <button class="card" id="mapBtn" type="button">
   <div class="ico">🗺️</div>
   <h2>地图测试</h2>
-  <p>长地图：跑跳战斗 · 装甲车 · 战机<br>战机可投弹轰炸、机枪打空中目标<br>支持键盘 / 触屏 / 手柄</p>
- </a>
+  <p>载具测试 · Boss 测试<br>点击选择要进入的测试地图<br>支持键盘 / 触屏 / 手柄</p>
+ </button>
 </div>
+<div class="modal" id="mapMenu" role="dialog" aria-modal="true" aria-label="地图测试菜单">
+ <div class="panel">
+  <button class="x" id="mapClose" type="button" aria-label="关闭">✕</button>
+  <h3>地图测试</h3>
+  <p class="hint">选一张测试地图出发</p>
+  <div class="opts">
+   <a class="opt veh" href="hero/world.html" id="optVeh">
+    <div class="art"></div><div class="big">🚙</div><kbd>1</kbd>
+    <div class="txt"><span class="tag">载具测试</span><h2>长地图</h2><p>跑跳战斗 · 装甲车 · 战机<br>战机可投弹轰炸、机枪打空中目标</p></div>
+   </a>
+   <a class="opt boss" href="hero/world.html?map=boss" id="optBoss">
+    <div class="art"></div><div class="big">⚔️</div><kbd>2</kbd>
+    <div class="txt"><span class="tag">BOSS 测试</span><h2>夕阳大道</h2><p>倦怠骑士（strong 加强版）· 无限公路<br>开局自带车和飞机，路上随机刷新载具，载具有韧性条</p></div>
+   </a>
+  </div>
+  <p class="foot">数字键 1 / 2 直接进入 · ← → 切换 · Enter 确认 · Esc 关闭</p>
+ </div>
+</div>
+<script>
+(function(){
+ var m=document.getElementById('mapMenu'),opts=[document.getElementById('optVeh'),document.getElementById('optBoss')],cur=0;
+ function on(v){m.classList.toggle('on',v);if(v){cur=cur||0;opts[cur].focus({preventScroll:true})}}
+ function pick(i){cur=(i+opts.length)%opts.length;opts[cur].focus({preventScroll:true})}
+ document.getElementById('mapBtn').onclick=function(){on(true)};
+ document.getElementById('mapClose').onclick=function(){on(false)};
+ m.addEventListener('click',function(e){if(e.target===m)on(false)});
+ addEventListener('keydown',function(e){
+  if(!m.classList.contains('on'))return;
+  if(e.key==='Escape')on(false);
+  else if(e.key==='1')location.href=opts[0].href;
+  else if(e.key==='2')location.href=opts[1].href;
+  else if(e.key==='ArrowLeft')pick(cur-1);
+  else if(e.key==='ArrowRight')pick(cur+1);
+ });
+ /* 手柄：十字键 / 摇杆左右选，A 确认，B 关闭 */
+ var pp=[];
+ (function poll(){var gp=navigator.getGamepads?navigator.getGamepads():[],p=null;for(var i=0;i<gp.length;i++)if(gp[i]&&gp[i].connected){p=gp[i];break}
+  if(p){var d=[p.axes[0]<-.5||p.buttons[14]&&p.buttons[14].pressed,p.axes[0]>.5||p.buttons[15]&&p.buttons[15].pressed,p.buttons[0]&&p.buttons[0].pressed,p.buttons[1]&&p.buttons[1].pressed];
+   if(!m.classList.contains('on')){if(d[2]&&!pp[2])on(true)}
+   else{if(d[0]&&!pp[0])pick(cur-1);if(d[1]&&!pp[1])pick(cur+1);if(d[2]&&!pp[2])location.href=opts[cur].href;if(d[3]&&!pp[3])on(false)}
+   pp=d}
+  requestAnimationFrame(poll)})();
+ if(/[?&]menu=map/.test(location.search))on(true);
+})();
+</script>
 </body>
 </html>

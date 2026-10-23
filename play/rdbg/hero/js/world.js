@@ -16,9 +16,10 @@
   /* 载具 */
   var SLAM_V = 1500, SLAM_R = 190;
   /* 战机：巡航速度恒定向前，按住前进方向加速，反方向 = 掉头；升降直接控制高度 */
-  var PL_CRUISE = 250, PL_FAST = 540, PL_BOOST = 800, PL_CLIMB = 340, PL_DIVE = 400, PL_CEIL = -520, PL_GUN_R = 820, PL_GUN_RATE = .075, BOMB_CD = .5, BOMB_G = 1500, BOMB_R = 175;
-  var V_MAX = 330, V_BOOST = 560, GUN_R = 620, GUN_RATE = .085, BOARD_R = 130;
+  var PL_CRUISE = 380, PL_FAST = 800, PL_BOOST = 1150, PL_CLIMB = 340, PL_DIVE = 400, PL_CEIL = -520, PL_GUN_R = 820, PL_GUN_RATE = .075, BOMB_CD = .5, BOMB_G = 1500, BOMB_R = 175;
+  var V_MAX = 520, V_BOOST = 900, GUN_R = 620, GUN_RATE = .085, BOARD_R = 130;
 
+  var BOSS = !!(window.WORLD_MAP && window.WORLD_MAP.boss && window.BossMode), ZOOM = BOSS ? BossMode.zoom : 1;     // Boss 测试：镜头缩小，让骑士的招式在屏幕里的大小和原版一致
   var q = {};
   location.search.replace(/^\?/, '').split('&').forEach(function (kv) { var a = kv.split('='); if (a[0]) q[a[0]] = decodeURIComponent(a[1] || ''); });
 
@@ -40,10 +41,22 @@
     if (w) d.style.width = w + 'px'; if (h) d.style.height = h + 'px';
     (parent || world).appendChild(d); return d;
   }
-  box('ground', 0, M.groundY, M.width, 600);
-  M.platforms.forEach(function (p) { box('platform', p.x, p.y, p.w, 28); });
+  /* 地形：地面按「坑」切成几段，平台单独一块；Boss 战里骑士会改地形，所以可以重建 */
+  var terrainEls = [];
+  function buildTerrain() {
+    terrainEls.forEach(function (e) { e.remove(); }); terrainEls = [];
+    var x = 0;
+    (M.holes || []).slice().sort(function (a, b) { return a.x0 - b.x0; }).concat([{ x0: M.width, x1: M.width }]).forEach(function (h) {
+      if (h.x0 > x) terrainEls.push(box('ground', x, M.groundY, h.x0 - x, 600));
+      if (h.x1 > h.x0) terrainEls.push(box('pit', h.x0, M.groundY, h.x1 - h.x0, 600));
+      x = Math.max(x, h.x1);
+    });
+    M.platforms.forEach(function (p) { terrainEls.push(box('platform', p.x, p.y, p.w, 28)); });
+  }
+  buildTerrain();
+  function inHole(x) { var hs = M.holes; if (!hs) return false; for (var i = 0; i < hs.length; i++) if (x >= hs[i].x0 && x <= hs[i].x1) return true; return false; }
   M.signs.forEach(function (s) { var d = box('sign', s.x - 48, M.groundY - 120); d.appendChild(document.createElement('span')).textContent = s.text; });
-  box('flag', M.goal.x - 14, M.groundY - 214);
+  if (M.goal) box('flag', M.goal.x - 14, M.groundY - 214);
 
   var dummies = M.dummies.map(function (d) {
     var y = d.y == null ? M.groundY : d.y, el = box('dummy', d.x - 45, y - 130);
@@ -81,6 +94,69 @@
   var planes = (M.planes || []).map(function (p) { return new Plane(world, p.x, M.groundY - Plane.GEAR, 'svg/world/'); });
   var vprompt = box('vprompt', 0, 0); vprompt.style.display = 'none';
 
+  /* ---------- 载具韧性条：被打到 0 就爆炸（车 80、飞机 48；骑士的招式是 1~3 点，数值不做平衡） ---------- */
+  var TOUGH = { car: 80, plane: 48 };
+  function toughUpdate(v) {
+    var f = Math.max(0, v.hp / v.max);
+    v.bar.firstChild.style.width = (f * 100).toFixed(1) + '%';
+    v.bar.className = 'tough' + (f <= .34 ? ' low' : f <= .67 ? ' mid' : '');
+    v.bar.lastChild.textContent = '韧性 ' + Math.max(0, Math.ceil(v.hp)) + ' / ' + v.max;
+  }
+  function initTough(v) {
+    v.max = v.isPlane ? TOUGH.plane : TOUGH.car; v.hp = v.max; v.dead = false; v.hurtT = 0; v.deadT = 0;
+    v.bar = document.createElement('div'); v.bar.className = 'tough'; v.bar.innerHTML = '<i></i><span></span>'; v.el.appendChild(v.bar); toughUpdate(v);
+  }
+  vehicles.concat(planes).forEach(initTough);
+
+  /* ---------- 路上随机刷新载具（地图数据里 vehSpawn: true 才开启）：同时最多 3 台没人开的，炸了会补 ---------- */
+  var spawnT = 6;
+  function parkedCount() { return vehicles.concat(planes).filter(function (v) { return !v.dead && v !== driving && v !== piloting; }).length; }
+  function spawnVehicleStep(dt) {
+    if (!M.vehSpawn) return;
+    spawnT -= dt;
+    if (spawnT > 0) return;
+    spawnT = 9 + Math.random() * 7;
+    if (parkedCount() >= 3 || driving || piloting || mount) return;
+    var plane = Math.random() < .42, dir = Math.random() < .72 ? (hero.facing || 1) : -(hero.facing || 1), x = 0, ok = false, i, j;
+    for (i = 0; i < 12 && !ok; i++) {
+      x = P.x + dir * (650 + Math.random() * 900);
+      if (x < 160 || x > M.width - 160 || inHole(x - 200) || inHole(x) || inHole(x + 200)) continue;
+      ok = true;
+      vehicles.concat(planes).forEach(function (v) { if (!v.dead && Math.abs(v.x - x) < 420) ok = false; });
+    }
+    if (!ok) return;
+    var v = plane ? new Plane(world, x, M.groundY - Plane.GEAR, 'svg/world/') : new Vehicle(world, x, M.groundY, 'svg/world/');
+    v.facing = dir; v.vx = 0; v.vy = 0; if (plane) { v.vx = 0; planes.push(v); } else vehicles.push(v);
+    initTough(v);
+    for (j = 0; j < 8; j++) Vehicle.puff(world, x + (Math.random() - .5) * 220, M.groundY - 10 - Math.random() * 40, 18 + Math.random() * 20, (Math.random() - .5) * 120);
+    Sfx.play('board');
+    toast((dir > 0 ? '前方' : '后方') + '出现了一' + (plane ? '架战机' : '辆装甲车') + '！');
+  }
+  function damageVehicle(v, n) {
+    if (!v || v.dead || v.hurtT > 0) return;
+    v.hp -= n; v.hurtT = .5; toughUpdate(v);
+    pop(v.x, v.y - (v.isPlane ? 110 : 170), '-' + n, 'red'); Sfx.play('hurt'); shake = Math.max(shake, .2); hitstop = Math.max(hitstop, .03);
+    v.el.classList.remove('vhit'); void v.el.offsetWidth; v.el.classList.add('vhit');
+    if (v.hp <= 0) blowVehicle(v);
+  }
+  function blowVehicle(v) {
+    if (v.dead) return;
+    v.dead = true; v.hp = 0; toughUpdate(v);
+    explode(v.x, v.isPlane ? v.y + 30 : v.y - 20, true);
+    for (var i = 0; i < 10; i++) Vehicle.puff(world, v.x + (Math.random() - .5) * 200, v.y - 30 - Math.random() * 80, 24 + Math.random() * 26, (Math.random() - .5) * 160);
+    v.el.style.display = 'none';
+    if (v === driving) {                                       // 车炸了：人被气浪掀出来
+      driving = null; gunT = 0; v.aim(null); hero.el.style.display = '';
+      P.x = v.x; P.y = M.groundY - 60; P.vy = -620; P.vx = -v.facing * 240; P.on = false; P.air = 1; P.coyote = 0; invuln = 1.5;
+      $('vhud').style.display = 'none';
+    } else if (v === piloting) {                               // 飞机炸了：跳伞
+      piloting = null; pgunT = 0; setLock(null); hero.el.style.display = '';
+      P.x = v.x; P.y = v.y - 20; P.vy = -300; P.vx = 0; P.on = false; P.air = 1; P.coyote = 0; invuln = 1.5;
+      Controls.relabel(null); $('vhud').style.display = 'none';
+    }
+    toast((v.isPlane ? '战机' : '装甲车') + '被炸毁了！');
+  }
+
   /* ---------- 角色 ---------- */
   var chalks = [];
   var hero = new Hero(world, { scale: SCALE, base: 'svg/', onEvent: function (name, d) {
@@ -93,6 +169,7 @@
 
   var P = { slam: false, x: +q.at || M.spawn.x, y: M.groundY, vx: 0, vy: 0, on: true, platform: null, dropT: 0, coyote: 0, jumpBuf: 0, air: 0, wasOn: true };
   var keys = {}, dashCharge = 2, dashT = 0, dashDir = 1, ghostT = 0, driveBoost = 0, atkBuf = null, atkT = 0, driving = null, mount = null, piloting = null, bombs = [], bombT = 0, pgunT = 0, lockEl = null, gunT = 0, bullets = [], ko = 0, camX = 0, camY = 0, hitstop = 0, shake = 0, finished = false, slamId = 0, trailT = 0, engOn = false;
+  var frozen = false;                                          // Boss 开场演出：玩家被定住
   var HP_MAX = 100, SH_MAX = 50, hp = HP_MAX, shield = 0, invuln = 0, hpShown = HP_MAX, shShown = 0;
 
   /* ---------- 输入 ----------
@@ -134,6 +211,7 @@
   /* fx：0 普通命中　1 机枪（轻，不顿帧）　2 撞击（重）　3 俯冲重击　4 炸弹 */
   function hurt(d, n, fx) {
     if (d.hp <= 0) return;
+    if (d.isBoss) { BossMode.hurt(d, n, fx); return; }
     n = n || 1; d.hp = Math.max(0, d.hp - n);
     if (!fx) { hitstop = .05; shake = .12; } else if (fx === 2) { hitstop = .07; shake = .3; } else if (fx === 3) { hitstop = .05; shake = .2; } else if (fx === 4) { hitstop = .06; shake = .35; }
     Sfx.play(fx === 2 ? 'ram' : 'hit');
@@ -181,6 +259,7 @@
   function nearVehicle() {
     var best = null, bd = BOARD_R;
     vehicles.concat(planes).forEach(function (v) {
+      if (v.dead) return;
       var d = Math.abs(v.x - P.x) - (v.isPlane ? 70 : 0);
       if (v.isPlane && (v === piloting || v.y < M.groundY - Plane.GEAR - 4)) return;     // 空中的飞机上不去
       if (d < bd && P.y > M.groundY - 120) { bd = d; best = v; }
@@ -229,7 +308,7 @@
     }
   }
   function driveStep(dt) {
-    var v = driving, dir = (keys.right ? 1 : 0) - (keys.left ? 1 : 0), i, d;
+    var v = driving, dir = frozen ? 0 : (keys.right ? 1 : 0) - (keys.left ? 1 : 0), i, d;
     driveBoost = Math.max(0, driveBoost - dt);
     var boost = driveBoost > 0;
     var rate = dir ? (v.vx * dir < 0 ? 6 : 3.4) : 2.4;          // 车身重：起步慢、有惯性
@@ -281,6 +360,8 @@
   }
   function vehiclesStep(dt) {
     vehicles.forEach(function (v) {
+      if (v.dead) { if ((v.deadT += dt) > 3 && v.el.parentNode) { v.el.remove(); } return; }
+      v.hurtT = Math.max(0, v.hurtT - dt);
       if (v === driving) v.update(dt, { vx: v.vx || 0, driven: true });
       else { v.vx = (v.vx || 0) * Math.exp(-dt * 3); if (Math.abs(v.vx) < 2) v.vx = 0; v.x += v.vx * dt; v.update(dt, { vx: v.vx, driven: false }); }
     });
@@ -300,7 +381,7 @@
   /* ---------- 战机 ---------- */
   function planeGrounded(pl) { return pl.y >= M.groundY - Plane.GEAR - 1; }
   function flyStep(dt) {
-    var pl = piloting, dir = (keys.right ? 1 : 0) - (keys.left ? 1 : 0), up = (keys.jump ? 1 : 0) - (keys.down ? 1 : 0);
+    var pl = piloting, dir = frozen ? 0 : (keys.right ? 1 : 0) - (keys.left ? 1 : 0), up = frozen ? 0 : (keys.jump ? 1 : 0) - (keys.down ? 1 : 0);
     driveBoost = Math.max(0, driveBoost - dt);
     var air = !planeGrounded(pl) || up > 0;
     if (dir) pl.facing = dir;
@@ -349,12 +430,12 @@
     bombs.push({ el: el, x: pl.x - pl.facing * 10, y: pl.y + 58, vx: pl.vx * .95, vy: 80 });
     Sfx.play('drop');
   }
-  function explode(x, y) {
+  function explode(x, y, harmless) {
     hitstop = Math.max(hitstop, .07); shake = .45; Sfx.play('bomb');
     var fire = box('boom', x - 75, y - 75); fire.addEventListener('animationend', function () { fire.remove(); });
     var ring = box('shock', x, y - 4); ring.addEventListener('animationend', function () { ring.remove(); });
     for (var i = 0; i < 12; i++) Vehicle.puff(world, x + (Math.random() - .5) * 90, y - 10 - Math.random() * 40, 16 + Math.random() * 20, (i < 6 ? -1 : 1) * (40 + Math.random() * 120));
-    dummies.forEach(function (d) {
+    if (!harmless) dummies.forEach(function (d) {
       if (d.hp <= 0) return;
       var dx = d.x - x, dy = (d.y - (d.h || 125) / 2) - y;
       if (dx * dx + dy * dy < BOMB_R * BOMB_R) hurt(d, 3, 4);
@@ -380,6 +461,8 @@
   function planesStep(dt) {
     bombT -= dt;
     planes.forEach(function (pl) {
+      if (pl.dead) { if ((pl.deadT += dt) > 3 && pl.el.parentNode) pl.el.remove(); return; }
+      pl.hurtT = Math.max(0, pl.hurtT - dt);
       if (pl !== piloting) {                                      // 没人驾驶：惯性滑行，空中就坠落到地面
         pl.vx *= Math.exp(-dt * 2);
         pl.x = Math.max(90, Math.min(M.width - 90, pl.x + pl.vx * dt));
@@ -411,7 +494,8 @@
 
   function step(dt) {
     if (mount) { mountStep(dt); return; }
-    var dir = (keys.right ? 1 : 0) - (keys.left ? 1 : 0), atk = hero.isAttacking();
+    var dir = frozen ? 0 : (keys.right ? 1 : 0) - (keys.left ? 1 : 0), atk = hero.isAttacking();
+    if (frozen) { P.jumpBuf = 0; atkBuf = null; }
     if (atkBuf && (atkT -= dt) <= 0) atkBuf = null;
     if (atkBuf && !atk && hero.attack(atkBuf)) { if (atkBuf === 'melee') Sfx.play('swing'); atkBuf = null; atk = true; }
     var slow = atk ? (hero.attackName() === 'melee' ? .6 : .8) : 1;
@@ -450,15 +534,19 @@
       P.vy = Math.min(MAX_FALL, P.vy + g * dt);
     }
 
-    var prevY = P.y;
+    var prevY = P.y, prevX = P.x;
     P.x = Math.max(24, Math.min(M.width - 24, P.x + P.vx * dt));
     P.y += P.vy * dt;
     P.dropT -= dt;
 
     P.on = false; P.platform = null;
     var land = P.vy;
-    if (P.y >= M.groundY) { P.y = M.groundY; P.vy = 0; P.on = true; }
-    else if (P.vy >= 0 && P.dropT <= 0) {
+    if (P.y > M.groundY + 10 && M.holes) {                     // 掉进坑里：两侧是墙，出不去；掉到底就被送回最近的地面
+      for (var hi = 0; hi < M.holes.length; hi++) { var hh = M.holes[hi]; if (prevX > hh.x0 && prevX < hh.x1) { P.x = Math.max(hh.x0 + 22, Math.min(hh.x1 - 22, P.x)); break; } }
+      if (P.y > M.groundY + 520) fallRescue();
+    }
+    if (P.y >= M.groundY && prevY <= M.groundY + 8 && !inHole(P.x)) { P.y = M.groundY; P.vy = 0; P.on = true; }
+    else if (P.y < M.groundY + 10 && P.vy >= 0 && P.dropT <= 0) {
       for (var i = 0; i < M.platforms.length; i++) {
         var p = M.platforms[i];
         if (P.x >= p.x - 6 && P.x <= p.x + p.w + 6 && prevY <= p.y + 1 && P.y >= p.y) { P.y = p.y; P.vy = 0; P.on = true; P.platform = p; break; }
@@ -493,18 +581,26 @@
     $('hpwrap').classList.remove('hit'); void $('hpwrap').offsetWidth; $('hpwrap').classList.add('hit');
     if (hp <= 0) die();
   }
+  function fallRescue() {
+    var x = P.x, i;
+    for (i = 0; i < 60; i++) { var c = P.x + (i % 2 ? 1 : -1) * Math.ceil(i / 2) * 60; if (c > 80 && c < M.width - 80 && !inHole(c - 60) && !inHole(c) && !inHole(c + 60)) { x = c; break; } }
+    P.x = x; P.y = M.groundY; P.vx = 0; P.vy = 0; P.on = true; P.air = 0; invuln = 1.5;
+    hp = Math.max(1, hp - 10); pop(P.x, P.y - 200, '-10', 'red'); toast('掉进坑里了！'); Sfx.play('hurt');
+  }
   function die() {                                             // 倒下：回到最近的路牌检查点，满血、清盾
     var cp = M.spawn.x;
-    M.signs.forEach(function (sg) { if (sg.x <= P.x && sg.x > cp) cp = sg.x; });
-    toast('倒下了！回到检查点');
+    if (BOSS) cp = BossMode.onPlayerDeath();
+    else M.signs.forEach(function (sg) { if (sg.x <= P.x && sg.x > cp) cp = sg.x; });
+    toast(BOSS ? '倒下了！骑士缓过了一口气……' : '倒下了！回到检查点');
     P.x = cp; P.y = M.groundY; P.vx = 0; P.vy = 0; P.on = true; P.air = 0;
     hp = HP_MAX; shield = 0; invuln = 2;
-    camX = Math.max(0, Math.min(M.width - VW, P.x - VW / 2)); camY = 0;
+    camX = Math.max(0, Math.min(M.width - VW / ZOOM, P.x - VW / ZOOM / 2)); camY = BOSS ? M.groundY - VH / ZOOM * .83 : 0;
   }
   function mobsStep(dt) {
     var i, d, m, dx, dy, tx, ty, dir;
     for (i = 0; i < dummies.length; i++) {
       d = dummies[i]; m = d.mob;
+      if (d.isBoss) continue;
       if (m && d.hp <= 0 && m.air && !d.gone && d.y < M.groundY) {            // 被击落的空中目标掉下来
         d.fy = (d.fy || 0) + 1000 * dt; d.y = Math.min(M.groundY, d.y + d.fy * dt);
         d.el.style.top = (d.y - d.h) + 'px';
@@ -540,7 +636,7 @@
       o.life -= dt; o.x += o.vx * dt; o.y += o.vy * dt;
       o.el.style.transform = 'translate(' + o.x.toFixed(1) + 'px,' + o.y.toFixed(1) + 'px)';
       gone = o.life <= 0 || o.y >= M.groundY || o.x < 0 || o.x > M.width;
-      if (!gone && Math.abs(o.x - P.x) < 26 && Math.abs(o.y - (P.y - 60)) < 60) { if (!driving) hurtPlayer(12, o.vx > 0 ? 1 : -1); gone = true; }
+      if (!gone && Math.abs(o.x - P.x) < 26 && Math.abs(o.y - (P.y - 60)) < 60) { if (driving || piloting) damageVehicle(driving || piloting, 2); else hurtPlayer(12, o.vx > 0 ? 1 : -1); gone = true; }
       if (gone) { o.el.remove(); orbs.splice(i, 1); }
     }
   }
@@ -607,18 +703,20 @@
     }
   }
 
+  var camSX = 0, camSY = 0;
   function camera(dt) {
-    var tx = Math.max(0, Math.min(M.width - VW, P.x - VW / 2 + hero.facing * 90));
+    var vw = VW / ZOOM, vh = VH / ZOOM;
+    var tx = Math.max(0, Math.min(M.width - vw, P.x - vw / 2 + hero.facing * 90 / ZOOM));
     camX += (tx - camX) * (1 - Math.exp(-dt * 9));
-    var ty = Math.min(0, P.y - 470);                           // 爬塔：玩家升到屏幕上部时镜头跟着上移
+    var ty = BOSS ? Math.min(M.groundY - vh * .83, P.y - vh * .6) : Math.min(0, P.y - 470);   // 爬塔 / 飞高：玩家升到屏幕上部时镜头跟着上移
     camY += (ty - camY) * (1 - Math.exp(-dt * (ty < camY ? 5 : 3)));
     shake = Math.max(0, shake - dt);
-    var sx = shake ? (Math.random() - .5) * 7 : 0, sy = shake ? (Math.random() - .5) * 5 : 0;
-    world.style.transform = 'translate(' + (-camX + sx).toFixed(1) + 'px,' + (sy - camY).toFixed(1) + 'px)';
+    camSX = shake ? (Math.random() - .5) * 7 / ZOOM : 0; camSY = shake ? (Math.random() - .5) * 5 / ZOOM : 0;
+    world.style.transform = 'scale(' + ZOOM + ') translate(' + (-camX + camSX).toFixed(1) + 'px,' + (camSY - camY).toFixed(1) + 'px)';
     /* 远近景山丘跟着地面一起下沉（否则地面出画后山丘下面会露出一条白天空），天空随高度变深 */
-    var lift = Math.max(0, -camY);
-    $('far').style.backgroundPosition = (-camX * .12).toFixed(1) + 'px 0';
-    $('near').style.backgroundPosition = (-camX * .35).toFixed(1) + 'px 0';
+    var lift = Math.max(0, (M.groundY - camY) * ZOOM - M.groundY);
+    $('far').style.backgroundPosition = (-camX * .12 * ZOOM).toFixed(1) + 'px 0';
+    $('near').style.backgroundPosition = (-camX * .35 * ZOOM).toFixed(1) + 'px 0';
     $('far').style.transform = 'translateY(' + (lift * .9).toFixed(1) + 'px)';
     $('near').style.transform = 'translateY(' + lift.toFixed(1) + 'px)';
     $('sky').style.backgroundPositionY = (100 - Math.min(100, lift / 12)).toFixed(1) + '%';
@@ -626,13 +724,18 @@
 
   /* ---------- 主循环 ---------- */
   var last = performance.now();
-  camX = Math.max(0, Math.min(M.width - VW, P.x - VW / 2));
+  camX = Math.max(0, Math.min(M.width - VW / ZOOM, P.x - VW / ZOOM / 2)); camY = BOSS ? M.groundY - VH / ZOOM * .83 : 0;
   function frame(now) {
     var dt = Math.min(.033, (now - last) / 1000); last = now;
     if (hitstop > 0) { hitstop -= dt; dt = 0; }
     if (Controls.paused()) dt = 0;                             // 设置面板打开时暂停
+    if (BOSS) frozen = BossMode.frozen();
     if (piloting) flyStep(dt); else if (driving) driveStep(dt); else step(dt);
-    combat(dt); vehiclesStep(dt); mobsStep(dt); pickupsStep(dt); vitalsStep(dt); camera(dt);
+    combat(dt); vehiclesStep(dt); mobsStep(dt); pickupsStep(dt); vitalsStep(dt);
+    if (BOSS && dt > 0) BossMode.update(dt);
+    if (dt > 0) spawnVehicleStep(dt);
+    camera(dt);
+    if (BOSS) BossMode.draw();
     rechargeDash(dt);
     for (var si = 0; si < 2; si++) {
       var seg = $('stam').children[si], fill = Math.max(0, Math.min(1, dashCharge - si));
@@ -641,8 +744,31 @@
 
     $('dist').textContent = Math.round(P.x / 5) + ' m';
     heroMark.style.left = P.x / M.width * 100 + '%';
-    if (!finished && P.x >= M.goal.x - 30) { finished = true; toast('到达终点！  击倒 ' + ko + ' / ' + dummies.length); }
+    if (M.goal && !finished && P.x >= M.goal.x - 30) { finished = true; toast('到达终点！  击倒 ' + ko + ' / ' + dummies.length); }
     requestAnimationFrame(frame);
   }
   requestAnimationFrame(frame);
+
+  if (BOSS) BossMode.init({
+    M: M, world: world, hero: hero, dummies: dummies,
+    get P() { return P; },
+    sfx: function (n) { Sfx.play(n); }, toast: toast, pop: pop,
+    shake: function (v) { shake = Math.max(shake, v); }, hitstop: function (v) { hitstop = Math.max(hitstop, v); },
+    shakeOff: function () { return { x: camSX, y: camSY }; },
+    camX: function () { return camX; }, camY: function () { return camY; },
+    rider: function () { return driving || piloting || null; },
+    vehiclesList: function () { return vehicles.concat(planes); },
+    invuln: function () { return invuln; }, vehInv: function () { var r = driving || piloting; return r ? r.hurtT : 0; },
+    dashCharge: function () { return dashCharge; }, setDashCharge: function (v) { dashCharge = v; }, dashing: function () { return dashT > 0; },
+    setFrozen: function (f) { frozen = f; },
+    hurtPlayer: hurtPlayer, damageVehicle: damageVehicle, blowVehicle: blowVehicle,
+    rebuildTerrain: buildTerrain,
+    /* 骑士「无限公路」的接缝：整个世界平移 sh 像素 */
+    shiftWorld: function (sh) {
+      P.x += sh; camX += sh;
+      vehicles.concat(planes).forEach(function (v) { v.x += sh; });
+      [bullets, bombs, chalks, orbs].forEach(function (arr) { arr.forEach(function (o) { o.x += sh; }); });
+      pickups.forEach(function (o) { o.x += sh; });
+    }
+  });
 })();

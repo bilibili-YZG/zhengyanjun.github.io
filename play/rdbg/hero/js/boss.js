@@ -172,6 +172,7 @@
 
   window.BossMode = {
     zoom: ZOOM, init: init, update: update, draw: draw, hurt: hurt, onPlayerDeath: onPlayerDeath,
-    frozen: function () { return proxy.frozen > 0; }
+    frozen: function () { return proxy.frozen > 0; },
+    started: function () { return !!(b && b.started); }
   };
 })();

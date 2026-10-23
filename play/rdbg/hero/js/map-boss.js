@@ -7,6 +7,7 @@
   var PERIOD = 6400, SPAWN = PERIOD + 400;
   var M = {
     boss: true,
+    vehSpawn: true,                        // 路上随机刷新载具
     width: PERIOD * 4,
     groundY: 600,
     spawn: { x: SPAWN },
