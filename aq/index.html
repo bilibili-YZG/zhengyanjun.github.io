@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>郑艳军理论 · 双人PK赛</title>
+  <link rel="icon" href="/icon.png" type="image/png">
+  <style>
+    :root {
+      --bg: #0f172a;
+      --blue: #3b82f6;
+      --red: #ef4444;
+      --yellow: #fde047;
+      --text: #f8fafc;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      overflow-x: hidden;
+      background: radial-gradient(circle at 50% 30%, #1e293b, #0f172a 70%);
+      color: var(--text);
+      font-family: "Noto Sans SC", Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem 6rem;
+    }
+    .logo {
+      font-size: 5rem;
+      font-weight: 900;
+      font-style: italic;
+      background: linear-gradient(90deg, var(--blue), var(--red));
+      color: transparent;
+      background-clip: text;
+      -webkit-background-clip: text;
+      margin-bottom: 1rem;
+      letter-spacing: .04em;
+    }
+    .title {
+      font-size: 3rem;
+      font-weight: 900;
+      letter-spacing: .04em;
+      margin: 0 0 1rem;
+      text-align: center;
+    }
+    .subtitle {
+      color: #94a3b8;
+      font-size: 1.2rem;
+      margin-bottom: 3rem;
+      letter-spacing: .1em;
+    }
+    .options {
+      display: flex;
+      gap: 2rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .option {
+      width: min(300px, 80vw);
+      padding: 2.5rem 2rem;
+      border-radius: 24px;
+      border: 3px solid #ffffff22;
+      background: #ffffff0d;
+      cursor: pointer;
+      transition: all .25s ease;
+      text-align: center;
+      color: var(--text);
+      font-family: inherit;
+    }
+    .option:hover { transform: translateY(-6px); }
+    .option.blue:hover {
+      border-color: #60a5fa;
+      box-shadow: 0 0 40px #3b82f655;
+      background: #3b82f620;
+    }
+    .option.red:hover {
+      border-color: #f87171;
+      box-shadow: 0 0 40px #ef444455;
+      background: #ef444420;
+    }
+    .option .icon { font-size: 3.5rem; margin-bottom: 1rem; display: block; }
+    .option .name { font-size: 1.8rem; font-weight: 900; margin-bottom: .5rem; }
+    .option .desc { font-size: .95rem; color: #94a3b8; line-height: 1.5; }
+
+    /* 附属按钮：我要下棋 */
+    .go-chess-btn {
+      position: fixed;
+      left: 50%;
+      bottom: 2rem;
+      transform: translateX(-50%);
+      padding: .8rem 2.4rem;
+      border-radius: 999px;
+      font-size: .95rem;
+      font-weight: 800;
+      color: #cbd5e1;
+      text-decoration: none;
+      background: #ffffff0d;
+      border: 1px solid #ffffff22;
+      letter-spacing: .1em;
+      transition: all .25s ease;
+      z-index: 100;
+      backdrop-filter: blur(6px);
+    }
+    .go-chess-btn:hover {
+      color: #fff;
+      border-color: #fde047aa;
+      background: #fde0471a;
+      box-shadow: 0 0 30px #fde04755;
+      transform: translateX(-50%) translateY(-3px);
+    }
+
+    @media (max-width: 700px) {
+      .title { font-size: 2rem; }
+      .logo { font-size: 3.5rem; }
+      .subtitle { font-size: 1rem; margin-bottom: 2rem; }
+      .option { padding: 1.8rem 1.2rem; }
+      .option .name { font-size: 1.4rem; }
+      .option .icon { font-size: 2.5rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="logo">VS</div>
+  <h1 class="title">郑艳军理论 · 双人PK赛</h1>
+  <p class="subtitle">请选择你的比赛版本</p>
+
+  <div class="options">
+    <button class="option blue" onclick="location.href='/aq/muspk/'">
+      <span class="icon">🎵</span>
+      <div class="name">有音乐版</div>
+      <div class="desc">超然尾杀</div>
+    </button>
+
+    <button class="option red" onclick="location.href='/aq/nmuspk/'">
+      <span class="icon">🔇</span>
+      <div class="name">无音乐版</div>
+      <div class="desc">雪豹闭嘴</div>
+    </button>
+  </div>
+</body>
+</html>

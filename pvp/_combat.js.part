@@ -1,0 +1,137 @@
+    /* ============================================================
+       战斗动作
+       ============================================================ */
+    function performAttack(p) {
+        if (state.gameOver || state.paused) return;
+        var now = Date.now();
+        if (now - p.lastAttackTime < ATTACK_CD) return;
+        if (p.isInAction || p.isCrouching) return;
+        if (p.stunUntil && now < p.stunUntil) return;   // 硬直中无法出手
+
+        p.lastAttackTime = now;
+        p.isInAction = true;
+        p.isMoving = false;
+        p.currentState = 'attack';
+        p.lockedFacing = p.facing;     // 锁定出手朝向
+        p.cancelableAt = now + CANCEL_WINDOW;  // 收招前可取消接技能（连段）
+
+        playSound(charOf(p).sound.attack);
+
+        var opponent = otherPlayer(p);
+        setTimeout(function () {
+            if (state.gameOver) return;
+            if (checkAttackHit(p, opponent)) {
+                var dmg = Math.round(ATTACK_DMG * damageMul(p));
+                if (opponent.isCrouching) dmg = Math.round(dmg * (1 - CROUCH_REDUCTION));
+                dealDamage(opponent, dmg, p, false);
+            }
+        }, 200);
+
+        setTimeout(function () {
+            if (state.gameOver) return;
+            p.isInAction = false;
+            p.currentState = 'idle';
+            p.lockedFacing = null;
+        }, 400);
+    }
+
+    function useSkill(p, skillKey) {
+        if (state.gameOver || state.paused) return;
+        var cfg = charOf(p);
+        var skill = null;
+        for (var i = 0; i < cfg.skills.length; i++) {
+            if (cfg.skills[i].key === skillKey) { skill = cfg.skills[i]; break; }
+        }
+        if (!skill) return;
+
+        var now = Date.now();
+        if (now - p.lastSkillTime < SKILL_CD) return;
+        if (p.energy < skill.cost) return;
+        if (p.isCrouching) return;
+        if (p.stunUntil && now < p.stunUntil) return;
+        // 允许「普攻取消接技能」：攻击收招前可以打断自己接技能（连段）
+        var inAttack = p.isInAction && p.currentState === 'attack';
+        if (p.isInAction && !(inAttack && now < p.cancelableAt)) return;
+
+        p.lastSkillTime = now;
+        p.isInAction = true;
+        p.isMoving = false;
+        p.currentState = skill.key;
+        p.lockedFacing = p.facing;
+        p.skillReadyAt[skill.key] = now + SKILL_CD;
+        p.cancelableAt = Infinity;   // 技能不可被取消
+
+        playSound(cfg.sound[skill.key]);
+
+        // 消耗能量（不再返还，修复"技能几乎免费"）
+        p.energy = Math.max(0, p.energy - skill.cost);
+
+        var opponent = otherPlayer(p);
+        setTimeout(function () {
+            if (state.gameOver) return;
+            if (checkAttackHit(p, opponent, skill.range)) {
+                var dmg = Math.round(skill.damage * damageMul(p));
+                if (opponent.isCrouching) dmg = Math.round(dmg * (1 - CROUCH_REDUCTION));
+                dealDamage(opponent, dmg, p, true);
+                p.energy = Math.min(MAX_ENERGY, p.energy + energyGain(p, ENERGY_PER_SKILL_HIT));
+            }
+        }, skill.hit);
+
+        setTimeout(function () {
+            if (state.gameOver) return;
+            p.isInAction = false;
+            p.currentState = 'idle';
+            p.lockedFacing = null;
+        }, skill.anim);
+    }
+
+    /* 命中定格：双方同时静止一小会儿，制造"打到了"的实感 */
+    function applyHitstop(ms) {
+        state.hitstopUntil = Math.max(state.hitstopUntil || 0, Date.now() + ms);
+    }
+
+    /* 屏幕震动 */
+    function shake(amount) {
+        state.shakeUntil = Date.now() + 180;
+        state.shakeAmount = amount;
+    }
+
+    function dealDamage(target, damage, attacker, isSkill) {
+        // 连击递减：连段越久单发伤害越低（鼓励换血节奏而非无限连）
+        var now = Date.now();
+        if (now < attacker.comboUntil) attacker.combo++;
+        else attacker.combo = 1;
+        attacker.comboUntil = now + COMBO_WINDOW;
+
+        var falloff = Math.max(COMBO_MIN_DAMAGE, 1 - (attacker.combo - 1) * COMBO_DAMAGE_STEP);
+        var finalDmg = Math.max(1, Math.round(damage * falloff));
+
+        target.hp = Math.max(0, target.hp - finalDmg);
+        targetDom(target).classList.add('hit-flash');
+        setTimeout(function () { targetDom(target).classList.remove('hit-flash'); }, 150);
+        floatText(target, '-' + finalDmg);
+
+        if (attacker.combo >= 2) floatText(target, attacker.combo + ' HIT', 'combo-text');
+
+        /* 命中定格 + 震屏 */
+        applyHitstop(isSkill ? HITSTOP_SKILL : HITSTOP);
+        shake(isSkill ? SCREEN_SHAKE_SKILL : SCREEN_SHAKE);
+
+        /* 受击硬直：站着不动，不能边挨打边打 */
+        target.stunUntil = now + (isSkill ? HIT_STUN_SKILL : HIT_STUN);
+        target.currentState = 'hit';
+        target.isInAction = false;
+        target.lockedFacing = null;
+        target.isMoving = false;
+
+        /* 击退 */
+        var dir = target.x >= attacker.x ? 1 : -1;
+        target.kbVel = dir * (isSkill ? KNOCKBACK_SKILL : KNOCKBACK);
+
+        /* 能量收支（按角色乘数结算，保证双人对称） */
+        target.energy = Math.min(MAX_ENERGY, target.energy + energyGain(target, ENERGY_PER_BEHIT));
+        attacker.energy = Math.min(MAX_ENERGY, attacker.energy + energyGain(attacker, ENERGY_PER_HIT));
+
+        updateUI();
+        if (target.hp <= 0) triggerGameOver(attacker);
+    }

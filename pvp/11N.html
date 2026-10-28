@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>清学拳皇88 · 无音乐版</title>
+    <link rel="icon" href="/icon.png" type="image/png">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="game-container">
+        <div id="top-bar">
+            <div class="status">
+                <div class="char-name"><span id="p1-tag" class="tag">1P</span><span id="p1-name">郑艳军</span></div>
+                <div class="hp-bar-container"><div class="hp-bar" id="p1-hp"></div></div>
+                <div class="energy-bar-container"><div class="energy-bar" id="p1-energy"></div></div>
+                    <div class="guard-bar-container"><div class="guard-bar" id="p1-guard"></div></div>
+            </div>
+            <div id="vs-info">
+                <div id="vs-text">VS</div>
+                <div id="timer">00:00</div>
+            </div>
+            <div class="status right">
+                <div class="char-name"><span id="p2-name">刘刚</span><span id="p2-tag" class="tag cpu">CPU</span></div>
+                <div class="hp-bar-container"><div class="hp-bar" id="p2-hp"></div></div>
+                <div class="energy-bar-container"><div class="energy-bar" id="p2-energy"></div></div>
+                <div class="guard-bar-container"><div class="guard-bar" id="p2-guard"></div></div>
+            </div>
+            <button id="mode-toggle">切换触屏模式</button>
+        </div>
+
+        <div id="battle-area">
+            <div class="character" id="p1"></div>
+            <div class="character" id="p2"></div>
+        </div>
+
+        <div id="control-area">
+            <div id="keyboard-hint">
+                <div>
+                    <b>1P</b>：WASD 移动 | Shift 奔跑(Shift+方向=冲刺) | 空格 跳跃 | F 蹲下 | C 攻击 | E/Q/Z/X 技能<br>
+                    <span class="p2hint"><b>2P</b>：方向键 移动 | 右Shift 奔跑 | ; 或 右Ctrl 跳跃 | , 蹲下 | / 攻击 | . M L K 技能</span>
+                </div>
+                <p class="credit">P 暂停 · 触屏模式使用虚拟摇杆 · Zhang-110000 Beijing ASR tech. Inc All right reserved.</p>
+            </div>
+            <div id="touch-controls">
+                <div class="pad-cluster" id="pad-p1"></div>
+                <div class="pad-cluster" id="pad-p2"></div>
+            </div>
+        </div>
+
+        <div id="overlay"><div class="panel" id="panel"></div></div>
+        <div id="countdown"></div>
+    </div>
+
+    <script>
+        window.PVP_CONFIG = { audio: false };
+    </script>
+    <script src="game.js"></script>
+</body>
+</html>

@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>清学拳皇 88</title>
+  <link rel="icon" href="/icon.png" type="image/png">
+  <style>
+    :root {
+      --gold: #ffcc00;
+      --gold-2: #ff9900;
+      --red: #cc0000;
+      --red-2: #ff2222;
+      --ink: #0a0a0a;
+      --text: #fff;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html, body {
+      min-height: 100vh;
+      background: #0a0a0a;
+      color: var(--text);
+      font-family: "Microsoft Yahei", "Noto Sans SC", sans-serif;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      overflow-x: hidden;
+    }
+
+    body {
+      position: relative;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2.5rem 1rem 4rem;
+      /* 拳皇街机背景 */
+      background: url('bgg.jpg') center/cover no-repeat fixed;
+    }
+    /* 暗色遮罩，让标题和卡片跳出来 */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse at 50% 40%, rgba(0,0,0,.35), rgba(0,0,0,.88) 75%),
+        linear-gradient(180deg, rgba(0,0,0,.6), rgba(0,0,0,.35) 40%, rgba(0,0,0,.85));
+      pointer-events: none;
+    }
+    body > * { position: relative; z-index: 1; }
+
+    /* ===== 标题 ===== */
+    .logo-wrap {
+      text-align: center;
+      margin-bottom: .4rem;
+    }
+    .logo {
+      font-size: clamp(3rem, 11vw, 6.5rem);
+      font-weight: 900;
+      font-style: italic;
+      line-height: 1;
+      letter-spacing: .04em;
+      background: linear-gradient(180deg, #fff3c4 0%, var(--gold) 45%, var(--gold-2) 60%, #8a4b00 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      filter: drop-shadow(0 4px 0 #7a0d0d) drop-shadow(0 0 26px rgba(255,140,0,.55));
+      transform: skewX(-8deg);
+    }
+    .sub-logo {
+      margin-top: .5rem;
+      font-size: clamp(.8rem, 2.4vw, 1.15rem);
+      font-weight: 700;
+      letter-spacing: .5em;
+      text-indent: .5em;
+      color: #ffd9a0;
+      text-shadow: 0 2px 4px #000, 0 0 12px rgba(255,80,0,.6);
+    }
+    /* 上下斜切金色分隔条 */
+    .divider {
+      width: min(620px, 90vw);
+      height: 10px;
+      margin: 1.4rem 0 1.8rem;
+      background:
+        linear-gradient(90deg, transparent, var(--gold) 15%, #fff 50%, var(--gold) 85%, transparent);
+      clip-path: polygon(0 50%, 8% 0, 92% 0, 100% 50%, 92% 100%, 8% 100%);
+      opacity: .9;
+    }
+
+    .hint {
+      color: #cfcfcf;
+      font-size: .9rem;
+      letter-spacing: .12em;
+      margin-bottom: 2rem;
+      text-shadow: 0 2px 4px #000;
+    }
+
+    /* ===== 版本选择 ===== */
+    .select-row {
+      display: flex;
+      gap: clamp(1rem, 4vw, 2.5rem);
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: stretch;
+      width: min(920px, 96vw);
+    }
+
+    .fighter {
+      position: relative;
+      flex: 1 1 320px;
+      max-width: 400px;
+      min-height: 340px;
+      border-radius: 6px;
+      cursor: pointer;
+      text-decoration: none;
+      color: inherit;
+      overflow: hidden;
+      background: linear-gradient(180deg, #1b1b1b, #050505);
+      border: 3px solid #3a3a3a;
+      box-shadow: 0 12px 34px rgba(0,0,0,.8);
+      transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+      display: flex;
+      flex-direction: column;
+    }
+    .fighter:hover {
+      transform: translateY(-6px) scale(1.02);
+      border-color: var(--gold);
+      box-shadow: 0 18px 46px rgba(0,0,0,.9), 0 0 40px rgba(255,150,0,.35);
+    }
+
+    /* 立绘区 */
+    .portrait {
+      position: relative;
+        flex: 1;
+      min-height: 210px;
+      background-size: cover;
+      background-position: center bottom;
+      overflow: hidden;
+    }
+    .portrait::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(0,0,0,.15) 0%, rgba(0,0,0,.1) 45%, rgba(5,5,5,.96) 100%);
+    }
+    .portrait .char {
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      height: 100%;
+      aspect-ratio: 1088 / 2176;
+      transform: translateX(-50%);
+      background-size: 100% 100%;
+      background-repeat: no-repeat;
+      background-position: bottom center;
+      filter: drop-shadow(0 6px 14px rgba(0,0,0,.75));
+    }
+
+    /* 角色名牌 */
+    .name-plate {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      padding: .55rem .9rem;
+      background: linear-gradient(90deg, rgba(0,0,0,.85), rgba(0,0,0,.35));
+        border-bottom: 2px solid var(--gold);
+      font-weight: 900;
+      letter-spacing: .18em;
+      font-size: clamp(.95rem, 2.4vw, 1.25rem);
+      z-index: 3;
+      text-shadow: 0 2px 4px #000;
+    }
+    .name-plate .who {
+      color: #ffd98a;
+    }
+
+    /* 版本标签 */
+    .ver-badge {
+        position: absolute;
+        right: 0;
+        top: 46px;
+        padding: .3rem 1rem .3rem .8rem;
+        font-size: clamp(.7rem, 1.7vw, .85rem);
+        font-weight: 800;
+        letter-spacing: .16em;
+        z-index: 3;
+        color: #1a0a00;
+        background: linear-gradient(90deg, var(--gold-2), var(--gold));
+        clip-path: polygon(12px 0, 100% 0, 100% 100%, 0 100%);
+      }
+    .ver-badge.silent {
+        background: linear-gradient(90deg, #3d5a73, #7ea3c0);
+        color: #06121c;
+      }
+
+    /* 底部信息 */
+    .fighter-foot {
+      position: relative;
+      padding: .9rem 1rem 1.1rem;
+      text-align: center;
+      background: linear-gradient(180deg, rgba(0,0,0,0), rgba(0,0,0,.9));
+      z-index: 2;
+    }
+    .ver-name {
+      font-size: clamp(1.15rem, 3vw, 1.6rem);
+      font-weight: 900;
+      letter-spacing: .1em;
+      color: #fff;
+      text-shadow: 0 0 14px rgba(255,140,0,.8), 0 2px 4px #000;
+    }
+    .ver-desc {
+      margin-top: .35rem;
+      font-size: .85rem;
+      color: #b9b9b9;
+      letter-spacing: .04em;
+      line-height: 1.5;
+    }
+    .enter {
+      margin-top: .7rem;
+      display: inline-block;
+      padding: .42rem 1.5rem;
+      font-size: .85rem;
+      font-weight: 800;
+      letter-spacing: .18em;
+      color: #1a0a00;
+      background: linear-gradient(180deg, #ffe07a, var(--gold-2));
+      clip-path: polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
+    }
+    .fighter.silent .enter {
+      color: #06121c;
+      background: linear-gradient(180deg, #a8c8dd, #6f95b3);
+    }
+
+    .footer {
+      margin-top: 2.6rem;
+      font-size: .78rem;
+      color: #8a8a8a;
+      letter-spacing: .06em;
+      text-shadow: 0 1px 3px #000;
+    }
+
+    @media (max-width: 620px) {
+      .select-row { gap: 1rem; }
+      .fighter { min-height: 260px; }
+      .portrait { min-height: 150px; }
+      .divider { margin: 1rem 0 1.2rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="logo-wrap">
+    <div class="logo">清学拳皇</div>
+    <div class="sub-logo">K I N G O F Q I N G X U E</div>
+  </div>
+  <div class="divider"></div>
+  <p class="hint">请选择对战版本</p>
+
+  <div class="select-row">
+
+    <!-- 有音乐版 -->
+    <a class="fighter" href="/pvp/11NN.html">
+      <div class="portrait" style="background-image:url('bgg.jpg');">
+        <div class="char" style="background-image:url('zhengyanjun01.png');"></div>
+      </div>
+      <div class="name-plate"><span class="who">郑艳军</span> VS 刘刚</div>
+      <div class="ver-badge">11NN</div>
+      <div class="fighter-foot">
+        <div class="ver-name">有音乐版</div>
+        <div class="ver-desc">背景音乐 + 角色音效 · 经典原版体验</div>
+        <span class="enter">START</span>
+      </div>
+    </a>
+
+    <!-- 无音乐版 -->
+    <a class="fighter silent" href="/pvp/11N.html">
+      <div class="portrait" style="background-image:url('bgg.jpg');">
+        <div class="char" style="background-image:url('liugang01.png');"></div>
+      </div>
+      <div class="name-plate"><span class="who">郑艳军</span> VS 刘刚</div>
+      <div class="ver-badge silent">11N</div>
+      <div class="fighter-foot">
+        <div class="ver-name">无音乐版</div>
+        <div class="ver-desc">全程静音 · 安静开黑不扰民</div>
+        <span class="enter">START</span>
+      </div>
+    </a>
+
+  </div>
+
+  <div class="footer">© 娱乐小游戏 · 持续更新中</div>
+</body>
+</html>
