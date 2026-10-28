@@ -77,7 +77,8 @@
 | `data/dlc-subway.js` | **「地铁历险」战役** `CAMPAIGN_SUBWAY`：自定义主题 `t_m1…t_m4`（黄昏/夜郊/隧道/黎明）、剧情、结局文案、黄色水晶命名。 |
 | `dlc-registry.js` | DLC 注册表 `DLC_REGISTRY`、解锁判断 `checkDLCUnlock / getDLCUnlockStatus`、`getDLCCampaign`（工坊发布版优先，其次源码战役）。还会合并工坊保存的自定义 DLC（`localStorage: dlc_registry`）。 |
 | `data/codex.js` | 图鉴条目与成就定义 `L15_META_DATA`（`CODEX`、`ACH`）。图鉴只显示"主线里出现过"的条目。 |
-| `game.js` | **游戏主引擎**（最大的文件）：房间构建 `buildRoom`、玩家物理与战斗 `updatePlayer`、机关 `updateMech`、敌人 AI `updateEnemies`、Boss `updateBoss`、危险物 `updateHazards`、摄像机、渲染、剧情/对话、存档流程、菜单、主循环。内置物件/敌人的**行为逻辑**在这里。 |
+| `game.js` | **游戏主引擎**（最大的文件）：房间构建 `buildRoom`、玩家物理与战斗 `updatePlayer`、机关 `updateMech`、敌人 AI `updateEnemies`、Boss `updateBoss`、危险物 `updateHazards`、摄像机、渲染、剧情/对话、存档流程、菜单、主循环。内置物件/敌人的**行为逻辑**在这里。也是设置项 `prefs` 的持有者（localStorage 键 `line15-prefs-v3`），并对外暴露 `window.L15Game`（时装等 UI 与引擎之间的唯一接口）。 |
+| `fashion-panel.js` | **时装选择面板**（v1.2.3 新增，加载在 `game.js` 之后）：主菜单「👔 时装」按钮 → 身体 4 套（`GFX.OUTFITS`）+ 头贴图 2 张（`GFX.FACES`）→ 通过 `L15Game.setFashionPref(outfit, face)` 写回 `prefs` 并让引擎立刻生效。预览用引擎自己的 `GFX.hero()` 画，所以和游戏里长得完全一致。 |
 | `dlc-engine.js` | **DLC 玩法扩展 `window.DLCX`**。`game.js` 在关键位置调用它的钩子（`build / initEnemy / ENEMY / update / drawWorld / drawScreen / hitBoss / updateBoss / quiz / onTalk …`）。蓝色碎片、物理机关（电弧、等离子、冷冻陷阱、引力井、电磁场）、DLC 敌人（无人机、探针、哨兵、幽灵、异常体）、物理答题终端、Boss「悖论」都在这里。 |
 | `dlc.js` | DLC **界面**：DLC 大厅、单个 DLC 详情、DLC 章节选择。 |
 | `gfx.js` | 画面（一）：公共绘图工具（`GFX.mk/ell/poly/glow/B`）、地块贴图 `GFX.tiles`、背景、主角、基础角色。 |
@@ -110,15 +111,18 @@
 | 路径 | 作用 |
 |---|---|
 | `assets.json` | 素材清单，目前是空的 `{"textures":[],"audio":[]}`。 |
-| `zyj.png` | 主角的脸（头像贴图）。缺失时用默认脸。 |
+| `zyj.png` | 郑脸（主角头像贴图之一）。缺失时用默认脸。 |
+| `hq.png` | 胡脸（另一张头像贴图，v1.2.3 的时装系统里可切换）。 |
 | `audio/*.mp3` | 背景音乐。**文件名 = 曲名，末尾数字 = BPM**，`defs.js` 的 `BIOMES[x].music` 和 `BOSS_MUSIC` 用文件名（不含扩展名）引用它们。目录里有的曲子比 `README.md` 列的多（含 `Final Boss Phase One/Three`、`Lab`、`Ice Cave`、`Flower Castle`、`Cyprus Two Theme` 等），每个主题具体用哪首以 `defs.js` 为准。 |
 | `textures/` | 自定义贴图目录（目前只有占位，没有文件）。 |
 
 ### `tools/`
 | 文件 | 作用 |
 |---|---|
-| `validate.js` | 关卡静态检查（需 Node）：`node tools/validate.js`。检查越界、缺出生点/出口、闸门没连开关、碎片嵌进地块、未知物件种类、保守的可达性（出生点能否走到出口/碎片/开关）。**只检查主线 + 「未竟之梦」，不检查「地铁历险」。** |
+| `validate.js` | 关卡静态检查（需 Node）：`node tools/validate.js`。检查越界、缺出生点/出口、闸门没连开关、碎片嵌进地块、未知物件种类、保守的可达性（出生点能否走到出口/碎片/开关）。**主线 + 「未竟之梦」+「地铁历险」都查。** |
 | `build-changelog.js` | 把 `changelog.txt` 转成 `js/changelog-data.js`。改完 `changelog.txt` 后运行 `node tools/build-changelog.js`。 |
+| `test-fashion.js` | 时装系统无头测试（需 Node）：`node tools/test-fashion.js`。用 mock canvas 跑 `GFX.hero()`，断言 4 套衣服配色互不相同、两张头贴图都能加载且切换生效。 |
+| `test-blackboard.js` | 黑板文字排版无头测试（需 Node）：`node tools/test-blackboard.js`。断言公式不超出板宽、行不重叠、字号在 9~15px、压字的三角装饰已移除。 |
 
 ---
 
@@ -243,7 +247,7 @@
 ### 3.14 加一个设置项
 1. `index.html` 的 `#settings` 里，放进对应分组（`声音与显示 / 触屏操作 / 手柄与键盘 / 进阶`，分组标题是 `<h3 class="set-h">`）；内容多就用 `<details class="row col fold">`（自带 ▸ 小三角）。
 2. `js/game.js`：`prefs` 的默认值（文件开头 `var prefs=Object.assign({...})`）里加字段；写一个 `applyXxx()` 把值应用出去，并挂进 `applyPrefs()`；`syncSettings()` 里把值回填到控件；在控件的 `oninput / onchange` 里改 `prefs.xxx` 并 `savePrefs()`。
-3. 已有的字段：`mute, size, controls, lockHp, fx, cheat{infJump,infDash,speed,bossWeak}, hpPos, padIdx, volMusic, volSfx, ctlOp, layout, keys, pad`。作弊项在 `updatePlayer` 里通过 `CH('名字')` 读取；任意作弊开启（含锁血受击）都会置 `stats.assist=1`，该次通关不计「无伤」类成就。
+3. 已有的字段：`mute, size, controls, lockHp, fx, cheat{infJump,infDash,speed,bossWeak,bossWeakMul}, hpPos, padIdx, volMusic, volSfx, ctlOp, layout, keys, pad, outfit, face`。作弊项在 `updatePlayer` 里通过 `CH('名字')` 读取；任意作弊开启（含锁血受击）都会置 `stats.assist=1`，该次通关不计「无伤」类成就。`outfit` / `face` 是时装（见 3.16）。
 4. 改了玩家可见行为，记得写进 `changelog.txt`。
 
 ### 3.15 手柄（含菜单）
@@ -252,6 +256,13 @@
 - 文本输入框（DLC 口令）被排除在导航外，需要键盘。
 - DLC 答题（`dlc-engine.js` 的 `quiz`）通过 `DLCX.quizAct(k)` 接管手柄：上下选、确认作答、冲刺 / 暂停退出。
 - 多个手柄时，设置里的「手柄选择」写入 `prefs.padIdx`。
+
+### 3.16 加一套时装 / 一张脸（v1.2.3）
+1. **加身体**：`js/gfx.js` 的 `OUTFITS` 数组加一项，字段：`id, n(名字), g('男'/'女'), top, coat, pants, shoe, scarf, skirt(0 无 / 1 梯形 / 2 A 字), hair, tie, bag, skin, long(1 = 画长发)`。`hero()` 按这些字段画，**不需要改引擎代码**。
+2. **加脸**：`js/gfx.js` 的 `FACES` 加一项 `{id, n, src}`，把图片放进 `assets/`。`faceImgs` 会在启动时预加载，`im._ok` 为 true 才画贴图（否则退回默认脸）。
+3. **面板自动适配**：`js/fashion-panel.js` 的 `render()` 是遍历 `GFX.OUTFITS` / `GFX.FACES` 生成卡片的，加了自动就出来。
+4. **数量上限**：`L15Game.setFashionPref()` 里用 `GFX.OUTFITS.length` / `GFX.FACES.length` 夹取，所以加几套都不用改别的地方。
+5. 改完跑 `node tools/test-fashion.js`（断言配色不重复、贴图能加载）。
 
 ---
 
@@ -275,9 +286,11 @@
 ## 5. 已知问题 / 注意事项（接手前先看）
 
 - 已清理：删除了没有任何 HTML 引用的 `js/dlc-logic.js`、`editor/editor-dlc-new.js` 和空壳的顶层 `levels/` 文件夹（均可从 git 历史恢复）。
-- `README.md` 已在 v1.2.2 更新（5 章、三个 DLC、音乐对照表、设置与手柄）；以后加内容请同步它、`promo.html` 和 `changelog.txt`。
-- `tools/validate.js` 不覆盖「地铁历险」；新增关卡后记得自己检查。
+- `README.md` 已在 v1.2.3 更新（5 章、三个 DLC、时装系统、音乐对照表、设置与手柄）；以后加内容请同步它、`promo.html` 和 `changelog.txt`。
+- `tools/validate.js` 现在会检查「地铁历险」了（12 个长关），并且新增了**滑翔（纸飞机）可达性模型**——以前第五章靠滑翔过的关会被误报「出口够不着」。
 - 蓝色碎片/黄色水晶的存档键是 `'dlc'+章序号+'-'+关序号`（`game.js` 的 `collectBlue`、`meta.js` 的 `blueShardInfo`），**不区分是哪个 DLC**，所以「未竟之梦」和「地铁历险」会共用同一批键（物件 id 不同所以暂时不冲突）。再加 DLC 时要注意，必要时给键加上 DLC id。
+- **时装系统（v1.2.3）**：`GFX.OUTFITS` / `GFX.FACES` 在 `js/gfx.js`，面板在 `js/fashion-panel.js`，偏好存在 `prefs.outfit` / `prefs.face`（`line15-prefs-v3`）。引擎与面板之间的唯一接口是 `window.L15Game.setFashionPref(outfit, face)` —— `game.js` 是 IIFE，外部拿不到 `prefs`，所以加新设置项想从独立文件访问，同样要在这里加一个方法。
+- **工坊里的自建 DLC（v1.2.3 修过）**：这类 DLC 没有源码关卡，`editor.js` 用 `placeholderCampaign(id)` 造一个**确定性 id**（`o1`/`o2`…）的占位战役当基准——不能直接用 `L15.blankLevel()`，它生成随机 id，会让指纹每次都变、导致「源码与草稿不一致」误报刷屏。`SRCBASE(id)` 对无源码的 DLC 固定返回 `'nosrc'`，`hasSrc(id)` 判断有没有源码，`askSync / syncFromSource / resetDefaultBtn / unpublishBtn` 都按它分支。
 - **第五章 / 跨年 Boss 的新增文件与入口**：`js/gfx7.js`（倦怠骑士造型、破败背景 `t_ruin`、黄昏光柱、钟魔迪斯科形态的墨镜叠加；晚于 `gfx6.js` 加载，包装 `G.boss` / `G.drawBg`）；骑士逻辑全在 `js/dlc-ch5.js`（`CH5X`），钟魔两段血 / 应援 / 滑板 / 镭射在 `js/dlc-newyear.js`（`NYX`，`hitBoss` / `drawBossHud` 由 `game.js` 转调）。
 - **调试入口**：`egg-test.html`（`?egg=1` 进彩蛋房）、`index.html?boss=1`（直接进骑士战）、`strong.html`（`?boss=1&strong=1` 完全体骑士：三阶段全招式、死亡回 25%、攻速 ×1.5、剥夺冲刺）。`?egg` / `?boss` 钩子在 `game.js` 末尾，发布前可删。
 - 骑士战里 `game.js` 对主角限速（普通 330 / 冲刺 520）；骑士相关成就计数键：`parries`、`verdicts`、`knightwin`、`knightclean`、`strongwin`。

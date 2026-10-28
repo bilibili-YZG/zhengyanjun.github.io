@@ -285,3 +285,26 @@ label>.gslider:not(.row .gslider){display:inline-flex;width:190px;vertical-align
 
 /* 标题“15”徽章：原来徽章比旁边的字还大(约 1.1 倍字高)、又被 vertical-align 压低，整个圆挂在基线下面；颜色还被后面的 .big{color:#fff1a8} 抢成淡黄。现在：直径≈字高的 0.9、垂直居中对齐字面、白色数字、环更细 */
 .title-card h1 .line-badge.big{font-size:.5em;width:1.8em;height:1.8em;margin-right:.3em;vertical-align:.55em;color:#fff;letter-spacing:-.05em;text-indent:-.05em;box-shadow:0 0 0 .07em #fff,0 .1em .3em rgba(0,0,0,.4)}
+
+/* ---------- 时装系统 ---------- */
+.fit-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:10px 0 4px}
+.fit-card{position:relative;border:2px solid rgba(255,255,255,.14);border-radius:14px;background:rgba(10,20,32,.6);padding:8px 4px 6px;cursor:pointer;text-align:center;transition:all .18s ease;outline:none}
+.fit-card:hover{border-color:rgba(127,227,230,.6);transform:translateY(-2px)}
+.fit-card.on{border-color:var(--accent,#7fe3e6);box-shadow:0 0 0 2px rgba(127,227,230,.25),0 6px 18px rgba(0,0,0,.4);background:rgba(127,227,230,.09)}
+.fit-card:focus-visible,.fit-card.padfocus{border-color:var(--accent,#7fe3e6);box-shadow:0 0 0 3px rgba(127,227,230,.35)}
+.fit-card canvas{display:block;margin:0 auto 2px;image-rendering:auto}
+.fit-card b{display:block;font-size:calc(12px*var(--ui));font-weight:800;letter-spacing:.02em}
+.fit-card small{display:block;font-size:calc(10px*var(--ui));color:var(--muted);margin-top:1px}
+.fit-faces{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:10px 0 6px}
+.fit-face{display:flex;align-items:center;gap:10px;border:2px solid rgba(255,255,255,.14);border-radius:14px;background:rgba(10,20,32,.6);padding:8px 10px;cursor:pointer;transition:all .18s ease;outline:none}
+.fit-face:hover{border-color:rgba(127,227,230,.6);transform:translateY(-2px)}
+.fit-face.on{border-color:var(--accent,#7fe3e6);box-shadow:0 0 0 2px rgba(127,227,230,.25);background:rgba(127,227,230,.09)}
+.fit-face:focus-visible,.fit-face.padfocus{border-color:var(--accent,#7fe3e6);box-shadow:0 0 0 3px rgba(127,227,230,.35)}
+.fit-face img{width:46px;height:46px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,.28);background:#1a2a3a;flex-shrink:0}
+.fit-face b{font-size:calc(13px*var(--ui));font-weight:800}
+.fit-preview{display:flex;align-items:center;gap:14px;margin-top:14px;padding:12px;border-radius:16px;background:linear-gradient(160deg,rgba(127,227,230,.10),rgba(0,0,0,.25));border:1px solid rgba(255,255,255,.1)}
+.fit-preview canvas{width:calc(120px*var(--ui));height:calc(150px*var(--ui));flex-shrink:0;background:radial-gradient(circle at 50% 45%,rgba(127,227,230,.12),rgba(0,0,0,.35));border-radius:12px}
+.fit-prev-info{display:flex;flex-direction:column;gap:4px}
+.fit-prev-info b{font-size:calc(16px*var(--ui))}
+.fit-prev-info small{font-size:calc(11px*var(--ui));line-height:1.5}
+@media(max-width:520px){.fit-grid{grid-template-columns:repeat(2,1fr)}.fit-faces{grid-template-columns:1fr}}

@@ -37,11 +37,17 @@ function find(id) {
 }
 
 // 发布/还原后，同步 DLC 卡片上显示的章节数、关卡数
+// campaign 传 null = 已取消发布（游戏里暂时没关卡），把计数清零
 function syncStats(id, campaign) {
   var dlc = find(id);
-  if (!dlc || !campaign || !campaign.chapters) return;
-  dlc.chapters = campaign.chapters.length;
-  dlc.levels = campaign.chapters.reduce(function(a, c) { return a + c.levels.length; }, 0);
+  if (!dlc) return;
+  if (!campaign || !campaign.chapters) {
+    dlc.chapters = 0;
+    dlc.levels = 0;
+  } else {
+    dlc.chapters = campaign.chapters.length;
+    dlc.levels = campaign.chapters.reduce(function(a, c) { return a + c.levels.length; }, 0);
+  }
   delete summaryCache[id];
   saveRegistry();
   render();
@@ -87,7 +93,10 @@ function render() {
 
   reg.forEach(function(dlc) {
     var active = ed.target === dlc.id;
-    var open = expanded[dlc.id] || active;
+    /* 展开状态只看 expanded[dlc.id]；之前写的是 expanded[dlc.id] || active，
+       结果"正在编辑的 DLC"永远展开，▸/▾ 按钮点不动（收不起来）。
+       现在改成：编辑中的 DLC 默认展开，但用户点 ▾ 后可以真正收起。 */
+    var open = expanded[dlc.id] !== undefined ? !!expanded[dlc.id] : active;
     var item = document.createElement('div');
     item.className = 'dlc-item' + (active ? ' active' : '');
     item.setAttribute('data-dlc', dlc.id);

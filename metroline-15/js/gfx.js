@@ -118,34 +118,55 @@ function drawBg(g,key,W,H,camX,camY,sc,time){
  }}
 
 /* ---------- 主角：教师骨骼动画 ---------- */
-var faceImg=new Image(),faceOK=false;faceImg.onload=function(){faceOK=true};faceImg.src='assets/zyj.png';
+/* 时装系统：身体 4 套（2 男 2 女）+ 头贴图 2 张（郑脸 zyj.png / 胡脸 hq.png）。
+   服装由 window.L15.FASHION 提供；未注入时用默认那套（原来的白衬衫红领结）。 */
+var FACES=[{id:'zyj',n:'郑脸',src:'assets/zyj.png'},{id:'hq',n:'胡脸',src:'assets/hq.png'}];
+var faceImgs=FACES.map(function(f){var im=new Image();im.onload=function(){im._ok=true};im.src=f.src;return im});
+var faceImg=faceImgs[0]; /* 兼容旧引用：指向当前选中的那张 */
+var OUTFITS=[
+ {id:'m1',n:'白衬衫',g:'男',top:'#f3f6f8',coat:'',pants:'#2a3a52',shoe:'#161c26',scarf:null,skirt:0,hair:'#2b2118',tie:'#d6363f',bag:'#8b5e3c',skin:'#ffd9b0',long:0},
+ {id:'m2',n:'藏青西装',g:'男',top:'#2b3f63',coat:'#1d2c48',pants:'#1b2438',shoe:'#12161f',scarf:'#d9a441',skirt:0,hair:'#1d1710',tie:'#8fb4d8',bag:'#5a4632',skin:'#ffd9b0',long:0},
+ {id:'f1',n:'米色风衣',g:'女',top:'#e6dcc4',coat:'',pants:'#6b5844',shoe:'#3a2f26',scarf:'#c96a5e',skirt:1,hair:'#3b2a1c',tie:'',bag:'#a8764e',skin:'#ffd9b0',long:1},
+ {id:'f2',n:'藏青连衣裙',g:'女',top:'#33456b',coat:'',pants:'#33456b',shoe:'#1d2233',scarf:'#f0d27a',skirt:2,hair:'#241a12',tie:'',bag:'#4c5f88',skin:'#ffd9b0',long:1}
+];
+var curFit={outfit:0,face:0};
+function setFashion(o,f){curFit.outfit=Math.max(0,Math.min(OUTFITS.length-1,o|0));curFit.face=Math.max(0,Math.min(FACES.length-1,f|0));faceImg=faceImgs[curFit.face]}
 function limb(g,x0,y0,x1,y1,w,col){g.strokeStyle=col;g.lineWidth=w;g.lineCap='round';g.beginPath();g.moveTo(x0,y0);g.lineTo(x1,y1);g.stroke()}
 /* p:{face,vx,vy,ground,anim,state,dash,atk,hurt,sx,sy} 原点=脚底中心 */
 function hero(g,p,time,accent,alpha){
  var st=p.state,run=Math.min(1,Math.abs(p.vx)/200)*(p.ground?1:0),ph=p.anim*13,bob=st==='idle'?Math.sin(time*2.4)*1:0,sx=p.sx||1,sy=p.sy||1;
+ var F=OUTFITS[curFit.outfit]||OUTFITS[0],FIM=faceImgs[curFit.face];
  g.save();g.globalAlpha=alpha==null?1:alpha;g.translate(p.cx,p.cy);g.scale(p.face*sx,sy);
  var lean=st==='dash'?.28:st==='hurt'?-.25:run*.08+(p.vy<-100?-.05:p.vy>300?.06:0);g.rotate(lean);
  var sw=Math.sin(ph)*run,lift=p.ground?0:(p.vy<0?6:3);
- // 围巾
- g.strokeStyle=accent;g.lineWidth=3.2;g.lineCap='round';g.globalAlpha*=.9;g.beginPath();g.moveTo(-4,-20+bob);g.quadraticCurveTo(-16-run*8,-18+Math.sin(time*9)*4,-22-run*10-(st==='dash'?10:0),-14+Math.sin(time*7+1)*6);g.stroke();g.globalAlpha=alpha==null?1:alpha;
+ // 围巾 / 长发
+ if(F.scarf){g.strokeStyle=F.scarf;g.lineWidth=3.2;g.lineCap='round';g.globalAlpha*=.9;g.beginPath();g.moveTo(-4,-20+bob);g.quadraticCurveTo(-16-run*8,-18+Math.sin(time*9)*4,-22-run*10-(st==='dash'?10:0),-14+Math.sin(time*7+1)*6);g.stroke();g.globalAlpha=alpha==null?1:alpha}
  // 背包
- g.fillStyle='#8b5e3c';g.beginPath();g.roundRect(-13,-18+bob,8,14,3);g.fill();g.fillStyle='#6d4629';g.fillRect(-13,-10+bob,8,2);
+ g.fillStyle=F.bag;g.beginPath();g.roundRect(-13,-18+bob,8,14,3);g.fill();g.fillStyle='rgba(0,0,0,.22)';g.fillRect(-13,-10+bob,8,2);
  // 后腿、后臂
  var legY=-8,la=sw*7,lb=-sw*7;
- limb(g,-2,legY,-2+lb*(p.ground?1:.2)-(p.ground?0:3),0-lift*(st==='climb'?0:1)+(p.ground?0:-4),4.2,'#232f42');limb(g,-2+lb*(p.ground?1:.2)-(p.ground?0:3)-.5,0-lift,-2+lb*(p.ground?1:.2)+3-(p.ground?0:3),0-lift,4.4,'#161c26');
- limb(g,-1,-17+bob,-3-sw*6,-9+bob+(st==='climb'?-8:0),3.4,'#e6ebef');
+ limb(g,-2,legY,-2+lb*(p.ground?1:.2)-(p.ground?0:3),0-lift*(st==='climb'?0:1)+(p.ground?0:-4),4.2,F.pants);limb(g,-2+lb*(p.ground?1:.2)-(p.ground?0:3)-.5,0-lift,-2+lb*(p.ground?1:.2)+3-(p.ground?0:3),0-lift,4.4,F.shoe);
+ limb(g,-1,-17+bob,-3-sw*6,-9+bob+(st==='climb'?-8:0),3.4,F.top);
  // 躯干
- g.fillStyle='#f3f6f8';g.beginPath();g.roundRect(-7,-21+bob,14,15,4);g.fill();g.fillStyle='#d6363f';g.beginPath();g.moveTo(0,-20+bob);g.lineTo(2.5,-16+bob);g.lineTo(0,-8+bob);g.lineTo(-2.5,-16+bob);g.closePath();g.fill();g.fillStyle='#2a3a52';g.fillRect(-7,-9+bob,14,5);
+ g.fillStyle=F.top;g.beginPath();g.roundRect(-7,-21+bob,14,15,4);g.fill();
+ if(F.tie){g.fillStyle=F.tie;g.beginPath();g.moveTo(0,-20+bob);g.lineTo(2.5,-16+bob);g.lineTo(0,-8+bob);g.lineTo(-2.5,-16+bob);g.closePath();g.fill()}
+ if(F.coat){g.fillStyle=F.coat;g.beginPath();g.moveTo(-7,-21+bob);g.lineTo(-4.5,-21+bob);g.lineTo(-2.5,-6+bob);g.lineTo(-7,-6+bob);g.closePath();g.fill();g.moveTo(7,-21+bob);g.lineTo(4.5,-21+bob);g.lineTo(2.5,-6+bob);g.lineTo(7,-6+bob);g.closePath();g.fill()}
+ // 裙子 / 裤裙（女套）
+ if(F.skirt===1){g.fillStyle=F.pants;g.beginPath();g.moveTo(-7,-9+bob);g.lineTo(7,-9+bob);g.lineTo(9.5,-2+bob);g.lineTo(-9.5,-2+bob);g.closePath();g.fill()}
+ else if(F.skirt===2){g.fillStyle=F.pants;g.beginPath();g.moveTo(-7,-9+bob);g.lineTo(7,-9+bob);g.lineTo(6,-1+bob);g.lineTo(-6,-1+bob);g.closePath();g.fill()}
+ else{g.fillStyle=F.pants;g.fillRect(-7,-9+bob,14,5)}
  // 前腿
- limb(g,2,legY,2+la*(p.ground?1:.3)+(p.ground?0:4),0-lift,4.4,'#2a3a52');limb(g,2+la*(p.ground?1:.3)+(p.ground?0:4)-.5,0-lift,2+la*(p.ground?1:.3)+6+(p.ground?0:4),0-lift,4.6,'#161c26');
+ limb(g,2,legY,2+la*(p.ground?1:.3)+(p.ground?0:4),0-lift,4.4,F.pants);limb(g,2+la*(p.ground?1:.3)+(p.ground?0:4)-.5,0-lift,2+la*(p.ground?1:.3)+6+(p.ground?0:4),0-lift,4.6,F.shoe);
  // 前臂+教鞭
  var ar=st==='attack'?-.2+(1-Math.min(1,p.atk/.22))*1.7:(st==='climb'?-1.3:-.9+sw*.5);
- g.save();g.translate(3,-18+bob);g.rotate(st==='attack'?ar-1:ar*.6);limb(g,0,0,9,2,3.4,'#f3f6f8');g.fillStyle='#ffd9b0';ell(g,10,2,2.4,2.4);g.fill();
+ g.save();g.translate(3,-18+bob);g.rotate(st==='attack'?ar-1:ar*.6);limb(g,0,0,9,2,3.4,F.top);g.fillStyle=F.skin;ell(g,10,2,2.4,2.4);g.fill();
  g.strokeStyle='#d0a45a';g.lineWidth=2.2;g.beginPath();g.moveTo(10,2);g.lineTo(st==='attack'?30:20,st==='attack'?-2:-6);g.stroke();g.restore();
- // 头（zyj.png）
+ // 长发（女套）：画在头后面
+ if(F.long){g.fillStyle=F.hair;g.beginPath();g.moveTo(-11,-32+bob);g.quadraticCurveTo(-13,-20+bob,-9,-14+bob);g.lineTo(-5,-16+bob);g.quadraticCurveTo(-8,-24+bob,-7,-32+bob);g.closePath();g.fill();g.beginPath();g.moveTo(11,-32+bob);g.quadraticCurveTo(13,-20+bob,9,-14+bob);g.lineTo(5,-16+bob);g.quadraticCurveTo(8,-24+bob,7,-32+bob);g.closePath();g.fill()}
+ // 头（可切换贴图：郑脸 zyj.png / 胡脸 hq.png）
  g.save();g.translate(0,-30+bob);g.rotate(st==='hurt'?-.35:run*sw*.05);
  g.fillStyle='#fff';ell(g,0,0,13.2,13.2);g.fill();g.save();ell(g,0,0,12,12);g.clip();
- if(faceOK)g.drawImage(faceImg,-12,-12,24,24);else{g.fillStyle='#ffd9b0';g.fillRect(-12,-12,24,24);g.fillStyle='#222';g.fillRect(-5,-3,2,3);g.fillRect(3,-3,2,3)}g.restore();
+ if(FIM&&FIM._ok)g.drawImage(FIM,-12,-12,24,24);else{g.fillStyle=F.skin;g.fillRect(-12,-12,24,24);g.fillStyle='#222';g.fillRect(-5,-3,2,3);g.fillRect(3,-3,2,3)}g.restore();
  g.strokeStyle='#223';g.globalAlpha*=.5;g.lineWidth=1;ell(g,0,0,12.6,12.6);g.stroke();g.restore();
  g.restore()}
 
@@ -167,5 +188,5 @@ function npc(g,kind,x,y,w,h,time,face){
  else person('#8b9da8','#445');
  g.restore()}
 
-window.GFX={fx:fx,T:T,mk:mk,prng:prng,ell:ell,poly:poly,glow:glow,B:B,tiles:tiles,drawTile:drawTile,drawBg:drawBg,hero:hero,npc:npc,limb:limb,cache:cache,faceImg:faceImg,flushTheme:function(key){delete cache['t'+key];delete cache['b'+key]}};
+window.GFX={fx:fx,T:T,mk:mk,prng:prng,ell:ell,poly:poly,glow:glow,B:B,tiles:tiles,drawTile:drawTile,drawBg:drawBg,hero:hero,npc:npc,limb:limb,cache:cache,faceImg:faceImg,faceImgs:faceImgs,OUTFITS:OUTFITS,FACES:FACES,setFashion:setFashion,get fashion(){return {outfit:curFit.outfit,face:curFit.face}},flushTheme:function(key){delete cache['t'+key];delete cache['b'+key]}};
 })();

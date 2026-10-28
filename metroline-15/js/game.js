@@ -5,7 +5,8 @@ var canvas=$('game'),g=canvas.getContext('2d');
 var LS={get:function(k){try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}},set:function(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}},del:function(k){try{localStorage.removeItem(k)}catch(e){}}};
 var params=new URLSearchParams(location.search),TEST=params.get('test')==='1';
 var FX_KEYS=['glow','weather','vig','blur','atmo'],FX_NAMES={glow:'发光',weather:'天气粒子',vig:'暗角',blur:'界面模糊',atmo:'地铁氛围'};
-var prefs=Object.assign({mute:false,size:2,controls:'auto',lockHp:false,fx:{},cheat:{},hpPos:'auto',padIdx:null,volMusic:55,volSfx:85},LS.get(L15.STORAGE.prefs)||{});
+var prefs=Object.assign({mute:false,size:2,controls:'auto',lockHp:false,fx:{},cheat:{},hpPos:'auto',padIdx:null,volMusic:55,volSfx:85,outfit:0,face:0},LS.get(L15.STORAGE.prefs)||{});
+if(prefs.outfit==null)prefs.outfit=0;if(prefs.face==null)prefs.face=0;
 if(!prefs.fx||typeof prefs.fx!=='object')prefs.fx={};
 if(!prefs.cheat||typeof prefs.cheat!=='object')prefs.cheat={};
 function CH(k){return !!prefs.cheat[k]}
@@ -63,8 +64,9 @@ function applyPrefs(){applyVol();applyCtlOp();applyHpPos();var mode=uiMode(),sho
  ctlScale=base*mult;var rs=document.documentElement.style;rs.setProperty('--ctl',ctlScale.toFixed(3));rs.setProperty('--ui',Math.max(1,Math.min(1.75,m/700)).toFixed(3));
  var c=$('controls');c.classList.toggle('hidden',!show);c.classList.toggle('cluster',mode==='cluster');c.classList.toggle('split',mode==='split');
  document.body.classList.toggle('touch',show);document.body.classList.toggle('ui-cluster',mode==='cluster');document.body.classList.toggle('ui-split',mode==='split');
- $('muteBtn').textContent=prefs.mute?'🔇':'🔊';AudioFX.setMuted(prefs.mute);applyLayout();GFX.fx.on=fxOn('glow');GFX.fx.atmo=fxOn('atmo');FX_KEYS.forEach(function(k){document.body.classList.toggle('fx-'+k+'-off',!fxOn(k))})}
-/* ---------- 输入 ---------- */
+ $('muteBtn').textContent=prefs.mute?'🔇':'🔊';AudioFX.setMuted(prefs.mute);applyLayout();GFX.fx.on=fxOn('glow');GFX.fx.atmo=fxOn('atmo');FX_KEYS.forEach(function(k){document.body.classList.toggle('fx-'+k+'-off',!fxOn(k))});applyFashion()}
+/* ---------- 时装（身体 4 套 + 头贴图 2 张） ---------- */
+function applyFashion(){if(window.GFX&&GFX.setFashion)GFX.setFashion(prefs.outfit|0,prefs.face|0)}
 function press(n,t){buf[n]=t||.14}
 function keyHeld(a){var l=prefs.keys[a],i;for(i=0;i<l.length;i++)if(keys[l[i]])return true;return false}
 function isHeld(n){
@@ -79,7 +81,7 @@ var padState={},padCap=null,padPrevAll=[];function pad(n){return !!padState[n]}
 var navCur=null,navHold='',navT=0;
 function topOverlay(){var l=document.querySelectorAll('.overlay:not(.hidden)');return l.length?l[l.length-1]:null}
 function navBox(e){return (e.type==='radio'||e.type==='checkbox')&&e.closest('label')&&e.closest('label').classList.contains('mode')?e.closest('label'):e}
-function navItems(o){var out=[];Array.prototype.forEach.call(o.querySelectorAll('button,input,select,a[href],summary,.dlc-card,.gslider'),function(e){if(e.disabled||e.type==='hidden'||e.type==='text'||e.type==='password')return;var b=navBox(e),r=b.getBoundingClientRect();if(r.width<6||r.height<6||getComputedStyle(b).visibility==='hidden')return;out.push({el:e,box:b,x:r.left+r.width/2,y:r.top+r.height/2})});return out}
+function navItems(o){var out=[];Array.prototype.forEach.call(o.querySelectorAll('button,input,select,a[href],summary,.dlc-card,.gslider,.fit-card,.fit-face'),function(e){if(e.disabled||e.type==='hidden'||e.type==='text'||e.type==='password')return;var b=navBox(e),r=b.getBoundingClientRect();if(r.width<6||r.height<6||getComputedStyle(b).visibility==='hidden')return;out.push({el:e,box:b,x:r.left+r.width/2,y:r.top+r.height/2})});return out}
 function navSet(it){if(navCur&&navCur.box)navCur.box.classList.remove('padfocus');navCur=it;if(it){it.box.classList.add('padfocus');try{it.el.focus({preventScroll:true})}catch(x){}it.box.scrollIntoView({block:'nearest',inline:'nearest'})}}
 function navMode(){return state!=='play'&&state!=='dialog'&&state!=='story'&&!padCap&&topOverlay()}
 function navStep(dir){var o=topOverlay(),its=navItems(o),cur=null,i;if(!its.length)return;
@@ -238,6 +240,41 @@ function placeFix(o,lv){
   for(g=1;g<=3;g++)for(x=o.x;x<o.x+o.w;x++)if(sup(x,by+g))return g;return 0}
  if(FIX_PICK[k]){var emb=function(yy){for(var xx=o.x;xx<o.x+o.w;xx++)for(var j=yy;j<yy+o.h;j++)if(sol(xx,j))return true;return false};
   if(!emb(o.y))return 0;for(var u=1;u<=4;u++)if(!emb(o.y-u))return -u;return 0}
+ /* 黑板：原来摆在关卡顶部（离地 18~21 格），玩家在下面根本看不到。
+    规则：以出生点为锚，取出生点上下 8 格内"玩家路线物件"（收集物/平台/checkpoint）出现最多的那一层，
+    把黑板挪到那条路线上方 2 格 —— 看得见又不挡路。竖井关（往下走）也会落在起点附近那一层。 */
+ if(k==='blackboard'){
+  var ys=[],anchor=null;
+  for(i=0;i<lv.objects.length;i++){var q=lv.objects[i];
+   if(q.kind==='spawn'){anchor=q.y;continue}
+   if(q===o)continue;
+   if(q.kind==='shard'||q.kind==='blueshard'||q.kind==='yellowshard'||q.kind==='heart'||q.kind==='dashgem'||q.kind==='checkpoint'||q.kind==='platform'||q.kind==='moving'||q.kind==='lift'||q.kind==='crumble')ys.push(q.y)}
+  if(!ys.length)return 0;
+  if(anchor==null)anchor=ys[0];
+  var win=ys.filter(function(v){return v>=anchor-8&&v<=anchor+8});
+  if(!win.length)win=ys;
+  win.sort(function(a,b){return a-b});
+  var mid=win[Math.floor(win.length/2)];
+  var want=mid-2;                       /* 黑板底边贴着路线上方 2 格 */
+  if(want<1)want=1;
+  if(want>H-o.h-1)want=H-o.h-1;
+  if(want===o.y)return 0;
+  /* 找一个不与实心地块、checkpoint、收集物重叠的高度：先按优先级往下试，再往上试 */
+  function bad(y0){if(y0<1||y0>H-o.h-1)return true;
+   for(var gy=y0;gy<y0+o.h;gy++)for(var gx=o.x;gx<o.x+o.w;gx++)if(sol(gx,gy))return true;
+   for(var j=0;j<lv.objects.length;j++){var c=lv.objects[j];
+    if(c===o)continue;
+    if(c.kind!=='checkpoint'&&c.kind!=='shard'&&c.kind!=='blueshard'&&c.kind!=='yellowshard'&&c.kind!=='heart'&&c.kind!=='dashgem')continue;
+    var ox=Math.max(o.x,c.x),oy=Math.max(y0,c.y);
+    if(Math.min(o.x+o.w,c.x+c.w)-ox>0&&Math.min(y0+o.h,c.y+c.h)-oy>0)return true}
+   return false}
+  if(bad(want)){var found=-1;
+   for(var d=1;d<=12;d++){
+    if(!bad(want+d)){found=want+d;break}
+    if(!bad(want-d)){found=want-d;break}}
+   if(found<0)return 0;
+   want=found}
+  return want-o.y}
  return 0}
 function buildRoom(lv){
  L15.curBiome=lv.background||'snow';var r={lv:lv,biome:lv.background||'snow',cw:lv.width,ch:lv.height,w:lv.width*T,h:lv.height*T,cells:lv.cells,shards:[],hearts:[],checks:[],springs:[],vents:[],spores:[],vines:[],spikes:[],lavas:[],lasers:[],rubble:[],gates:[],switches:[],plates:[],movers:[],enemyDefs:[],enemies:[],npcs:[],signs:[],triggers:[],decor:[],saws:[],icicles:[],flames:[],crumbles:[],convs:[],gems:[],winds:[],platforms:[],exit:null,spawn:{x:2*T,y:(lv.height-3)*T},boss:null,bossDef:null,src:{},byId:{},proj:[],chalk:[],warns:[],fire:[],cp:null,bounceAnim:{},xthings:[],xblue:[]};
@@ -346,7 +383,11 @@ function nearHazard(p){var a=R.spikes.concat(R.lavas),i;for(i=0;i<a.length;i++){
 function er(e){return {x:e.x+6,y:e.y+(e.kind==='slime'?6:4),w:e.w-12,h:e.h-(e.kind==='slime'?6:8)}}
 function damageEnemy(e,n,dir){if(e.dead||e.invt>0||e.phased)return false;e.hp-=n;e.flash=.18;e.windup=0;e.invt=.12;emit(e.x+e.w/2,e.y+e.h/2,'#ffffff',8,150);AudioFX.sfx('hit');if(e.kind!=='turret')e.x+=dir*12;
  if(e.hp<=0){e.dead=true;e.dyT=.4;stats.kills++;MM.cnt('kills');AudioFX.sfx('kill');emit(e.x+e.w/2,e.y+e.h/2,GFX.B(R.biome).accent,18,220);if(Math.random()<.18)R.hearts.push({id:'drop'+Math.random(),kind:'heart',x:e.x+e.w/2-16,y:e.y,w:32,h:32,p:{},got:false,temp:true})}return true}
-function hitBoss(n,viaDash){if(CH('bossWeak'))n*=5;var b=R.boss;if(!b||b.dead||b.flash>0||b.deadT>0)return false;if(b.type==='paradox'&&window.DLCX)return DLCX.hitBoss(b,n,viaDash);if(b.type==='knight'&&window.CH5X)return CH5X.hitBoss(b,n,viaDash);if(b.type==='midnight'&&window.NYX&&NYX.hitBoss)return NYX.hitBoss(b,n,viaDash);if(viaDash&&b.state==='wind'){n+=1;b.state='stun';b.timer=1.7;toast('打断成功！')}
+/* Boss 易伤倍率：可在设置里调 2~5 倍。
+   prefs.cheat.bossWeak 保留为布尔开关（存档兼容），
+   实际倍率读 prefs.cheat.bossWeakMul，缺省 5。 */
+function bossWeakMul(){var m=+prefs.cheat.bossWeakMul;if(!m||m<2||m>5)m=5;return m}
+function hitBoss(n,viaDash){if(CH('bossWeak'))n*=bossWeakMul();var b=R.boss;if(!b||b.dead||b.flash>0||b.deadT>0)return false;if(b.type==='paradox'&&window.DLCX)return DLCX.hitBoss(b,n,viaDash);if(b.type==='knight'&&window.CH5X)return CH5X.hitBoss(b,n,viaDash);if(b.type==='midnight'&&window.NYX&&NYX.hitBoss)return NYX.hitBoss(b,n,viaDash);if(viaDash&&b.state==='wind'){n+=1;b.state='stun';b.timer=1.7;toast('打断成功！')}
  b.hp-=n;b.flash=.32;hitstop=.07;shake=Math.max(shake,6);AudioFX.sfx('hit');emit(b.x+b.w/2,b.y+b.h/2,'#ffd08a',22,260);var r=b.hp/b.max;b.phase=r<.34?2:r<.67?1:0;
  if(b.hp<=0){b.hp=0;b.deadT=.01;b.state='dying';R.proj=[];R.warns=[];R.fire=[];AudioFX.sfx('roar')}return true}
 /* ---------- 玩家 ---------- */
@@ -636,7 +677,7 @@ function scanCodex(){if(TEST||!R||!P)return;var x0=cam.x-40,x1=cam.x+vw+40,y0=ca
 function checkAch(){if(TEST)return;if(!inDLC&&Meta.checkDLCUnlock()){Meta.flush();AudioFX.sfx('win');toast('🌀 DLC「未竟之梦」已解锁！在标题页的 DLC 菜单进入',4200)}var a=Meta.check(campaign);Meta.flush();if(a.length){AudioFX.sfx('win');toast('🏆 成就解锁：'+a.map(function(x){return x.n}).join('、'),3600)}}
 /* ---------- 流程 ---------- */
 function show(id,on){$(id).classList.toggle('hidden',!on)}
-function hideMenus(){['menu','chapters','pause','settings','ending','testDone','saves','achv','codex','changelog'].forEach(function(id){show(id,false)})}
+function hideMenus(){['menu','chapters','pause','settings','ending','testDone','saves','achv','codex','changelog','fashion'].forEach(function(id){show(id,false)})}
 /* 地铁历险：本关还没捡的黄色水晶数（只有战役带 requireYellow 才计，其余战役恒为 0） */
 function yellowLeft(){if(!inDLC||!campaign.requireYellow||!R||!R.xblue)return 0;var n=0;R.xblue.forEach(function(d){if(d.kind==='yellowshard'&&!d.got)n++});return n}
 function objText(){var lv=campaign.chapters[ci].levels[li];if(R&&R.lv&&R.lv.egg)return '';var yl=yellowLeft(),t='目标：'+(lv.objective||'找到出口');if(inDLC&&campaign.requireYellow&&R&&R.xblue){var tot=R.xblue.filter(function(d){return d.kind==='yellowshard'}).length;if(tot)t+='（黄色水晶 '+(tot-yl)+'/'+tot+'）'}return t}
@@ -723,13 +764,17 @@ function togglePause(force){
   $('pauseInfo').textContent=campaign.chapters[ci].name+' · '+campaign.chapters[ci].levels[li].name+' · 碎片 '+totalShards;
  }
 }
+/* 章节选择页的来源：'pause' 表示是从暂停页进来的，关闭时要退回暂停页。
+   原来 pChaptersBtn 关掉 pause 面板后没改 state，也没记住来源，
+   结果 closeChapters 什么都不做 → 暂停页消失但 state 仍是 'pause'，关卡永远停滞。 */
+var chaptersFrom='menu';
 function openChapters(){var box=$('chapterList');box.innerHTML='';campaign.chapters.forEach(function(ch,i){var d=document.createElement('div'),locked=i>unlocked,bi=GFX.B(ch.biome);d.className='ch-card'+(locked?' locked':'');d.style.setProperty('--tint',bi.accent);d.style.setProperty('--sky',bi.sky[0]);
   d.innerHTML='<button class="ch-main"'+(locked?' disabled':'')+'><em>0'+(i+1)+'</em><strong>'+esc(ch.name)+'</strong><small>'+esc(ch.subtitle||'')+'</small><span>'+(locked?'🔒 尚未解锁':'▶ 从本章开头（含剧情）')+'</span></button><div class="rooms"></div>';
-  if(!locked){d.querySelector('.ch-main').onclick=function(){hideMenus();AudioFX.init();startChapter(i)};var rb=d.querySelector('.rooms');ch.levels.forEach(function(l,j){var b=document.createElement('button');b.textContent=(j+1)+'. '+l.name.replace(/^\d+\s*·\s*/,'');b.onclick=function(){hideMenus();AudioFX.init();fade(function(){enterLevel(i,j)})};rb.appendChild(b)})}
-  box.appendChild(d)});show('chapters',true)}
+  if(!locked){d.querySelector('.ch-main').onclick=function(){hideMenus();AudioFX.init();startChapter(i)};var rb=d.querySelector('.rooms');ch.levels.forEach(function(l,j){var b=document.createElement('button');b.textContent=(j+1)+'. '+l.name.replace(/^\d+\s*·\s*/,'');b.onclick=function(){hideMenus();AudioFX.init();AudioFX.duck(false);fade(function(){enterLevel(i,j)})};rb.appendChild(b)})}
+  box.appendChild(d)});show('chapters',true);chaptersFrom=chaptersFrom||'menu'}
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
 function qa(sel){return Array.prototype.slice.call(document.querySelectorAll(sel))}
-function syncSettings(){$('setVolMusic').value=prefs.volMusic!=null?prefs.volMusic:55;$('setVolSfx').value=prefs.volSfx!=null?prefs.volSfx:85;applyVol();fillPadSel();$('setHpPos').value=prefs.hpPos||'auto';['infJump','infDash','speed','bossWeak'].forEach(function(k){$('setCh_'+k).checked=CH(k)});$('setCtlOp').value=prefs.ctlOp!=null?prefs.ctlOp:70;applyCtlOp();renderBinds();$('setLockHp').checked=!!prefs.lockHp;$('setMute').checked=!prefs.mute;qa('[name=ctlSize]').forEach(function(r){r.checked=+r.value===prefs.size});qa('[name=ctlMode]').forEach(function(r){r.checked=r.value===prefs.controls});FX_KEYS.forEach(function(k){qa('[name=fx_'+k+']').forEach(function(r){r.checked=r.value===(prefs.fx[k]||'auto')});$('fxNow_'+k).textContent=fxOn(k)?'开':'关'});$('modeNow').textContent=({split:'分开',cluster:'聚集',hidden:'隐藏'})[uiMode()]||''}
+function syncSettings(){$('setVolMusic').value=prefs.volMusic!=null?prefs.volMusic:55;$('setVolSfx').value=prefs.volSfx!=null?prefs.volSfx:85;applyVol();fillPadSel();$('setHpPos').value=prefs.hpPos||'auto';['infJump','infDash','speed','bossWeak'].forEach(function(k){$('setCh_'+k).checked=CH(k)});$('setCh_bossWeakMul').value=bossWeakMul();$('bossWeakMulVal').textContent='×'+bossWeakMul();$('setCtlOp').value=prefs.ctlOp!=null?prefs.ctlOp:70;applyCtlOp();renderBinds();$('setLockHp').checked=!!prefs.lockHp;$('setMute').checked=!prefs.mute;qa('[name=ctlSize]').forEach(function(r){r.checked=+r.value===prefs.size});qa('[name=ctlMode]').forEach(function(r){r.checked=r.value===prefs.controls});FX_KEYS.forEach(function(k){qa('[name=fx_'+k+']').forEach(function(r){r.checked=r.value===(prefs.fx[k]||'auto')});$('fxNow_'+k).textContent=fxOn(k)?'开':'关'});$('modeNow').textContent=({split:'分开',cluster:'聚集',hidden:'隐藏'})[uiMode()]||''}
 /* 按钮 */
 function on(id,fn){var el=$(id);if(el)el.addEventListener('click',function(e){AudioFX.init();AudioFX.sfx('select');fn(e)})}
 on('newBtn',function(){openSaves('new')});
@@ -737,10 +782,11 @@ on('continueBtn',function(){var n=Meta.newest();if(n>=0)loadSlot(n)});
 on('savesBtn',function(){openSaves('menu')});
 on('achvBtn',function(){MetaUI.renderAchv();show('achv',true)});
 on('codexBtn',function(){MetaUI.renderCodex();show('codex',true)});
-on('chaptersBtn',function(){var n=Meta.newest(),s=n<0?null:fixSave(Meta.slots()[n]);if(s){slot=n;applySave(s)}openChapters()});
+on('chaptersBtn',function(){var n=Meta.newest(),s=n<0?null:fixSave(Meta.slots()[n]);if(s){slot=n;applySave(s)}chaptersFrom='menu';openChapters()});
 on('settingsBtn',function(){syncSettings();show('settings',true)});
-on('closeChapters',function(){show('chapters',false);if(state==='menu')show('menu',true)});
+on('closeChapters',function(){show('chapters',false);if(chaptersFrom==='pause'){show('pause',true);return}if(state==='menu')show('menu',true)});
 on('closeSettings',function(){cancelCaps();show('settings',false)});
+on('closeFashion',function(){show('fashion',false)});
 on('closeSaves',function(){show('saves',false)});
 on('closeAchv',function(){show('achv',false)});
 on('closeCodex',function(){show('codex',false)});
@@ -748,10 +794,14 @@ on('pSavesBtn',function(){if(inDLC){toast('DLC 进度会在信标灯和过关时
 on('pauseBtn',function(){togglePause()});
 on('muteBtn',function(){prefs.mute=!prefs.mute;savePrefs();applyPrefs()});
 on('resumeBtn',function(){togglePause()});
-on('restartBtn',function(){show('pause',false);AudioFX.duck(false);fade(function(){enterLevel(ci,li)})});
-on('pChaptersBtn',function(){show('pause',false);AudioFX.duck(false);openChapters()});
+on('restartBtn',function(){show('pause',false);AudioFX.duck(false);state='play';fade(function(){enterLevel(ci,li)})});
+/* 从暂停页进入章节选择：保留 state='pause'，关掉章节页时退回暂停页。
+   原来这里直接 show('pause',false) 却没改 state，导致：
+   暂停页消失 → 章节页关闭后 closeChapters 只处理 state==='menu' →
+   什么都不显示，且 state 卡在 'pause'，主循环不再推进物理，关卡永久停滞。 */
+on('pChaptersBtn',function(){chaptersFrom='pause';show('pause',false);openChapters()});
 on('pSettingsBtn',function(){syncSettings();show('settings',true)});
-on('titleBtn',function(){AudioFX.duck(false);saveGame(true);titleScreen()});
+on('titleBtn',function(){show('pause',false);AudioFX.duck(false);state='menu';saveGame(true);titleScreen()});
 on('endTitle',function(){titleScreen()});
 on('fullBtn',function(){var d=document.documentElement;try{if(!document.fullscreenElement&&!document.webkitFullscreenElement){(d.requestFullscreen||d.webkitRequestFullscreen).call(d)}else{(document.exitFullscreen||document.webkitExitFullscreen).call(document)}}catch(e){toast('此浏览器不支持全屏')}});
 on('resetBtn',function(){if(confirm('确定重置游戏？\n将清除全部 3 个存档、所有成就、晶体、图鉴记录和 DLC 解锁情况，无法恢复。')){Meta.resetGame();LS.del(L15.STORAGE.save);slot=-1;got={};totalShards=0;totalBlue=0;unlocked=0;toast('游戏已重置');if(state==='menu')titleScreen()}});
@@ -760,6 +810,11 @@ on('tdBack',function(){location.href='editor.html'});
 $('setPadSel').onchange=function(e){prefs.padIdx=e.target.value==='auto'?null:+e.target.value;padPrevAll=[];savePrefs();toast(prefs.padIdx==null?'手柄：自动选择':'已选择 '+(prefs.padIdx+1)+' 号手柄',1400)};
 $('setHpPos').onchange=function(e){prefs.hpPos=e.target.value;applyHpPos();savePrefs()};
 ['infJump','infDash','speed','bossWeak'].forEach(function(k){$('setCh_'+k).onchange=function(e){prefs.cheat[k]=e.target.checked;applyCheat();savePrefs();if(cheatOn)toast('作弊已开启：本次通关不计入「无伤」成就',2200)}});
+/* Boss 易伤倍率 2~5 倍。
+   拖倍率滑杆时自动把「Boss 易伤」勾上 —— 否则用户只调倍率会发现完全没反应，
+   因为真正生效的是那个复选框。（仍算作弊，会影响「无伤」类成就统计。） */
+$('setCh_bossWeakMul').oninput=function(e){prefs.cheat.bossWeakMul=+e.target.value;$('bossWeakMulVal').textContent='×'+prefs.cheat.bossWeakMul;if(!CH('bossWeak')){prefs.cheat.bossWeak=true;$('setCh_bossWeak').checked=true;applyCheat()}savePrefs()};
+$('setCh_bossWeakMul').onchange=function(e){prefs.cheat.bossWeakMul=+e.target.value;$('bossWeakMulVal').textContent='×'+prefs.cheat.bossWeakMul;savePrefs();toast('Boss 易伤倍率：×'+prefs.cheat.bossWeakMul+(CH('bossWeak')?'（易伤已开启）':'（未勾选易伤，不生效）'),1800)};
 $('setVolMusic').oninput=function(e){prefs.volMusic=+e.target.value;applyVol();savePrefs()};
 $('setVolSfx').oninput=function(e){prefs.volSfx=+e.target.value;applyVol();savePrefs();AudioFX.sfx('select')};
 $('setCtlOp').oninput=function(e){prefs.ctlOp=+e.target.value;applyCtlOp();savePrefs()};
@@ -862,7 +917,7 @@ if(window.Assets&&Assets.ready)Assets.ready(boot);else boot();
 requestAnimationFrame(frame);
 function collectBlue(d){var gk=gkey();(got[gk]=got[gk]||{})[d.id]=1;totalBlue++;$('objective').textContent=objText();if(d.kind==='yellowshard')MM.yellowShard('dlc'+ci+'-'+li,d.id);else if(d.kind!=='gift')MM.blueShard('dlc'+ci+'-'+li,d.id);$('shardNum').textContent=totalBlue;AudioFX.sfx('shard');var yl=d.kind==='yellowshard',gf=d.kind==='gift';emit(d.x+16,d.y+16,gf?'#ff6a8a':yl?'#ffd84a':'#6db8ff',18,220);toast((gf?'🎁 礼物':'◆ '+(yl?'黄色水晶':'蓝色碎片'))+' +1（'+totalBlue+'）',1400)}
 function bossDone(){R.bossGone=true;MM.boss('paradox');flashA=.6;AudioFX.sfx('win');saveGame(true)}
-window.L15Game={get state(){return state},get R(){return R},get P(){return P},enterLevel:enterLevel,startChapter:startChapter,startDLCRun:startDLCRun,get inDLC(){return inDLC},get campaign(){return campaign},setCampaign:setCampaign};
+window.L15Game={setFashionPref:function(o,f){prefs.outfit=Math.max(0,Math.min(GFX.OUTFITS.length-1,o|0));prefs.face=Math.max(0,Math.min(GFX.FACES.length-1,f|0));savePrefs();applyFashion();return {outfit:prefs.outfit,face:prefs.face}},getFashionPref:function(){return {outfit:prefs.outfit,face:prefs.face}},get state(){return state},get R(){return R},get P(){return P},enterLevel:enterLevel,startChapter:startChapter,startDLCRun:startDLCRun,get inDLC(){return inDLC},get campaign(){return campaign},setCampaign:setCampaign};
 if(params.get('egg')==='1')window.addEventListener('load',function(){setTimeout(function(){hideMenus();eggRoom=true;state='play';enterLevel(4,0)},300)});
 if(params.get('boss')==='1')window.addEventListener('load',function(){setTimeout(function(){hideMenus();eggRoom=false;enterLevel(4,5)},300)}); /* 调试：?boss=1 直接进骑士战 */ /* 调试：?egg=1 直接进彩蛋房 */
 })();

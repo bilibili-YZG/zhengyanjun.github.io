@@ -26,7 +26,7 @@ C.chapters.forEach(function(ch,ci){ch.levels.forEach(function(lv,li){total++;var
  if(sp.length!==1)out.push('E 出生点数量='+sp.length);if(ex.length!==1)out.push('E 出口数量='+ex.length);
  if(of('boss').length>1)out.push('E 多个 Boss');
  O.forEach(function(o){var inf=L.INFO[o.kind];if(!inf){out.push('E 未知物件 '+o.kind);return}
-  if(o.x<0||o.y<0||o.x+o.w>W||o.y+o.h>H)out.push('W 越界 '+o.kind+'@'+o.x+','+o.y);
+  if(o.x<0||o.y<0||o.x+o.w>W||o.y+o.h>H){if(inf.g==='background')out.push('W 装饰物越界 '+o.kind+'@'+o.x+','+o.y+'（装饰物可摆在画面外）');else out.push('W 越界 '+o.kind+'@'+o.x+','+o.y)}
   if(o.kind==='shard'||o.kind==='blueshard'||o.kind==='yellowshard'||o.kind==='heart'||o.kind==='dashgem'){if(solid(cell(o.x,o.y)))out.push('E '+o.kind+' 嵌在地块里 @'+o.x+','+o.y)}
   if(inf.g==='enemy'||inf.g==='npc'){for(var yy=o.y;yy<o.y+o.h;yy++)for(var xx=o.x;xx<o.x+o.w;xx++)if(solid(cell(xx,yy))){out.push('W '+o.kind+' 与地块重叠 @'+o.x+','+o.y);yy=999;break}}
  });
@@ -51,6 +51,51 @@ C.chapters.forEach(function(ch,ci){ch.levels.forEach(function(lv,li){total++;var
  var seen={},q=[];if(start){seen[start.k]=1;q.push(start)}else out.push('E 出生点下方没有可站立的位置');
  var qi=0;while(qi<q.length){var a=q[qi++];for(var m=0;m<list.length;m++){var b=list[m];if(seen[b.k])continue;if(Math.abs(b.x-a.x)>12)continue;if(reach(a,b)){seen[b.k]=1;q.push(b)}}}
  function near(px,py,rw,rh,mx,mUp,mDown){return q.some(function(a){return a.x>=px-mx&&a.x<=px+rw-1+mx&&Math.abs(a.r-(py+rh))<=Math.max(mUp,mDown)})}
+ /* ---- 滑翔（纸飞机）可达性 ----
+    游戏里：拾到纸飞机后 8 秒内，空中按住跳跃可以滑翔（下落速度压到 34px/帧），
+    水平速度由风决定（最大 330px/帧 ≈ 10 格/帧）。所以「跨过一道宽缺口」在验证器里
+    必须单独算，否则会误报「出口够不着」。
+    模型：只要这一关有纸飞机，玩家的可达集合就额外包含
+    「从任一可达点向前滑翔 20 格、下落不超过 14 格」的落点（路径上不能被地块从下往上顶住）。 */
+ var hasGlider=of('glider').length>0;
+ if(hasGlider){
+  var glideNodes=[];
+  q.forEach(function(fa){
+   list.forEach(function(tb){
+    var dx=tb.x-fa.x,dy=tb.r-fa.r;
+    if(dx<2||dx>20)return;
+    if(dy<-3||dy>14)return;
+    /* 路径检查：滑翔在空中越过，落地前不能撞上"从下方顶上来"的地块。
+       只查 fa.r ~ tb.r-1 这一段（tb.r 那一行是落点自己的地板，不算挡路） */
+    var blocked=false;
+    for(var x=fa.x;x<=tb.x&&!blocked;x++){
+     for(var y=fa.r;y<=tb.r-1;y++){
+      if(solid(cell(x,y))){blocked=true;break}}
+    }
+    if(blocked)return;
+    glideNodes.push(tb);
+   })
+  });
+  glideNodes.forEach(function(tb){if(!seen[tb.k]){seen[tb.k]=1;q.push(tb)}});
+  /* 滑翔还能继续滑 → 用新加入的点再滑一轮 */
+  for(var pass=0;pass<3;pass++){
+   var added=0;
+   q.forEach(function(fa){
+    list.forEach(function(tb){
+     if(seen[tb.k])return;
+     var dx=tb.x-fa.x,dy=tb.r-fa.r;
+     if(dx<2||dx>20)return;
+     if(dy<-3||dy>14)return;
+     var blocked=false;
+     for(var x=fa.x;x<=tb.x&&!blocked;x++){
+      for(var y=fa.r;y<=tb.r-1;y++){if(solid(cell(x,y))){blocked=true;break}}}
+     if(blocked)return;
+     seen[tb.k]=1;q.push(tb);added++;
+    })
+   });
+   if(!added)break;
+  }
+ }
  ex.forEach(function(e){if(start&&!near(e.x,e.y,e.w,e.h,1,1.5,1.5))out.push('E 出口够不着 @'+e.x+','+e.y)});
  var unreachShards=0;O.forEach(function(o){if(!start)return;
   if(o.kind==='shard'||o.kind==='blueshard'||o.kind==='yellowshard'){if(!q.some(function(a){return Math.abs(a.x-o.x)<=2&&a.r-o.y<=4.6&&a.r-o.y>=-3}))out.push('W 碎片可能够不着 @'+o.x+','+o.y)}

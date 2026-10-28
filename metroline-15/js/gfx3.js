@@ -3,14 +3,35 @@
 var G=window.GFX,ell=G.ell,glow=G.glow;
 var FORMULAS=['F = ma','v = v₀ + at','E = ½mv²','p = mv','W = Fs','G = mg','v = s / t','ρ = m / V','p = F / S','I = U / R','P = UI','Q = I²Rt','F浮 = ρ液gV排','η = W有 / W总','Ek = ½mv²','Ep = mgh','f = μN','n = sinθ₁ / sinθ₂'];
 var EX={
+ /* 黑板：字号按板宽自适应，长公式自动换行，行距不重叠；右侧画一小块粉笔槽而不是压在字上的三角形 */
  blackboard:function(g,o,t,b){var x=o.x,y=o.y,w=o.w,h=o.h;
   g.fillStyle='#7a5a3a';g.beginPath();g.roundRect(x,y,w,h,6);g.fill();
   g.fillStyle='#24392f';g.beginPath();g.roundRect(x+5,y+5,w-10,h-10,4);g.fill();
-  g.fillStyle='#e8f3ee';g.globalAlpha=.85;g.font='bold '+Math.min(15,h*.22)+'px "Noto Sans SC",sans-serif';g.textAlign='left';
   var i0=(Math.floor(o.x/32)+Math.floor(o.y/32))%FORMULAS.length,own=o.label&&o.label.indexOf('=')>=0?o.label.split('；'):null;
-  if(own){own.slice(0,3).forEach(function(s,k){g.fillText(s,x+12,y+h*(.34+k*.22))})}else{g.fillText(FORMULAS[i0],x+12,y+h*.36);g.fillText(FORMULAS[(i0+2)%FORMULAS.length],x+12,y+h*.62)}
-  g.strokeStyle='#e8f3ee';g.lineWidth=1.5;g.beginPath();g.moveTo(x+w*.55,y+h*.7);g.lineTo(x+w*.9,y+h*.35);g.lineTo(x+w*.9,y+h*.7);g.closePath();g.stroke();
-  g.globalAlpha=1;g.fillStyle='#d9d2c4';g.fillRect(x+10,y+h-4,w*.3,3)},
+  var lines=[];if(own){own.slice(0,3).forEach(function(s){lines.push(s)})}else{lines.push(FORMULAS[i0]);lines.push(FORMULAS[(i0+2)%FORMULAS.length])}
+  /* 粉笔槽（画在板面下缘，不再有三角形压住文字） */
+  g.fillStyle='#d9d2c4';g.fillRect(x+10,y+h-5,w*.34,3);
+  /* 字号自适应：从 15px 往下试，每个字号都重新排版（换行 + 高度），
+     取第一个"宽度不超、全部行装得进板面"的字号；都装不下就用最小的并压缩行距。 */
+  var pad=12,avail=w-pad*2,innerH=h-12,fs=15,all=[],gap=0,found=false;
+  function wrapAt(s,px){g.font='bold '+px+'px "Noto Sans SC",sans-serif';
+   var out=[],cur='';for(var i=0;i<s.length;i++){cur+=s[i];if(g.measureText(cur).width>avail){out.push(cur.slice(0,-1));cur=s[i]}}if(cur)out.push(cur);return out}
+  for(var f=15;f>=8;f--){
+   var cand=[];lines.forEach(function(s){cand=cand.concat(wrapAt(s,f))});
+   var gp=f*1.15+1;
+   if(cand.length*gp<=innerH){fs=f;all=cand;gap=gp;found=true;break}
+   if(f===8){fs=8;all=cand}
+  }
+  if(!found){
+   /* 最小字号仍装不下：压行距到刚好铺满板面（字号保持 8） */
+   gap=Math.max(8,innerH/Math.max(1,all.length));
+   fs=Math.min(fs,gap/1.15);
+  }
+  g.font='bold '+fs+'px "Noto Sans SC",sans-serif';
+  g.fillStyle='#e8f3ee';g.globalAlpha=.9;g.textAlign='left';g.textBaseline='middle';
+  var ty=y+9+gap/2;
+  all.forEach(function(s){g.fillText(s,x+pad,ty);ty+=gap});
+  g.textBaseline='alphabetic';g.globalAlpha=1},
  banner:function(g,o,t,b){var x=o.x,y=o.y,w=o.w,h=o.h,k=Math.sin(t*2.4+x*.05)*5;
   g.fillStyle='#4a5560';g.fillRect(x+w/2-2,y,4,h);g.fillStyle=b.accent;
   g.beginPath();g.moveTo(x+w/2+2,y+4);g.quadraticCurveTo(x+w/2+22,y+10+k,x+w/2+34,y+8);g.lineTo(x+w/2+34,y+h*.55);g.quadraticCurveTo(x+w/2+20,y+h*.55+k,x+w/2+2,y+h*.55+4);g.closePath();g.fill();

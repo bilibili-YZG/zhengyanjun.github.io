@@ -39,9 +39,18 @@ var target=null;
 function dlcInfo(id){var r=window.DLC_REGISTRY||[];for(var i=0;i<r.length;i++)if(r[i].id===id)return r[i];return null}
 function draftKey(id){return id?DRAFT+'-dlc-'+id:DRAFT}
 function pubKey(id){return id?'line15-dlc-campaign-'+id:L15.STORAGE.campaign}
+/* 没有源码的 DLC：造一个"占位战役"当作它的源码基准。
+   注意 blankLevel() 里的物件 id 是 uid() 随机生成的 —— 直接用会让每次算出来的
+   指纹都不一样，于是每次切进这个 DLC 都误报「源码与草稿不一致」，而且永远同步不干净。
+   这里把 id 固定成确定性的（o1、o2…），让指纹稳定。 */
+function placeholderCampaign(id){
+  var d=dlcInfo(id),fs=d&&d.firstScene||String(id).replace(/[^\w-]/g,'')+'_1';
+  var l=L15.blankLevel(fs+'-01 · 新房间');
+  var n=0;l.objects.forEach(function(o){o.id='o'+(++n)});
+  return {format:'line15-campaign',version:3,name:(d?d.name:id)+' · DLC',isDLC:true,prologue:[],epilogue:[],chapters:[{id:fs,jsName:fs,name:fs,subtitle:'',biome:'snow',intro:[],outro:[],levels:[l]}]}
+}
 function srcCampaign(id){if(!id)return clone(window.CAMPAIGN_DEFAULT);var d=dlcInfo(id),s=d&&window[d.campaignId];
-  if(s&&s.chapters&&s.chapters.length)return clone(s);var fs=d&&d.firstScene||String(id).replace(/[^\w-]/g,'')+'_1',l=L15.blankLevel(fs+'-01 · 新房间');
-  return{format:'line15-campaign',version:3,name:(d?d.name:id)+' · DLC',isDLC:true,prologue:[],epilogue:[],chapters:[{id:fs,jsName:fs,name:fs,subtitle:'',biome:'snow',intro:[],outro:[],levels:[l]}]}}
+  if(s&&s.chapters&&s.chapters.length)return clone(s);return placeholderCampaign(id)}
 /* 读取某个目标当前的内容（草稿 > 已发布 > 源码），不改变编辑状态 */
 function peekCampaign(id){if(id===target)return proj;var d=LS.get(draftKey(id)),c=d&&d.campaign||LS.get(pubKey(id)),r;try{r=normCampaign(c?clone(c):srcCampaign(id))}catch(e){r=normCampaign(srcCampaign(id))}registerProjThemes();return r}
 function defaultName(){return target?((dlcInfo(target)||{}).name||target)+' · DLC':'15号线大冒险 · 主线'}
@@ -165,7 +174,7 @@ function renderLinks(){var l=cur(),ul=$('linkList');ul.innerHTML='';if(!l.links.
 
 /* ================= 图鉴 ================= */
 var tool='select',kind='ground',brush=1,bossType=null;
-var BOSSES=[['ice','Boss1 风雪稽查员'],['root','Boss2 枯根傀儡'],['spore','Boss3 孢子母巢'],['lava','Boss4 守线者'],['paradox','DLC 悖论（三段血条）']],BN={ice:'风雪稽查员',root:'枯根傀儡',spore:'孢子母巢',lava:'守线者',paradox:'悖论'};
+var BOSSES=[['ice','Boss1 风雪稽查员'],['root','Boss2 枯根傀儡'],['spore','Boss3 孢子母巢'],['lava','Boss4 引路人'],['paradox','DLC 悖论（三段血条）']],BN={ice:'风雪稽查员',root:'枯根傀儡',spore:'孢子母巢',lava:'引路人',paradox:'悖论'};
 function bossName(t){for(var i=0;i<BOSSES.length;i++)if(BOSSES[i][0]===t)return BOSSES[i][1];return 'Boss'}
 function bgBoss(bg){return ({snow:'ice',forest:'root',underground:'spore',lava:'lava'})[bg]||'lava'}
 function setBoss(o,t){var dn=!o.dialogue||Object.keys(BN).some(function(k){return BN[k]===o.dialogue});o.props.boss=t;if(dn)o.dialogue=BN[t]}
@@ -286,7 +295,7 @@ var UNIQUE={spawn:1,exit:1,boss:1};
 function placeAt(c){var l=cur(),d=INFO[kind],pos=placePos(c,d.w,d.h);change();
   if(UNIQUE[kind]){var ex=l.objects.filter(function(o){return o.kind===kind})[0];if(ex){ex.x=pos.x;ex.y=pos.y;if(kind==='boss'&&bossType)setBoss(ex,bossType);sel=ex.id;showProps();render();saved();toast(d.n+'每个房间只有一个，已移动到新位置',1600);return}}
   var p={},k;for(k in d.p)p[k]=d.p[k];if(kind==='boss')p.boss=bossType||bgBoss(l.background);
-  var dlg={worker:'巡线员：……',child:'孩子：老师……',ranger:'守林人：……',squirrel:'小松鼠：……',robot:'维修机器人：滴——',hologram:'投影：……',traveler:'旅客：……',stationmaster:'站务员：……',sign:'路牌：写点什么吧。',trigger:'我：……',boss:({ice:'风雪稽查员',root:'枯根傀儡',spore:'孢子母巢',lava:'守线者'})[p.boss]}[kind]||'';
+  var dlg={worker:'巡线员：……',child:'孩子：老师……',ranger:'守林人：……',squirrel:'小松鼠：……',robot:'维修机器人：滴——',hologram:'投影：……',traveler:'旅客：……',stationmaster:'站务员：……',sign:'路牌：写点什么吧。',trigger:'我：……',boss:({ice:'风雪稽查员',root:'枯根傀儡',spore:'孢子母巢',lava:'引路人'})[p.boss]}[kind]||'';
   var o={id:L15.uid(),type:d.g,kind:kind,x:pos.x,y:pos.y,w:d.w,h:d.h,label:d.n.replace(/\(.*\)/,''),dialogue:dlg,props:p};l.objects.push(o);sel=o.id;showProps();render();saved();renderTree()}
 var LINK_SRC={switch:1,plate:1},LINK_DST={gate:1,moving:1,lift:1,laser:1};
 function linkClick(c){var o=hit(c),l=cur();if(!o){linkFrom=null;render();return}
@@ -312,7 +321,7 @@ window.addEventListener('keyup',function(e){if(e.key===' ')spaceDown=false});
 function dupSel(){if(!sel)return;var o=obj(sel);if(!o||UNIQUE[o.kind]){toast('出生点 / 出口 / Boss 不能复制');return}change();var c=clone(o),l=cur();c.id=L15.uid();c.x=clamp(o.x+1,0,l.width-o.w);c.y=clamp(o.y,0,l.height-o.h);l.objects.push(c);sel=c.id;showProps();render();saved()}
 
 /* ================= 属性面板 ================= */
-var PROPS={delay:['延迟（秒）','n'],respawn:['重生时间（秒）','n'],strength:['风力强度','n'],range:['巡逻范围（格）','n'],dir:['朝向（-1 左 / 1 右）','n'],rate:['射击间隔（秒）','n'],boss:['Boss 类型','s',[['ice','Boss1 风雪稽查员（冲撞/雪球/冰锥）'],['root','Boss2 枯根傀儡（树根/纸片/重踏）'],['spore','Boss3 孢子母巢（追踪孢子/孢子雨/召唤）'],['lava','Boss4 守线者（全部招式）'],['paradox','DLC 悖论（三个形态，需配套的竞技场/走廊/竖井）']]],hp:['生命值','n'],period:['周期（秒）','n'],phase:['相位（0 或 1 错开）','n'],hold:['离开后保持开启（秒）','n'],dx:['水平移动（格，负=向左）','n'],dy:['垂直移动（格，负=向上）','n'],speed:['速度','n'],once:['只触发一次（1/0）','n']};
+var PROPS={delay:['延迟（秒）','n'],respawn:['重生时间（秒）','n'],strength:['风力强度','n'],range:['巡逻范围（格）','n'],dir:['朝向（-1 左 / 1 右）','n'],rate:['射击间隔（秒）','n'],boss:['Boss 类型','s',[['ice','Boss1 风雪稽查员（冲撞/雪球/冰锥）'],['root','Boss2 枯根傀儡（树根/纸片/重踏）'],['spore','Boss3 孢子母巢（追踪孢子/孢子雨/召唤）'],['lava','Boss4 引路人（全部招式）'],['paradox','DLC 悖论（三个形态，需配套的竞技场/走廊/竖井）']]],hp:['生命值','n'],period:['周期（秒）','n'],phase:['相位（0 或 1 错开）','n'],hold:['离开后保持开启（秒）','n'],dx:['水平移动（格，负=向左）','n'],dy:['垂直移动（格，负=向上）','n'],speed:['速度','n'],once:['只触发一次（1/0）','n']};
 var EXTRA={plate:['hold'],laser:['period','phase']};PROPS.hidden=['游戏里隐形（工坊里半透明显示，仍可互动）','s',[['','否：正常显示'],['1','是：游戏中不显示']]];Object.keys(INFO).forEach(function(k){if(INFO[k].g==='npc'||INFO[k].g==='sign')EXTRA[k]=(EXTRA[k]||[]).concat('hidden')});PROPS.mode=['多次对话的顺序','s',[['seq','顺序：依次说，说完停在最后一段'],['loop','循环：说完回到第一段'],['random','随机：每次随机一段（不连续重复）']]];
 var DLG_KINDS={npc:1,sign:1,trigger:1};
 function showProps(){var box=$('props'),o=sel?obj(sel):null;$('stSel').textContent=o?('选中：'+o.label+' ('+o.x+','+o.y+')'):'';
@@ -389,13 +398,34 @@ $('fileInput').onchange=function(e){var f=e.target.files[0];if(!f)return;var r=n
     if(d.format==='line15-custom-level'&&d.level){var lv=normLevel(d.level);change();chap().levels.splice(li+1,0,lv);selectLevel(ci,li+1);toast('已把房间「'+lv.name+'」插入到当前房间之后')}
     else{var c=normCampaign(d);if(!confirm('导入的主线有 '+c.chapters.length+' 章，将替换当前草稿（可撤销），继续？'))return;change();proj=c;ci=0;li=0;tilesDirty=true;refreshAll();fit();toast('已导入「'+c.name+'」')}saved()}catch(err){alert('导入失败：'+err.message)}};r.readAsText(f,'utf-8');e.target.value=''};
 $('moreBtn').onclick=function(e){e.stopPropagation();$('moreMenu').classList.toggle('hidden')};document.addEventListener('click',function(){$('moreMenu').classList.add('hidden')});
-function syncFromSource(){change();proj=normCampaign(srcCampaign(target));ci=clamp(ci,0,proj.chapters.length-1);li=clamp(li,0,proj.chapters[ci].levels.length-1);sel=null;draftBase=SRCBASE(target);tilesDirty=true;refreshAll();fit();saved();toast('已同步：载入游戏源码里的 '+proj.chapters.length+' 章 '+proj.chapters.reduce(function(a,c){return a+c.levels.length},0)+' 个房间')}
-function askSync(){if(confirm('游戏源码里的关卡（'+(target?'DLC：js/levels/d1-01 …':'js/levels/c1-01 … c5-NN')+'）与工坊草稿不一致。\n\n确定：载入游戏当前关卡（覆盖草稿，可撤销）\n取消：保留草稿')){syncFromSource()}else{draftBase=SRCBASE(target);saved()}}
+function syncFromSource(){
+  /* 自定义 DLC 没有源码 —— 同步等于清空，直接拦下 */
+  if(target&&!hasSrc(target)){toast('这个 DLC 没有源码关卡，没有可同步的内容。');return}
+  change();proj=normCampaign(srcCampaign(target));ci=clamp(ci,0,proj.chapters.length-1);li=clamp(li,0,proj.chapters[ci].levels.length-1);sel=null;draftBase=SRCBASE(target);tilesDirty=true;refreshAll();fit();saved();toast('已同步：载入游戏源码里的 '+proj.chapters.length+' 章 '+proj.chapters.reduce(function(a,c){return a+c.levels.length},0)+' 个房间')}
+function askSync(){
+  /* 自定义 DLC 没有源码，不该弹"源码与草稿不一致"（而且占位战役是空的，同步会清空草稿） */
+  if(target&&!hasSrc(target)){draftBase=SRCBASE(target);saved();return}
+  if(confirm('游戏源码里的关卡（'+(target?'DLC：js/levels/d1-01 …':'js/levels/c1-01 … c5-NN')+'）与工坊草稿不一致。\n\n确定：载入游戏当前关卡（覆盖草稿，可撤销）\n取消：保留草稿')){syncFromSource()}else{draftBase=SRCBASE(target);saved()}}
 $('resetDefaultBtn').textContent='同步：载入游戏源码关卡（覆盖草稿）';
-$('resetDefaultBtn').onclick=function(){if(!confirm(target?'用 DLC 源码里的关卡替换当前草稿？（可撤销）':'用游戏源码里的关卡（js/levels/c1-01 … c5-NN）替换当前草稿？（可撤销）'))return;syncFromSource()};
+$('resetDefaultBtn').onclick=function(){
+  /* 自定义 DLC（没有源码）不存在"同步"这回事 —— 同步只会把它恢复成一个空房间，
+     等于把用户做的东西清掉。这种情况改为提示"没有源码可同步"。 */
+  if(target&&!hasSrc(target)){
+    toast('这个 DLC 没有源码关卡（是你在工坊里新建的），没有可同步的内容。草稿已自动保存。');
+    return;
+  }
+  if(!confirm(target?'用 DLC 源码里的关卡替换当前草稿？（可撤销）':'用游戏源码里的关卡（js/levels/c1-01 … c5-NN）替换当前草稿？（可撤销）'))return;
+  syncFromSource()};
 (function(){var b=document.createElement('button');b.textContent='导出本关为游戏关卡 .js';b.onclick=exportLevelJs;$('moreMenu').insertBefore(b,$('lockBtn'))})();
 $('loadPublishedBtn').onclick=function(){var p=LS.get(pubKey(target));if(!p){toast('游戏目前用的就是默认内容');return}change();proj=normCampaign(p);ci=0;li=0;tilesDirty=true;refreshAll();fit();saved();toast('已载入已发布的版本')};
-$('unpublishBtn').onclick=function(){if(!confirm(target?'让游戏恢复使用 DLC 源码里的默认关卡？（你的草稿不受影响）':'让游戏恢复使用默认主线？（你的草稿不受影响）'))return;LS.del(pubKey(target));if(target&&window.EditorDLC)EditorDLC.syncStats(target,srcCampaign(target));saved();toast('游戏已恢复默认内容')};
+$('unpublishBtn').onclick=function(){
+  /* 自定义 DLC 没有源码可"恢复" —— 取消发布 = 游戏里这个 DLC 暂时没有关卡可玩，
+     所以提示要说清楚，免得玩家以为"删了就没了"。 */
+  var noSrc=target&&!hasSrc(target);
+  if(!confirm(target?(noSrc?'取消发布后，游戏里这个 DLC 将暂时没有关卡可玩（草稿还在工坊里，重新发布即可恢复）。\n\n确定取消发布？':'让游戏恢复使用 DLC 源码里的默认关卡？（你的草稿不受影响）'):'让游戏恢复使用默认主线？（你的草稿不受影响）'))return;
+  LS.del(pubKey(target));
+  if(target&&window.EditorDLC)EditorDLC.syncStats(target,noSrc?null:srcCampaign(target));
+  saved();toast(noSrc?'已取消发布：游戏里这个 DLC 暂时没有关卡可玩':(target?'游戏已恢复默认内容':'游戏已恢复默认主线'))};
 $('undoBtn').onclick=doUndo;$('redoBtn').onclick=doRedo;
 
 /* ================= 标签页 / 刷新 ================= */
@@ -473,7 +503,7 @@ if(window.Assets&&Assets.onChange)Assets.onChange(function(){tilesDirty=true;thu
 function openTarget(id){id=id||null;if(id===target)return;
   clearTimeout(saveT);LS.set(draftKey(target),{campaign:strip(proj),ci:ci,li:li,base:draftBase,t:Date.now()});
   target=id;undo=[];redo=[];pending=null;updUndo();sel=null;linkFrom=null;
-  var d=LS.get(draftKey(id)),stale=false;try{if(d&&d.campaign){proj=normCampaign(d.campaign);draftBase=d.base||null;stale=!!id&&draftBase!==SRCBASE(id);ci=clamp(d.ci||0,0,proj.chapters.length-1);li=clamp(d.li||0,0,proj.chapters[ci].levels.length-1)}else throw 0}
+  var d=LS.get(draftKey(id)),stale=false;try{if(d&&d.campaign){proj=normCampaign(d.campaign);draftBase=d.base||null;stale=!!id&&hasSrc(id)&&draftBase!==SRCBASE(id);ci=clamp(d.ci||0,0,proj.chapters.length-1);li=clamp(d.li||0,0,proj.chapters[ci].levels.length-1)}else throw 0}
   catch(e){draftBase=SRCBASE(id);var pub=LS.get(pubKey(id));try{proj=normCampaign(pub?clone(pub):srcCampaign(id))}catch(e2){proj=normCampaign(srcCampaign(id))}ci=0;li=0}
   var tb=$('targetBar');if(tb){tb.classList.toggle('hidden',!id);var di=dlcInfo(id);$('targetName').textContent=id?((di?di.icon+' '+di.name:id)+'（DLC）'):''}
   document.querySelector('[data-tab="tree"]').textContent=id?'场景/关卡':'主线结构';
